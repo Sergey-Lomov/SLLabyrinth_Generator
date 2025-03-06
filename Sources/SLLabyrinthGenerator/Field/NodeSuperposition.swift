@@ -1,6 +1,6 @@
 //
 //  NodeSuperposition.swift
-//  SLLabirintGenerator
+//  SLLabyrinthGenerator
 //
 //  Created by serhii.lomov on 05.03.2025.
 //
@@ -8,7 +8,7 @@
 /// Node superposition
 final class NodeSuperposition<T> where T: Topology {
     var point: T.Point
-    var elementsSuperpositions: [any LabirintElementSuperposition] = []
+    var elementsSuperpositions: Array<LabyrinthElementSuperposition<T>> = []
 
     var entropy: Int {
         return
@@ -17,10 +17,7 @@ final class NodeSuperposition<T> where T: Topology {
             .reduce(0, +)
     }
 
-    init(
-        point: T.Point,
-        elementsSuperpositions: [any LabirintElementSuperposition]
-    ) {
+    init(point: T.Point, elementsSuperpositions: Array<LabyrinthElementSuperposition<T>>) {
         self.point = point
         self.elementsSuperpositions = elementsSuperpositions
     }
@@ -31,16 +28,18 @@ final class NodeSuperposition<T> where T: Topology {
         }
     }
 
-    func applyRestriction(_ restriction: ElementRestirction<T>) {
-        elementsSuperpositions.forEach { element in
-            let test = element.waveFunctionCollapse
-            if let e1 = element as? (any LabirintElementSuperposition) {
-                let test = e1.applyRestriction
-            }
+    func applyRestriction(_ restriction: ElementRestriction<T>) {
+        elementsSuperpositions.forEach {
+            $0.applyRestriction(restriction)
         }
+    }
+
+    func waveFunctionCollapse() -> LabyrinthElement<T>? {
+        let available = elementsSuperpositions.filter { $0.entropy > 0 }
+        return available.randomElement()?.waveFunctionCollapse()
     }
 }
 
 protocol ElementRestrictionApplicable {
-    func applyRestriction<T: Topology>(_ restriction: ElementRestirction<T>)
+    func applyRestriction<T: Topology>(_ restriction: ElementRestriction<T>)
 }

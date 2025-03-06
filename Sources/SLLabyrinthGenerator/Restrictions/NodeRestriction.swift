@@ -1,6 +1,6 @@
 //
-//  File.swift
-//  SLLabirintGenerator
+//  NodeRestriction.swift
+//  SLLabyrinthGenerator
 //
 //  Created by serhii.lomov on 05.03.2025.
 //
