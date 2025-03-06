@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class CartesianTopology: Topology {
+final class CartesianTopology: Topology {    
     typealias Point = CartesianPoint
     typealias Edge = CartesianEdge
 }
