@@ -14,6 +14,12 @@ class Deadend<T: Topology>: LabyrinthElement<T> {
     init(entrance: T.Edge) {
         self.entrance = entrance
     }
+
+    override func outcomeRestrictions(point: T.Point, field: Field<T>) -> OutcomeRestrictions {
+        edgesBasedOutcomeRestrictions(point: point) {
+            $0 == entrance
+        }
+    }
 }
 
 class DeadendSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
@@ -25,9 +31,9 @@ class DeadendSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
 
     override func applyRestriction(_ restriction: ElementRestriction<T>) {
         switch restriction {
-        case .WallRestriction(let edge):
+        case .wall(let edge):
             entrances = entrances.filter { $0 != edge }
-        case .PassageRestriction(let edge):
+        case .passage(let edge):
             entrances = entrances.filter { $0 == edge }
         }
     }

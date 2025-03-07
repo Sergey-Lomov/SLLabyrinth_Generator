@@ -14,6 +14,12 @@ class Junction<T: Topology>: LabyrinthElement<T> {
     init(entrances: Array<T.Edge>) {
         self.entrances = entrances
     }
+
+    override func outcomeRestrictions(point: T.Point, field: Field<T>) -> OutcomeRestrictions {
+        edgesBasedOutcomeRestrictions(point: point) {
+            entrances.contains($0)
+        }
+    }
 }
 
 class JunctionSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
@@ -25,9 +31,9 @@ class JunctionSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
 
     override func applyRestriction(_ restriction: ElementRestriction<T>) {
         switch restriction {
-        case .WallRestriction(let edge):
+        case .wall(let edge):
             vaiations = vaiations.filter { !$0.contains(edge) }
-        case .PassageRestriction(let edge):
+        case .passage(let edge):
             vaiations = vaiations.filter { $0.contains(edge) }
         }
     }

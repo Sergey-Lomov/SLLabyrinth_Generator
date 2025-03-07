@@ -6,6 +6,6 @@
 //
 
 enum ElementRestriction<T> where T: Topology {
-    case WallRestriction(edge: T.Edge)
-    case PassageRestriction(edge: T.Edge)
+    case wall(edge: T.Edge)
+    case passage(edge: T.Edge)
 }

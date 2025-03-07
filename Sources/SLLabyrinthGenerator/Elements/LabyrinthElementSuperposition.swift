@@ -7,6 +7,8 @@
 
 import Foundation
 
+protocol ElementSuperpositionProtocol {}
+
 /// This protocol describes the element superposition. This means an element with partially undetermined property values. For example, "deadend with an entrance from the north or from the west".
 class LabyrinthElementSuperposition<T: Topology> {
     /// Entropy refers to variations in possible superposition resolutions. Typically, entropy decreases when restrictions are applied.
@@ -23,4 +25,6 @@ class LabyrinthElementSuperposition<T: Topology> {
     /// For example, the superposition "deadend with entrance from south or west" may collapse to the element "deadend with entrance from south."
     /// - Returns: A new element, or nil if element creation fails (due to applied restrictions)
     func waveFunctionCollapse() -> LabyrinthElement<T>? { return nil }
+
+    required init() {}
 }

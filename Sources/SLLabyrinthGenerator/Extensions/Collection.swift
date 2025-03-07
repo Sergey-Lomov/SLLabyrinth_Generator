@@ -8,11 +8,15 @@
 import Foundation
 
 extension Collection {
+    subscript(safe index: Index) -> Element? {
+        indices.contains(index) ? self[index] : nil
+    }
+
     func pairs(allowDuplication: Bool = false) -> Array<(Element, Element)> where Element: Comparable {
         return reduce(into: Array<(Element, Element)>()) { arr, element in
             forEach {
                 if $0 != element || allowDuplication {
-                    var pair = (element, $0)
+                    let pair = (element, $0)
                     if !arr.containsPair(pair) {
                         arr.append(pair)
                     }

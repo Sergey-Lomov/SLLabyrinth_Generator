@@ -1,14 +1,14 @@
 //
-//  CartesianEdge.swift
+//  SquareEdge.swift
 //  SLLabyrinthGenerator
 //
 //  Created by serhii.lomov on 05.03.2025.
 //
 
-enum CartesianEdge: TopologyEdge {
+enum SquareEdge: TopologyEdge {
     case left, right, top, bottom
 
-    func opposite() -> CartesianEdge? {
+    func opposite() -> SquareEdge? {
         switch self {
         case .left: return .right
         case .right: return .left

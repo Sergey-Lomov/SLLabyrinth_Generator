@@ -14,6 +14,12 @@ class CornerPath<T: Topology>: LabyrinthElement<T> {
     init(path: (T.Edge, T.Edge)) {
         self.path = path
     }
+
+    override func outcomeRestrictions(point: T.Point, field: Field<T>) -> OutcomeRestrictions {
+        edgesBasedOutcomeRestrictions(point: point) {
+            path.0 == $0 || path.1 == $0
+        }
+    }
 }
 
 class CornerPathSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
@@ -25,9 +31,9 @@ class CornerPathSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
 
     override func applyRestriction(_ restriction: ElementRestriction<T>) {
         switch restriction {
-        case .WallRestriction(let edge):
+        case .wall(let edge):
             paths = paths.filter { $0 != edge && $1 != edge }
-        case .PassageRestriction(let edge):
+        case .passage(let edge):
             paths = paths.filter { $0 == edge || $1 == edge }
         }
     }
