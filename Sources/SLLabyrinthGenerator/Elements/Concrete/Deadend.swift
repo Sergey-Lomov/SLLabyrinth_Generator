@@ -8,17 +8,9 @@
 import Foundation
 
 /// A labyrinth element with only one entrance.
-class Deadend<T: Topology>: LabyrinthElement<T> {
-    let entrance: T.Edge
-
+class Deadend<T: Topology>: EdgeBasedElement<T> {
     init(entrance: T.Edge) {
-        self.entrance = entrance
-    }
-
-    override func outcomeRestrictions(point: T.Point, field: Field<T>) -> OutcomeRestrictions {
-        edgesBasedOutcomeRestrictions(point: point) {
-            $0 == entrance
-        }
+        super.init(passages: [entrance])
     }
 }
 

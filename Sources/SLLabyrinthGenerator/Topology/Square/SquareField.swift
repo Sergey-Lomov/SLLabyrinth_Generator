@@ -10,19 +10,16 @@ final class SquareField: Field<SquareTopology> {
     typealias SquareNode = Node<SquareTopology>
     typealias SquareSuperposition = NodeSuperposition<SquareTopology>
 
-    var nodes: Array<Array<SquareNode>> = []
-    var superpositions: Array<Array<SquareSuperposition>> = []
-
-    var allSuperpositions: Array<NodeSuperposition<SquareTopology>> {
-        superpositions.flatMap { $0 }
-    }
+    let size: (Int, Int) = (10, 10)
+    var nodes: [[SquareNode]] = []
+    var superpositions: [[SquareSuperposition]] = []
 
     init(superpositionsProvider: SuperpositionsProvider<SquareTopology>) {
-        for x in 0...9 {
+        for x in 0..<size.0 {
             var column: Array<SquareNode> = []
-            var superColumn: Array<SquareSuperposition> = []
+            var superColumn: [SquareSuperposition] = []
 
-            for y in 0...9 {
+            for y in 0..<size.1 {
                 let point = SquarePoint(x: x, y: y)
                 let node = SquareNode(point: point)
                 let elementsSuperposition = superpositionsProvider.instantiate()
@@ -34,6 +31,26 @@ final class SquareField: Field<SquareTopology> {
             nodes.append(column)
             superpositions.append(superColumn)
         }
+    }
+
+    override func allPoints() -> [SquarePoint] {
+        (0..<size.0).flatMap { x in
+            (0..<size.1).map { y in
+                SquarePoint(x: x, y: y)
+            }
+        }
+    }
+
+    override func allNodes() -> [Node<SquareTopology>] {
+        nodes.flatMap { $0 }
+    }
+
+    override func allSuperpositions() -> [NodeSuperposition<SquareTopology>] {
+        superpositions.flatMap { $0 }
+    }
+
+    override func contains(_ point: SquarePoint) -> Bool {
+        (0..<size.0).contains(point.x) && (0..<size.0).contains(point.x)
     }
 
     override func nodeAt(_ point: SquarePoint) -> Node<SquareTopology>? {

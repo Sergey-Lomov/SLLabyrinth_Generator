@@ -8,11 +8,9 @@
 import Foundation
 
 /// A solid labyrinth element with no entrance.
-class Solid<T: Topology>: LabyrinthElement<T> {
-    override func outcomeRestrictions(point: T.Point, field: Field<T>) -> OutcomeRestrictions {
-        edgesBasedOutcomeRestrictions(point: point) { _ in
-            false
-        }
+class Solid<T: Topology>: EdgeBasedElement<T> {
+    init() {
+        super.init(passages: [])
     }
 }
 

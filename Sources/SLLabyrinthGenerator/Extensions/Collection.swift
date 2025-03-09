@@ -27,12 +27,12 @@ extension Collection {
 
     func combinations() -> Array<Array<Element>> {
         var results: Array<Array<Element>> = []
-        let maxIndex = Int(pow(2, Double(count)))
+        let maxIndex = Int(pow(2, Double(count))) - 1
 
         for i in 1...maxIndex {
             var indexArray: Array<Element> = []
             enumerated().forEach { index, element in
-                if i & (2 << index) > 0 {
+                if i & (1 << index) > 0 {
                     indexArray.append(element)
                 }
             }

@@ -8,7 +8,7 @@
 /// Node superposition
 final class NodeSuperposition<T> where T: Topology {
     var point: T.Point
-    var elementsSuperpositions: Array<LabyrinthElementSuperposition<T>> = []
+    var elementsSuperpositions: [LabyrinthElementSuperposition<T>] = []
 
     var entropy: Int {
         return
@@ -17,7 +17,7 @@ final class NodeSuperposition<T> where T: Topology {
             .reduce(0, +)
     }
 
-    init(point: T.Point, elementsSuperpositions: Array<LabyrinthElementSuperposition<T>>) {
+    init(point: T.Point, elementsSuperpositions: [LabyrinthElementSuperposition<T>]) {
         self.point = point
         self.elementsSuperpositions = elementsSuperpositions
     }

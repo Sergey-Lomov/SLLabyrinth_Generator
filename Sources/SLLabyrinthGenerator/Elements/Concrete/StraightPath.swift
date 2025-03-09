@@ -8,17 +8,9 @@
 import Foundation
 
 /// A labyrinth element with two entrances on opposite sides.
-class StraightPath<T: Topology>: LabyrinthElement<T> {
-    let path: (T.Edge, T.Edge)
-
+class StraightPath<T: Topology>: EdgeBasedElement<T> {
     init(path: (T.Edge, T.Edge)) {
-        self.path = path
-    }
-
-    override func outcomeRestrictions(point: T.Point, field: Field<T>) -> OutcomeRestrictions {
-        edgesBasedOutcomeRestrictions(point: point) {
-            path.0 == $0 || path.1 == $0
-        }
+        super.init(passages: [path.0, path.1])
     }
 }
 

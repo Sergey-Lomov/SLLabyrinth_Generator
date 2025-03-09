@@ -8,17 +8,9 @@
 import Foundation
 
 /// A labyrinth element with more than two entrances.
-class Junction<T: Topology>: LabyrinthElement<T> {
-    let entrances: Array<T.Edge>
-
-    init(entrances: Array<T.Edge>) {
-        self.entrances = entrances
-    }
-
-    override func outcomeRestrictions(point: T.Point, field: Field<T>) -> OutcomeRestrictions {
-        edgesBasedOutcomeRestrictions(point: point) {
-            entrances.contains($0)
-        }
+class Junction<T: Topology>: EdgeBasedElement<T> {
+    init(entrances: [T.Edge]) {
+        super.init(passages: entrances)
     }
 }
 

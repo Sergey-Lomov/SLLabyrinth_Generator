@@ -5,45 +5,84 @@
 //  Created by serhii.lomov on 03.03.2025.
 //
 
-public func generateLabrinth() {
-    let superProvider: SuperpositionsProvider<SquareTopology> = setupSuperProvider()
-    let field = SquareField(superpositionsProvider: superProvider)
-    field.applyBorderConstraints()
+open class LabyrinthGenerator {
 
-    var uncollapsed = field.allSuperpositions()
-    while !uncollapsed.isEmpty {
-        collapsingStep(uncollapsed: &uncollapsed, field: field)
+    func generateLabyrinth() -> SquareField {
+        let superProvider: SuperpositionsProvider<SquareTopology> = setupSuperProvider()
+        let field = SquareField(superpositionsProvider: superProvider)
+        field.applyBorderConstraints()
+
+        collapse(field)
+
+        return field
     }
-}
 
-private func collapsingStep<T: Topology>(
-    uncollapsed: inout Array<NodeSuperposition<T>>,
-    field: Field<T>
-) {
-    uncollapsed = uncollapsed.sorted { $0.entropy < $1.entropy }
-    guard let superposition = uncollapsed.first else { return }
-    let point = superposition.point
-    let element = superposition.waveFunctionCollapse() ?? Solid<T>()
-    field.nodeAt(point)?.element = element
-    
-    let restrictions = element.outcomeRestrictions(point: point, field: field)
-    restrictions.forEach { point, pointRestrictions in
-        guard let superposition = field.superpositionAt(point) else { return }
-        pointRestrictions.forEach {
-            superposition.applyRestriction($0)
+    private func collapse<T: Topology>(_ field: Field<T>) {
+        var uncollapsed = field.allSuperpositions()
+        while !uncollapsed.isEmpty {
+            collapsingStep(uncollapsed: &uncollapsed, field: field)
+
+            if let squareField = field as? SquareField {
+                print(SquareFieldPrinter().print(squareField))
+                print("\n")
+            }
         }
     }
 
-    uncollapsed.removeFirst()
-}
+    private func collapsingStep<T: Topology>(
+        uncollapsed: inout Array<NodeSuperposition<T>>,
+        field: Field<T>
+    ) {
+        uncollapsed = uncollapsed.sorted { $0.entropy < $1.entropy }
+        guard let superposition = uncollapsed.first else { return }
+        let point = superposition.point
+        let element = superposition.waveFunctionCollapse() ?? Solid<T>()
+        field.nodeAt(point)?.element = element
 
-private func setupSuperProvider<T>() -> SuperpositionsProvider<T> {
-    let superProvider = SuperpositionsProvider<T>()
+        let restrictions = element.outcomeRestrictions(point: point, field: field)
+        restrictions.forEach { point, pointRestrictions in
+            guard let superposition = field.superpositionAt(point) else { return }
+            pointRestrictions.forEach {
+                superposition.applyRestriction($0)
+            }
+        }
 
-    superProvider.reqisterSuperposition(DeadendSuperposition<T>.self)
-    superProvider.reqisterSuperposition(StraightPathSuperposition<T>.self)
-    superProvider.reqisterSuperposition(CornerPathSuperposition<T>.self)
-    superProvider.reqisterSuperposition(JunctionSuperposition<T>.self)
+        uncollapsed.removeFirst()
+    }
 
-    return superProvider
+    private func postProcess<T: Topology>(_ field: Field<T>) {
+        var unprocessed = field.allPoints().shuffled()
+        var failed: [T.Point] = []
+
+        while !unprocessed.isEmpty {
+            guard let point = unprocessed.first else { continue }
+            unprocessed.removeFirst()
+            let success = postProcessPoint(point, atField: field)
+            if !success { failed.append(point) }
+        }
+
+        while !failed.isEmpty {
+            guard let point = failed.first else { continue }
+            failed.removeFirst()
+            let success = postProcessPoint(point, atField: field)
+            if !success {
+                print("Labirynth generator: point postprocessing failed after second try: \(point)")
+            }
+        }
+    }
+
+    private func postProcessPoint<T: Topology>(_ point: T.Point, atField field: Field<T>) -> Bool {
+        return true
+    }
+
+    private func setupSuperProvider<T>() -> SuperpositionsProvider<T> {
+        let superProvider = SuperpositionsProvider<T>()
+
+        superProvider.reqisterSuperposition(DeadendSuperposition<T>.self)
+        superProvider.reqisterSuperposition(StraightPathSuperposition<T>.self)
+        superProvider.reqisterSuperposition(CornerPathSuperposition<T>.self)
+        superProvider.reqisterSuperposition(JunctionSuperposition<T>.self)
+
+        return superProvider
+    }
 }

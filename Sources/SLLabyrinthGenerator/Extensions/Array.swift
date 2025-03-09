@@ -16,7 +16,7 @@ extension Array {
 
         var unique: [(Element, Element)] = []
         pairs.forEach {
-            if !pairs.containsPair($0) { unique.append($0) }
+            if !unique.containsPair($0) { unique.append($0) }
         }
         return unique
     }
