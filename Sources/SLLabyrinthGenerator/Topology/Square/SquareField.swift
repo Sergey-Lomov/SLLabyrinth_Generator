@@ -6,12 +6,17 @@
 //
 
 final class SquareField: TopologyField {
+    typealias Size = (Int, Int)
     typealias Point = SquarePoint
     typealias Element = TopologyBasedLabyrinthElement<SquareTopology>
     typealias SquareSuperposition = NodeSuperposition<SquareTopology>
 
-    let size: (Int, Int) = (10, 10)
+    let size: Size
     var nodes: Dictionary<SquarePoint, TopologyBasedLabyrinthElement<SquareTopology>> = [:]
+
+    init(size: Size) {
+        self.size = size
+    }
 
     func allPoints() -> [SquarePoint] {
         (0..<size.0).flatMap { x in
@@ -25,7 +30,7 @@ final class SquareField: TopologyField {
         (0..<size.0).contains(point.x) && (0..<size.0).contains(point.y)
     }
 
-    func element(at point: TopologyBasedField<SquareTopology>.Point) -> TopologyBasedField<SquareTopology>.Element? {
+    func element(at point: Point) -> Element? {
         nodes[point]
     }
 

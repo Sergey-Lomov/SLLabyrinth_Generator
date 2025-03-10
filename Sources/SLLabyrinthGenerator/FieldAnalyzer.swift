@@ -8,7 +8,7 @@
 import Foundation
 
 final class FieldAnalyzer {
-    static func pathsGraph<T: Topology>(_ field: TopologyBasedField<T>) -> PathsGraph<T> {
+    static func pathsGraph<T: Topology>(_ field: T.Field) -> PathsGraph<T> {
         var unhandled = field.allPoints()
         let graph = PathsGraph<T>()
 
@@ -30,23 +30,23 @@ final class FieldAnalyzer {
         return graph
     } 
 
-    static func path<T: Topology>(from: T.Point, to: T.Point, field: TopologyBasedField<T>) -> [T.Point]? {
+    static func path<F: TopologyField>(from: F.Point, to: F.Point, field: F) -> [F.Point]? {
         paths(from: from, to: to, field: field, countLimit: 1).first
     }
 
-    static func paths<T: Topology>(
-        from: T.Point,
-        to: T.Point,
-        field: TopologyBasedField<T>,
+    static func paths<F: TopologyField>(
+        from: F.Point,
+        to: F.Point,
+        field: F,
         lengthLimit: Int = Int.max,
         countLimit: Int = Int.max
-    ) -> [[T.Point]] {
-        var searchPaths: [[T.Point]] = [[from]]
-        var resultPaths: [[T.Point]] = [[]]
+    ) -> [[F.Point]] {
+        var searchPaths: [[F.Point]] = [[from]]
+        var resultPaths: [[F.Point]] = [[]]
 
         while !searchPaths.isEmpty && resultPaths.count < countLimit {
             searchPaths = searchPaths.flatMap { path in
-                guard let head = path.last else { return Array<Array<T.Point>>() }
+                guard let head = path.last else { return [[F.Point]]() }
                 let connected = field.connectedPoints(head)
                 return connected
                     .compactMap { path.contains($0) ? nil : path + [$0] }

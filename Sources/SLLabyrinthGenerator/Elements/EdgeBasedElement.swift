@@ -13,7 +13,7 @@ class EdgeBasedElement<T: Topology>: TopologyBasedLabyrinthElement<T> {
         self.passages = passages
     }
 
-    override func outcomeRestrictions<FT>(point: Point, field: TopologyBasedField<FT>) -> OutcomeRestrictions where FT : Topology, T.Point == FT.Point {
+    override func outcomeRestrictions<F: TopologyField>(point: Point, field: F) -> OutcomeRestrictions where F.Point == Point {
         T.Edge.allCases.reduce(into: OutcomeRestrictions()) { restrictions, edge in
             let target = T.nextPoint(point: point, edge: edge)
             let adaptedEdge = T.adaptToNextPoint(edge)

@@ -6,16 +6,16 @@
 //
 
 open class LabyrinthGenerator<T: Topology> {
-    let configuration: GeneratorConfiguration
+    let configuration: GeneratorConfiguration<T>
     var superpositions: Dictionary<T.Point, NodeSuperposition<T>> = [:]
 
-    init(configuration: GeneratorConfiguration) {
+    init(configuration: GeneratorConfiguration<T>) {
         self.configuration = configuration
     }
 
-    func generateLabyrinth() -> TopologyBasedField<T> {
+    func generateLabyrinth() -> T.Field {
         let superProvider = setupSuperProvider()
-        let field = TopologyBasedField<T>()
+        let field = T.Field(size: configuration.size)
         field.allPoints().forEach {
             let nestsed = superProvider.instantiate()
             superpositions[$0] = NodeSuperposition(point: $0, elementsSuperpositions: nestsed)
@@ -27,7 +27,7 @@ open class LabyrinthGenerator<T: Topology> {
         return field
     }
 
-    private func applyBorderConstraints(_ field: TopologyBasedField<T>) {
+    private func applyBorderConstraints(_ field: T.Field) {
         superpositions.values.forEach { superposition in
             T.Edge.allCases.forEach { edge in
                 let next = T.nextPoint(point: superposition.point, edge: edge)
@@ -39,17 +39,14 @@ open class LabyrinthGenerator<T: Topology> {
         }
     }
 
-    private func collapse(_ field: TopologyBasedField<T>) {
+    private func collapse(_ field: T.Field) {
         var uncollapsed = Array(superpositions.values)
         while !uncollapsed.isEmpty {
             collapsingStep(uncollapsed: &uncollapsed, field: field)
         }
     }
 
-    private func collapsingStep(
-        uncollapsed: inout Array<NodeSuperposition<T>>,
-        field: TopologyBasedField<T>
-    ) {
+    private func collapsingStep(uncollapsed: inout Array<NodeSuperposition<T>>, field: T.Field) {
         uncollapsed = uncollapsed.sorted { $0.entropy < $1.entropy }
         guard let superposition = uncollapsed.first else { return }
         let point = superposition.point
@@ -70,7 +67,7 @@ open class LabyrinthGenerator<T: Topology> {
         uncollapsed.removeFirst()
     }
 
-    private func postProcess(_ field: TopologyBasedField<T>) {
+    private func postProcess(_ field: T.Field) {
         var unprocessed = field.allPoints().shuffled()
         var failed: [T.Point] = []
         let flowEdges = T.coverageFlowEdges()
@@ -92,11 +89,7 @@ open class LabyrinthGenerator<T: Topology> {
         }
     }
 
-    private func postProcessPoint(
-        _ point: T.Point,
-        atField field: TopologyBasedField<T>,
-        flowEdges: [T.Edge]
-    ) -> Bool {
+    private func postProcessPoint(_ point: T.Point, atField field: T.Field, flowEdges: [T.Edge]) -> Bool {
         return true
     }
 
