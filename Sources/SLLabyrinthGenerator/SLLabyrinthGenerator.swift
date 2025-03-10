@@ -7,7 +7,7 @@
 
 open class LabyrinthGenerator<T: Topology> {
     let configuration: GeneratorConfiguration<T>
-    var superpositions: Dictionary<T.Point, TopologyBasedNodeSuperposition<T>> = [:]
+    var superpositions: Dictionary<T.Point, T.Superposition> = [:]
 
     init(configuration: GeneratorConfiguration<T>) {
         self.configuration = configuration
@@ -18,7 +18,7 @@ open class LabyrinthGenerator<T: Topology> {
         let field = T.Field(size: configuration.size)
         field.allPoints().forEach {
             let nestsed = superProvider.instantiate()
-            superpositions[$0] = TopologyBasedNodeSuperposition(point: $0, elementsSuperpositions: nestsed)
+            superpositions[$0] = T.Superposition(point: $0, elementsSuperpositions: nestsed)
         }
 
         applyBorderConstraints(field)
@@ -31,10 +31,10 @@ open class LabyrinthGenerator<T: Topology> {
         superpositions.values.forEach { superposition in
             T.Edge.allCases.forEach { edge in
                 let next = T.nextPoint(point: superposition.point, edge: edge)
-                if !field.contains(next) {
-                    let restriction = TopologyBasedElementRestriction<T>.wall(edge: edge)
-                    superposition.applyRestriction(restriction)
-                }
+                guard !field.contains(next) else { return }
+                let restriction = TopologyBasedElementRestriction<T>.wall(edge: edge)
+                guard let restriction = restriction as? T.ElementRestriction else { return }
+                superposition.applyRestriction(restriction)
             }
         }
     }
@@ -46,7 +46,7 @@ open class LabyrinthGenerator<T: Topology> {
         }
     }
 
-    private func collapsingStep(uncollapsed: inout Array<TopologyBasedNodeSuperposition<T>>, field: T.Field) {
+    private func collapsingStep(uncollapsed: inout [T.Superposition], field: T.Field) {
         uncollapsed = uncollapsed.sorted { $0.entropy < $1.entropy }
         guard let superposition = uncollapsed.first else { return }
         let point = superposition.point
@@ -96,10 +96,10 @@ open class LabyrinthGenerator<T: Topology> {
     private func setupSuperProvider() -> SuperpositionsProvider<T> {
         let superProvider = SuperpositionsProvider<T>()
 
-        superProvider.reqisterSuperposition(DeadendSuperposition<T>.self)
-        superProvider.reqisterSuperposition(StraightPathSuperposition<T>.self)
-        superProvider.reqisterSuperposition(CornerPathSuperposition<T>.self)
-        superProvider.reqisterSuperposition(JunctionSuperposition<T>.self)
+//        superProvider.reqisterSuperposition(DeadendSuperposition<T>.self)
+//        superProvider.reqisterSuperposition(StraightPathSuperposition<T>.self)
+//        superProvider.reqisterSuperposition(CornerPathSuperposition<T>.self)
+//        superProvider.reqisterSuperposition(JunctionSuperposition<T>.self)
 
         return superProvider
     }

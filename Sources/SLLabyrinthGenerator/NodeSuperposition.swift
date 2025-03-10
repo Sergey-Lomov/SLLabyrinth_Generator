@@ -5,7 +5,7 @@
 //  Created by serhii.lomov on 05.03.2025.
 //
 
-protocol NodeSuperposition {
+public protocol NodeSuperposition {
     associatedtype Point: TopologyPoint
     associatedtype Nested: ElementSuperposition
 

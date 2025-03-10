@@ -8,13 +8,13 @@
 import Foundation
 
 final class SuperpositionsProvider<T: Topology> {
-    private var superpositions: Array<TopologyBasedElementSuperposition<T>.Type> = []
+    private var superpositions: [T.Superposition.Nested.Type] = []
 
-    func reqisterSuperposition(_ superposition: TopologyBasedElementSuperposition<T>.Type) {
+    func reqisterSuperposition(_ superposition: T.Superposition.Nested.Type) {
         superpositions.append(superposition)
     }
 
-    func instantiate() -> Array<TopologyBasedElementSuperposition<T>> {
+    func instantiate() -> [T.Superposition.Nested] {
         superpositions.map { $0.init() }
     }
 }

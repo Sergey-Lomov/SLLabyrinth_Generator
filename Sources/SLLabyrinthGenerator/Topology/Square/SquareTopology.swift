@@ -9,6 +9,7 @@ final class SquareTopology: Topology {
     typealias Point = SquarePoint
     typealias Edge = SquareEdge
     typealias Field = SquareField
+    typealias Superposition = TopologyBasedNodeSuperposition<SquareTopology>
 
     static func nextPoint(point: Point, edge: Edge) -> Point {
         switch edge {

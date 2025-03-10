@@ -8,9 +8,9 @@
 import Foundation
 
 /// This protocol describes the element superposition. This means an element with partially undetermined property values. For example, "deadend with an entrance from the north or from the west".
-protocol ElementSuperposition {
+public protocol ElementSuperposition {
     associatedtype Edge: TopologyEdge
-    associatedtype Element: LabyrinthElement
+    associatedtype Element: LabyrinthElement where Element.Restriction.Edge == Edge
 
     /// Entropy refers to variations in possible superposition resolutions. Typically, entropy decreases when restrictions are applied.
     /// An entropy of 1 means that only one resolution option exists, so the superposition is logically equivalent to the collapsed element type.

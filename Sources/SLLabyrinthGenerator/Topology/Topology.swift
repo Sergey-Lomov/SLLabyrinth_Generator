@@ -10,8 +10,15 @@ import Foundation
 public protocol Topology {
     associatedtype Edge: TopologyEdge
     associatedtype Point: TopologyPoint
+
     associatedtype Field: TopologyField where Field.Point == Point, Field.Element.Restriction.Edge == Edge
 
+    associatedtype Superposition: NodeSuperposition
+    where Superposition.Point == Point,
+            Superposition.Nested.Element == Field.Element,
+            Superposition.Nested.Edge == Edge
+
+    typealias ElementRestriction = Superposition.Nested.Element.Restriction
 
     /// This method returns a list of edges that are sufficient to connect all topology points together. For example, in a square topology, it may be a 'right'-'down' pair or any other pair consisting of one vertical and one horizontal edge.
     static func coverageFlowEdges() -> [Edge]

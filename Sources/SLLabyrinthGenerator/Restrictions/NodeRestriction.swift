@@ -7,6 +7,6 @@
 
 import Foundation
 
-protocol NodeRestriction {
+public protocol NodeRestriction {
     func validateElement<T>(_ element:T) -> Bool
 }
