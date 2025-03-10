@@ -7,6 +7,7 @@
 
 open class LabyrinthGenerator<T: Topology> {
     let configuration: GeneratorConfiguration
+    var superpositions: Dictionary<T.Point, NodeSuperposition<T>> = [:]
 
     init(configuration: GeneratorConfiguration) {
         self.configuration = configuration
@@ -14,16 +15,32 @@ open class LabyrinthGenerator<T: Topology> {
 
     func generateLabyrinth() -> Field<T> {
         let superProvider = setupSuperProvider()
-        let field = Field<T>(superpositionsProvider: superProvider)
-        field.applyBorderConstraints()
+        let field = Field<T>()
+        field.allPoints().forEach {
+            let nestsed = superProvider.instantiate()
+            superpositions[$0] = NodeSuperposition(point: $0, elementsSuperpositions: nestsed)
+        }
 
+        applyBorderConstraints(field)
         collapse(field)
 
         return field
     }
 
+    private func applyBorderConstraints(_ field: Field<T>) {
+        superpositions.values.forEach { superposition in
+            T.Edge.allCases.forEach { edge in
+                let next = T.nextPoint(point: superposition.point, edge: edge)
+                if !field.contains(next) {
+                    let restriction = TopologyBasedElementRestriction<T>.wall(edge: edge)
+                    superposition.applyRestriction(restriction)
+                }
+            }
+        }
+    }
+
     private func collapse(_ field: Field<T>) {
-        var uncollapsed = field.allSuperpositions()
+        var uncollapsed = Array(superpositions.values)
         while !uncollapsed.isEmpty {
             collapsingStep(uncollapsed: &uncollapsed, field: field)
         }
@@ -41,7 +58,7 @@ open class LabyrinthGenerator<T: Topology> {
 
         let restrictions = element.outcomeRestrictions(point: point, field: field)
         restrictions.forEach { point, pointRestrictions in
-            guard let superposition = field.superpositionAt(point) else { return }
+            guard let superposition = superpositions[point] else { return }
             pointRestrictions.forEach {
                 superposition.applyRestriction($0)
             }
