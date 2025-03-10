@@ -26,4 +26,8 @@ final class SquareTopology: Topology {
         case .bottom: return .top
         }
     }
+
+    static func toCartesianCoords(_ point: SquarePoint) -> (Float, Float) {
+        (Float(point.x) + 0.5, Float(point.y) + 0.5)
+    }
 }

@@ -6,6 +6,11 @@
 //
 
 open class LabyrinthGenerator {
+    let configuration: GeneratorConfiguration
+
+    init(configuration: GeneratorConfiguration) {
+        self.configuration = configuration
+    }
 
     func generateLabyrinth() -> SquareField {
         let superProvider: SuperpositionsProvider<SquareTopology> = setupSuperProvider()
@@ -53,25 +58,30 @@ open class LabyrinthGenerator {
     private func postProcess<T: Topology>(_ field: Field<T>) {
         var unprocessed = field.allPoints().shuffled()
         var failed: [T.Point] = []
+        let flowEdges = T.coverageFlowEdges()
 
         while !unprocessed.isEmpty {
             guard let point = unprocessed.first else { continue }
             unprocessed.removeFirst()
-            let success = postProcessPoint(point, atField: field)
+            let success = postProcessPoint(point, atField: field, flowEdges: flowEdges)
             if !success { failed.append(point) }
         }
 
         while !failed.isEmpty {
             guard let point = failed.first else { continue }
             failed.removeFirst()
-            let success = postProcessPoint(point, atField: field)
+            let success = postProcessPoint(point, atField: field, flowEdges: flowEdges)
             if !success {
                 print("Labirynth generator: point postprocessing failed after second try: \(point)")
             }
         }
     }
 
-    private func postProcessPoint<T: Topology>(_ point: T.Point, atField field: Field<T>) -> Bool {
+    private func postProcessPoint<T: Topology>(
+        _ point: T.Point,
+        atField field: Field<T>,
+        flowEdges: [T.Edge]
+    ) -> Bool {
         return true
     }
 

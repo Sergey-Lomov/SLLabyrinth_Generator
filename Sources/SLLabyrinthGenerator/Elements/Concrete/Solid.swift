@@ -9,6 +9,8 @@ import Foundation
 
 /// A solid labyrinth element with no entrance.
 class Solid<T: Topology>: EdgeBasedElement<T> {
+    override var isVisitable: Bool { false }
+
     init() {
         super.init(passages: [])
     }

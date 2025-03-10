@@ -22,10 +22,7 @@ class EdgeBasedElement<T: Topology>: LabyrinthElement<T> {
                 .passage(edge: adaptedEdge) :
                 .wall(edge: adaptedEdge)
 
-            if !restrictions.keys.contains(target) {
-                restrictions[target] = []
-            }
-            restrictions[target]?.append(restriction)
+            restrictions.append(key: target, arrayValue: restriction)
         }
     }
 

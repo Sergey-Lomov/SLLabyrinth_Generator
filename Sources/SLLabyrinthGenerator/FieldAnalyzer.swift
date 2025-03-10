@@ -8,6 +8,28 @@
 import Foundation
 
 final class FieldAnalyzer {
+    static func pathsGraph<T: Topology>(_ field: Field<T>) -> PathsGraph<T> {
+        var unhandled = field.allPoints()
+        var graph = PathsGraph<T>()
+
+        while !unhandled.isEmpty {
+            guard let point = unhandled.first else { continue }
+            unhandled.removeFirst()
+            guard let element = field.nodeAt(point)?.element, element.isVisitable else {
+                continue
+            }
+
+            element
+                .connectedPoints(point)
+                .filter { field.contains($0) }
+                .forEach {
+                    graph.appendEdge(points: [point, $0])
+                }
+        }
+
+        return graph
+    } 
+
     static func path<T: Topology>(from: T.Point, to: T.Point, field: Field<T>) -> [T.Point]? {
         paths(from: from, to: to, field: field, countLimit: 1).first
     }

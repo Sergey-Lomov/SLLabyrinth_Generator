@@ -10,6 +10,8 @@ import Foundation
 class LabyrinthElement<T: Topology> {
     typealias OutcomeRestrictions = Dictionary<T.Point, [ElementRestriction<T>]>
 
+    var isVisitable: Bool { true }
+
     func connectedPoints(_ point: T.Point) -> [T.Point] { [] }
     func outcomeRestrictions(point: T.Point, field: Field<T>) -> OutcomeRestrictions { [:] }
 }
