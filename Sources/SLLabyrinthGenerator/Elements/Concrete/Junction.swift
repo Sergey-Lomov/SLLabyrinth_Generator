@@ -30,9 +30,9 @@ class JunctionSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
         }
     }
 
-    override func waveFunctionCollapse() -> TopologyBasedLabyrinthElement<T>? {
+    override func waveFunctionCollapse() -> T.Field.Element? {
         guard let variation = vaiations.randomElement() else { return nil }
-        return Junction(entrances: variation)
+        return Junction<T>(entrances: variation) as? T.Field.Element
     }
 }
 

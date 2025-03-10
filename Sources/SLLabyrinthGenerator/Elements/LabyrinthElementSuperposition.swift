@@ -30,7 +30,7 @@ class LabyrinthElementSuperposition<T: Topology> {
     /// Collapse means superposition resolution. Thus, the superposition becomes a fully determined element.
     /// For example, the superposition "deadend with entrance from south or west" may collapse to the element "deadend with entrance from south."
     /// - Returns: A new element, or nil if element creation fails (due to applied restrictions)
-    func waveFunctionCollapse() -> TopologyBasedLabyrinthElement<T>? { return nil }
+    func waveFunctionCollapse() -> T.Field.Element? { return nil }
 
     required init() {}
 }

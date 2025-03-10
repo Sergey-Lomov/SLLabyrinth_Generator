@@ -8,7 +8,7 @@
 import Foundation
 
 final class FieldAnalyzer {
-    static func pathsGraph<T: Topology>(_ field: Field<T>) -> PathsGraph<T> {
+    static func pathsGraph<T: Topology>(_ field: TopologyBasedField<T>) -> PathsGraph<T> {
         var unhandled = field.allPoints()
         let graph = PathsGraph<T>()
 
@@ -30,14 +30,14 @@ final class FieldAnalyzer {
         return graph
     } 
 
-    static func path<T: Topology>(from: T.Point, to: T.Point, field: Field<T>) -> [T.Point]? {
+    static func path<T: Topology>(from: T.Point, to: T.Point, field: TopologyBasedField<T>) -> [T.Point]? {
         paths(from: from, to: to, field: field, countLimit: 1).first
     }
 
     static func paths<T: Topology>(
         from: T.Point,
         to: T.Point,
-        field: Field<T>,
+        field: TopologyBasedField<T>,
         lengthLimit: Int = Int.max,
         countLimit: Int = Int.max
     ) -> [[T.Point]] {

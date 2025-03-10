@@ -30,7 +30,8 @@ class SolidSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
         }
     }
 
-    override func waveFunctionCollapse() -> TopologyBasedLabyrinthElement<T>? {
-        available ? Solid() : nil
+    override func waveFunctionCollapse() -> T.Field.Element? {
+        let solid = Solid<T>() as? T.Field.Element
+        return available ? solid : nil
     }
 }

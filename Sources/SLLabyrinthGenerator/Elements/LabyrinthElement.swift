@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol LabyrinthElement {
+public protocol LabyrinthElement {
     associatedtype Point: TopologyPoint
     associatedtype Restriction: ElementRestriction
 
@@ -15,7 +15,7 @@ protocol LabyrinthElement {
 
     var isVisitable: Bool { get }
     func connectedPoints(_ point: Point) -> [Point]
-    func outcomeRestrictions<T: Topology>(point: Point, field: Field<T>) -> OutcomeRestrictions where T.Point == Point
+    func outcomeRestrictions<T: Topology>(point: Point, field: TopologyBasedField<T>) -> OutcomeRestrictions where T.Point == Point
 }
 
 class TopologyBasedLabyrinthElement<T: Topology>: LabyrinthElement {
@@ -26,5 +26,5 @@ class TopologyBasedLabyrinthElement<T: Topology>: LabyrinthElement {
 
     func connectedPoints(_ point: Point) -> [Point] { [] }
 
-    func outcomeRestrictions<FT>(point: Point, field: Field<FT>) -> OutcomeRestrictions where T : Topology, FT.Point == Point { [:] }
+    func outcomeRestrictions<FT>(point: Point, field: TopologyBasedField<FT>) -> OutcomeRestrictions where T : Topology, FT.Point == Point { [:] }
 }

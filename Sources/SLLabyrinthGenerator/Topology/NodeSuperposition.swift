@@ -34,7 +34,7 @@ final class NodeSuperposition<T> where T: Topology {
         }
     }
 
-    func waveFunctionCollapse() -> TopologyBasedLabyrinthElement<T>? {
+    func waveFunctionCollapse() -> T.Field.Element? {
         let available = elementsSuperpositions.filter { $0.entropy > 0 }
         return available.randomElement()?.waveFunctionCollapse()
     }

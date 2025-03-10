@@ -30,8 +30,8 @@ class DeadendSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
         }
     }
 
-    override func waveFunctionCollapse() -> TopologyBasedLabyrinthElement<T>? {
+    override func waveFunctionCollapse() -> T.Field.Element? {
         guard let target = entrances.randomElement() else { return nil }
-        return Deadend(entrance: target)
+        return Deadend<T>(entrance: target) as? T.Field.Element
     }
 }

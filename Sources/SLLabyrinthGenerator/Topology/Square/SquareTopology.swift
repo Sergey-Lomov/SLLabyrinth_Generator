@@ -8,6 +8,7 @@
 final class SquareTopology: Topology {
     typealias Point = SquarePoint
     typealias Edge = SquareEdge
+    typealias Field = SquareField
 
     static func nextPoint(point: Point, edge: Edge) -> Point {
         switch edge {
@@ -18,7 +19,7 @@ final class SquareTopology: Topology {
         }
     }
 
-    static func oppositeEdge(_ edge: SquareEdge) -> SquareEdge? {
+    static func oppositeEdge(_ edge: Edge) -> Edge? {
         switch edge {
         case .left: return .right
         case .right: return .left
@@ -27,14 +28,13 @@ final class SquareTopology: Topology {
         }
     }
 
-    static func visualScale(field: Field<SquareTopology>, width: Float, height: Float) -> Float {
-        guard let field = field as? SquareField else { return 1 }
+    static func visualScale(field: Field, width: Float, height: Float) -> Float {
         let hScale = width / Float(field.size.0)
         let vScale = height / Float(field.size.1)
         return min(hScale, vScale)
     }
 
-    static func visualPosition(_ point: SquarePoint) -> (Float, Float) {
+    static func visualPosition(_ point: Point) -> (Float, Float) {
         (Float(point.x) + 0.5, Float(point.y) + 0.5)
     }
 }

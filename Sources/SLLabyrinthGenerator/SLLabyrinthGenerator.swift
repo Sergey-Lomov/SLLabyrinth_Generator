@@ -13,9 +13,9 @@ open class LabyrinthGenerator<T: Topology> {
         self.configuration = configuration
     }
 
-    func generateLabyrinth() -> Field<T> {
+    func generateLabyrinth() -> TopologyBasedField<T> {
         let superProvider = setupSuperProvider()
-        let field = Field<T>()
+        let field = TopologyBasedField<T>()
         field.allPoints().forEach {
             let nestsed = superProvider.instantiate()
             superpositions[$0] = NodeSuperposition(point: $0, elementsSuperpositions: nestsed)
@@ -27,7 +27,7 @@ open class LabyrinthGenerator<T: Topology> {
         return field
     }
 
-    private func applyBorderConstraints(_ field: Field<T>) {
+    private func applyBorderConstraints(_ field: TopologyBasedField<T>) {
         superpositions.values.forEach { superposition in
             T.Edge.allCases.forEach { edge in
                 let next = T.nextPoint(point: superposition.point, edge: edge)
@@ -39,7 +39,7 @@ open class LabyrinthGenerator<T: Topology> {
         }
     }
 
-    private func collapse(_ field: Field<T>) {
+    private func collapse(_ field: TopologyBasedField<T>) {
         var uncollapsed = Array(superpositions.values)
         while !uncollapsed.isEmpty {
             collapsingStep(uncollapsed: &uncollapsed, field: field)
@@ -48,12 +48,15 @@ open class LabyrinthGenerator<T: Topology> {
 
     private func collapsingStep(
         uncollapsed: inout Array<NodeSuperposition<T>>,
-        field: Field<T>
+        field: TopologyBasedField<T>
     ) {
         uncollapsed = uncollapsed.sorted { $0.entropy < $1.entropy }
         guard let superposition = uncollapsed.first else { return }
         let point = superposition.point
-        let element = superposition.waveFunctionCollapse() ?? Solid<T>()
+        // TODO: Try to avoid cast
+        let solid = Solid<T>() as? T.Field.Element
+        let element = superposition.waveFunctionCollapse() ?? solid
+        guard let element = element else { return }
         field.setElement(at: point, element: element)
 
         let restrictions = element.outcomeRestrictions(point: point, field: field)
@@ -67,7 +70,7 @@ open class LabyrinthGenerator<T: Topology> {
         uncollapsed.removeFirst()
     }
 
-    private func postProcess(_ field: Field<T>) {
+    private func postProcess(_ field: TopologyBasedField<T>) {
         var unprocessed = field.allPoints().shuffled()
         var failed: [T.Point] = []
         let flowEdges = T.coverageFlowEdges()
@@ -91,7 +94,7 @@ open class LabyrinthGenerator<T: Topology> {
 
     private func postProcessPoint(
         _ point: T.Point,
-        atField field: Field<T>,
+        atField field: TopologyBasedField<T>,
         flowEdges: [T.Edge]
     ) -> Bool {
         return true

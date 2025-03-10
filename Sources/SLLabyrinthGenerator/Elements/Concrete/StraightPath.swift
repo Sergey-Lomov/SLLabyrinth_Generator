@@ -30,8 +30,8 @@ class StraightPathSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
         }
     }
 
-    override func waveFunctionCollapse() -> TopologyBasedLabyrinthElement<T>? {
+    override func waveFunctionCollapse() -> T.Field.Element? {
         guard let path = paths.randomElement() else { return nil }
-        return StraightPath(path: path)
+        return StraightPath<T>(path: path) as? T.Field.Element
     }
 }

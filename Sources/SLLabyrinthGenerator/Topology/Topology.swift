@@ -10,6 +10,7 @@ import Foundation
 public protocol Topology {
     associatedtype Edge: TopologyEdge
     associatedtype Point: TopologyPoint
+    associatedtype Field: TopologyField where Field.Point == Point, Field.Element.Restriction.Edge == Edge
 
 
     /// This method returns a list of edges that are sufficient to connect all topology points together. For example, in a square topology, it may be a 'right'-'down' pair or any other pair consisting of one vertical and one horizontal edge.
@@ -22,7 +23,7 @@ public protocol Topology {
     static func adaptToNextPoint(_ edge: Edge) -> Edge
 
     /// Scale factor required to fit the specified field within the given frame size.
-    static func visualScale(field: Field<Self>, width: Float, height: Float) -> Float
+    static func visualScale(field: Field, width: Float, height: Float) -> Float
 
     /// Coordinates of the point's area center in Cartesian coordinate representation.
     static func visualPosition(_ point: Point) -> (Float, Float)
