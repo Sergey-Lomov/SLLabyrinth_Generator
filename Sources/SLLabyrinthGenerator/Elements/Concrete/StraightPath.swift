@@ -14,7 +14,7 @@ class StraightPath<T: Topology>: EdgeBasedElement<T> {
     }
 }
 
-class StraightPathSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
+class StraightPathSuperposition<T: Topology>: TopologyBasedElementSuperposition<T> {
     var paths: [(T.Edge, T.Edge)] = Array(T.Edge.allCases).oppositePairs()
 
     override var entropy: Int {

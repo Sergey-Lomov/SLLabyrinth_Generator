@@ -5,10 +5,27 @@
 //  Created by serhii.lomov on 05.03.2025.
 //
 
+protocol NodeSuperposition {
+    associatedtype Point: TopologyPoint
+    associatedtype Nested: ElementSuperposition
+
+    var point: Point { get }
+    var elementsSuperpositions: [Nested] { get }
+    var entropy: Int { get }
+
+    init(point: Point, elementsSuperpositions: [Nested])
+    func applyRestriction(_ restriction: NodeRestriction)
+    func applyRestriction(_ restriction: Nested.Element.Restriction)
+    func waveFunctionCollapse() -> Nested.Element?
+}
+
 /// Node superposition
-final class NodeSuperposition<T> where T: Topology {
-    var point: T.Point
-    var elementsSuperpositions: [LabyrinthElementSuperposition<T>] = []
+final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
+    typealias Point = T.Point
+    typealias Nested = TopologyBasedElementSuperposition<T>
+
+    var point: Point
+    var elementsSuperpositions: [Nested] = []
 
     var entropy: Int {
         return
@@ -17,7 +34,7 @@ final class NodeSuperposition<T> where T: Topology {
             .reduce(0, +)
     }
 
-    init(point: T.Point, elementsSuperpositions: [LabyrinthElementSuperposition<T>]) {
+    init(point: Point, elementsSuperpositions: [Nested]) {
         self.point = point
         self.elementsSuperpositions = elementsSuperpositions
     }
@@ -38,8 +55,4 @@ final class NodeSuperposition<T> where T: Topology {
         let available = elementsSuperpositions.filter { $0.entropy > 0 }
         return available.randomElement()?.waveFunctionCollapse()
     }
-}
-
-protocol ElementRestrictionApplicable {
-    func applyRestriction<T: Topology>(_ restriction: TopologyBasedElementRestriction<T>)
 }

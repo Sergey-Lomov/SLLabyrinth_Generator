@@ -8,13 +8,13 @@
 import Foundation
 
 final class SuperpositionsProvider<T: Topology> {
-    private var superpositions: Array<LabyrinthElementSuperposition<T>.Type> = []
+    private var superpositions: Array<TopologyBasedElementSuperposition<T>.Type> = []
 
-    func reqisterSuperposition(_ superposition: LabyrinthElementSuperposition<T>.Type) {
+    func reqisterSuperposition(_ superposition: TopologyBasedElementSuperposition<T>.Type) {
         superpositions.append(superposition)
     }
 
-    func instantiate() -> Array<LabyrinthElementSuperposition<T>> {
+    func instantiate() -> Array<TopologyBasedElementSuperposition<T>> {
         superpositions.map { $0.init() }
     }
 }

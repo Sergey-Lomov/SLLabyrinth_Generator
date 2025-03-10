@@ -14,7 +14,7 @@ class CornerPath<T: Topology>: EdgeBasedElement<T> {
     }
 }
 
-class CornerPathSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
+class CornerPathSuperposition<T: Topology>: TopologyBasedElementSuperposition<T> {
     var paths = T.Edge.allCases.pairs().removeOppositePairs()
 
     override var entropy: Int {

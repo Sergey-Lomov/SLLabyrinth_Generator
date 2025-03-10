@@ -7,7 +7,7 @@
 
 open class LabyrinthGenerator<T: Topology> {
     let configuration: GeneratorConfiguration<T>
-    var superpositions: Dictionary<T.Point, NodeSuperposition<T>> = [:]
+    var superpositions: Dictionary<T.Point, TopologyBasedNodeSuperposition<T>> = [:]
 
     init(configuration: GeneratorConfiguration<T>) {
         self.configuration = configuration
@@ -18,7 +18,7 @@ open class LabyrinthGenerator<T: Topology> {
         let field = T.Field(size: configuration.size)
         field.allPoints().forEach {
             let nestsed = superProvider.instantiate()
-            superpositions[$0] = NodeSuperposition(point: $0, elementsSuperpositions: nestsed)
+            superpositions[$0] = TopologyBasedNodeSuperposition(point: $0, elementsSuperpositions: nestsed)
         }
 
         applyBorderConstraints(field)
@@ -46,7 +46,7 @@ open class LabyrinthGenerator<T: Topology> {
         }
     }
 
-    private func collapsingStep(uncollapsed: inout Array<NodeSuperposition<T>>, field: T.Field) {
+    private func collapsingStep(uncollapsed: inout Array<TopologyBasedNodeSuperposition<T>>, field: T.Field) {
         uncollapsed = uncollapsed.sorted { $0.entropy < $1.entropy }
         guard let superposition = uncollapsed.first else { return }
         let point = superposition.point

@@ -16,7 +16,7 @@ class Solid<T: Topology>: EdgeBasedElement<T> {
     }
 }
 
-class SolidSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
+class SolidSuperposition<T: Topology>: TopologyBasedElementSuperposition<T> {
     var available = true
 
     override var entropy: Int {

@@ -14,7 +14,7 @@ class Deadend<T: Topology>: EdgeBasedElement<T> {
     }
 }
 
-class DeadendSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
+class DeadendSuperposition<T: Topology>: TopologyBasedElementSuperposition<T> {
     var entrances = Set(T.Edge.allCases)
 
     override var entropy: Int {

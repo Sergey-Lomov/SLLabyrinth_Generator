@@ -14,7 +14,7 @@ class Junction<T: Topology>: EdgeBasedElement<T> {
     }
 }
 
-class JunctionSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
+class JunctionSuperposition<T: Topology>: TopologyBasedElementSuperposition<T> {
     var vaiations = T.Edge.allCases.combinations().filter { $0.count > 2 }
 
     override var entropy: Int {
