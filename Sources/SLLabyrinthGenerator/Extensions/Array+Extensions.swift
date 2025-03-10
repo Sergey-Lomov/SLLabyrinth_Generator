@@ -1,5 +1,5 @@
 //
-//  Array.swift
+//  Array+Extensions.swift
 //  SLLabyrinthGenerator
 //
 //  Created by serhii.lomov on 05.03.2025.

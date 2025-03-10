@@ -1,5 +1,5 @@
 //
-//  Collection.swift
+//  Collection+Extensions.swift
 //  SLLabyrinthGenerator
 //
 //  Created by serhii.lomov on 06.03.2025.
