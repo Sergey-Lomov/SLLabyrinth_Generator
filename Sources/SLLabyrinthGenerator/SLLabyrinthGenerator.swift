@@ -5,16 +5,16 @@
 //  Created by serhii.lomov on 03.03.2025.
 //
 
-open class LabyrinthGenerator {
+open class LabyrinthGenerator<T: Topology> {
     let configuration: GeneratorConfiguration
 
     init(configuration: GeneratorConfiguration) {
         self.configuration = configuration
     }
 
-    func generateLabyrinth() -> SquareField {
-        let superProvider: SuperpositionsProvider<SquareTopology> = setupSuperProvider()
-        let field = SquareField(superpositionsProvider: superProvider)
+    func generateLabyrinth() -> Field<T> {
+        let superProvider = setupSuperProvider()
+        let field = Field<T>(superpositionsProvider: superProvider)
         field.applyBorderConstraints()
 
         collapse(field)
@@ -22,14 +22,14 @@ open class LabyrinthGenerator {
         return field
     }
 
-    private func collapse<T: Topology>(_ field: Field<T>) {
+    private func collapse(_ field: Field<T>) {
         var uncollapsed = field.allSuperpositions()
         while !uncollapsed.isEmpty {
             collapsingStep(uncollapsed: &uncollapsed, field: field)
         }
     }
 
-    private func collapsingStep<T: Topology>(
+    private func collapsingStep(
         uncollapsed: inout Array<NodeSuperposition<T>>,
         field: Field<T>
     ) {
@@ -50,7 +50,7 @@ open class LabyrinthGenerator {
         uncollapsed.removeFirst()
     }
 
-    private func postProcess<T: Topology>(_ field: Field<T>) {
+    private func postProcess(_ field: Field<T>) {
         var unprocessed = field.allPoints().shuffled()
         var failed: [T.Point] = []
         let flowEdges = T.coverageFlowEdges()
@@ -72,7 +72,7 @@ open class LabyrinthGenerator {
         }
     }
 
-    private func postProcessPoint<T: Topology>(
+    private func postProcessPoint(
         _ point: T.Point,
         atField field: Field<T>,
         flowEdges: [T.Edge]
@@ -80,7 +80,7 @@ open class LabyrinthGenerator {
         return true
     }
 
-    private func setupSuperProvider<T>() -> SuperpositionsProvider<T> {
+    private func setupSuperProvider() -> SuperpositionsProvider<T> {
         let superProvider = SuperpositionsProvider<T>()
 
         superProvider.reqisterSuperposition(DeadendSuperposition<T>.self)

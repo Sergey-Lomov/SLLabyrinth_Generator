@@ -13,7 +13,8 @@ final class SquareField: Field<SquareTopology> {
     var nodes: Dictionary<SquarePoint, TopologyBasedLabyrinthElement<SquareTopology>> = [:]
     var superpositions: [[SquareSuperposition]] = []
 
-    init(superpositionsProvider: SuperpositionsProvider<SquareTopology>) {
+    required init(superpositionsProvider: SuperpositionsProvider<SquareTopology>) {
+        super.init(superpositionsProvider: superpositionsProvider)
         for x in 0..<size.0 {
             var superColumn: [SquareSuperposition] = []
 

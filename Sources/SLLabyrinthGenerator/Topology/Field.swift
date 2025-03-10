@@ -7,13 +7,15 @@
 
 import Foundation
 
-class Field<T: Topology> {
+public class Field<T: Topology> {
     func allPoints() -> [T.Point] { [] }
     func allSuperpositions() -> [NodeSuperposition<T>] { [] }
     func contains(_ point: T.Point) -> Bool { false }
     func element(at point: T.Point) -> TopologyBasedLabyrinthElement<T>? { nil }
     func setElement(at point: T.Point, element: TopologyBasedLabyrinthElement<T>?) { }
     func superpositionAt(_ point: T.Point) -> NodeSuperposition<T>? { nil }
+
+    required init(superpositionsProvider: SuperpositionsProvider<T>) {}
 
     func applyBorderConstraints() {
         allSuperpositions().forEach { superposition in

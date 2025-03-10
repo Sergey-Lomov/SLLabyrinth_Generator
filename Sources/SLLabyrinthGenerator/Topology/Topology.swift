@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol Topology {
+public protocol Topology {
     associatedtype Edge: TopologyEdge
     associatedtype Point: TopologyPoint
 
@@ -28,11 +28,11 @@ protocol Topology {
     static func visualPosition(_ point: Point) -> (Float, Float)
 }
 
-protocol TopologyEdge: Comparable & Hashable & CaseIterable {
+public protocol TopologyEdge: Comparable & Hashable & CaseIterable {
     func opposite() -> Self?
 }
 
-protocol TopologyPoint: Hashable {}
+public protocol TopologyPoint: Hashable {}
 
 extension Topology {
     // Valid only for topologies with symmetrical edges. For other cases, it should be overridden in derived classes.
