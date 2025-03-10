@@ -37,7 +37,7 @@ open class LabyrinthGenerator {
         guard let superposition = uncollapsed.first else { return }
         let point = superposition.point
         let element = superposition.waveFunctionCollapse() ?? Solid<T>()
-        field.nodeAt(point)?.element = element
+        field.setElement(at: point, element: element)
 
         let restrictions = element.outcomeRestrictions(point: point, field: field)
         restrictions.forEach { point, pointRestrictions in

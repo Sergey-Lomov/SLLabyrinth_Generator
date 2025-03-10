@@ -25,6 +25,6 @@ class TopologyBasedLabyrinthElement<T: Topology>: LabyrinthElement {
     var isVisitable: Bool { true }
 
     func connectedPoints(_ point: Point) -> [Point] { [] }
-//    func outcomeRestrictions(point: Point, field: Field<T>) -> OutcomeRestrictions { [:] }
+
     func outcomeRestrictions<FT>(point: Point, field: Field<FT>) -> OutcomeRestrictions where T : Topology, FT.Point == Point { [:] }
 }

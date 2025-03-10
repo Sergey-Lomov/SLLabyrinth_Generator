@@ -15,7 +15,7 @@ final class FieldAnalyzer {
         while !unhandled.isEmpty {
             guard let point = unhandled.first else { continue }
             unhandled.removeFirst()
-            guard let element = field.nodeAt(point)?.element, element.isVisitable else {
+            guard let element = field.element(at: point), element.isVisitable else {
                 continue
             }
 

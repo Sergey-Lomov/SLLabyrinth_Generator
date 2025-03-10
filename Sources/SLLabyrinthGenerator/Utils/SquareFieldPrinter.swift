@@ -15,7 +15,7 @@ final class SquareFieldPrinter {
 
             for x in 0..<field.size.0 - 1 {
                 let point = SquarePoint(x: x, y: y)
-                guard let element = field.nodeAt(point)?.element else {
+                guard let element = field.element(at: point) else {
                     printUndefined(&lines)
                     continue
                 }

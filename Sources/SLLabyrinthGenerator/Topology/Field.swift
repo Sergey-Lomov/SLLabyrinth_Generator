@@ -9,10 +9,10 @@ import Foundation
 
 class Field<T: Topology> {
     func allPoints() -> [T.Point] { [] }
-    func allNodes() -> [Node<T>] { [] }
     func allSuperpositions() -> [NodeSuperposition<T>] { [] }
     func contains(_ point: T.Point) -> Bool { false }
-    func nodeAt(_ point: T.Point) -> Node<T>? { nil }
+    func element(at point: T.Point) -> TopologyBasedLabyrinthElement<T>? { nil }
+    func setElement(at point: T.Point, element: TopologyBasedLabyrinthElement<T>?) { }
     func superpositionAt(_ point: T.Point) -> NodeSuperposition<T>? { nil }
 
     func applyBorderConstraints() {
@@ -28,8 +28,7 @@ class Field<T: Topology> {
     }
 
     func connectedPoints(_ point: T.Point) -> [T.Point] {
-        guard let node = nodeAt(point) else { return [] }
-        let connected = node.element?.connectedPoints(point)
+        let connected = element(at: point)?.connectedPoints(point)
         let nearest = T.Edge.allCases.map { T.nextPoint(point: point, edge: $0) }
         return (connected ?? nearest).filter { contains($0) }
     }

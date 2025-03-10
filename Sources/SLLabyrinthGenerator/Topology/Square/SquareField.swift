@@ -7,28 +7,23 @@
 
 final class SquareField: Field<SquareTopology> {
 
-    typealias SquareNode = Node<SquareTopology>
     typealias SquareSuperposition = NodeSuperposition<SquareTopology>
 
     let size: (Int, Int) = (10, 10)
-    var nodes: [[SquareNode]] = []
+    var nodes: Dictionary<SquarePoint, TopologyBasedLabyrinthElement<SquareTopology>> = [:]
     var superpositions: [[SquareSuperposition]] = []
 
     init(superpositionsProvider: SuperpositionsProvider<SquareTopology>) {
         for x in 0..<size.0 {
-            var column: Array<SquareNode> = []
             var superColumn: [SquareSuperposition] = []
 
             for y in 0..<size.1 {
                 let point = SquarePoint(x: x, y: y)
-                let node = SquareNode(point: point)
                 let elementsSuperposition = superpositionsProvider.instantiate()
                 let superposition = SquareSuperposition(point: point, elementsSuperpositions: elementsSuperposition)
-                column.append(node)
                 superColumn.append(superposition)
             }
 
-            nodes.append(column)
             superpositions.append(superColumn)
         }
     }
@@ -41,10 +36,6 @@ final class SquareField: Field<SquareTopology> {
         }
     }
 
-    override func allNodes() -> [Node<SquareTopology>] {
-        nodes.flatMap { $0 }
-    }
-
     override func allSuperpositions() -> [NodeSuperposition<SquareTopology>] {
         superpositions.flatMap { $0 }
     }
@@ -53,8 +44,8 @@ final class SquareField: Field<SquareTopology> {
         (0..<size.0).contains(point.x) && (0..<size.0).contains(point.y)
     }
 
-    override func nodeAt(_ point: SquarePoint) -> Node<SquareTopology>? {
-        nodes[safe: point.x]?[safe: point.y]
+    override func element(at point: SquarePoint) -> TopologyBasedLabyrinthElement<SquareTopology>? {
+        nodes[point]
     }
 
     override func superpositionAt(_ point: SquarePoint) -> NodeSuperposition<SquareTopology>? {
