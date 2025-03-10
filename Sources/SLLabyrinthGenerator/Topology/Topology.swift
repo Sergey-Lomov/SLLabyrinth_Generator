@@ -21,8 +21,11 @@ protocol Topology {
     /// Returns the specified edge in the context of the next point. For example, in square topology, the adapted edge for 'left' is 'right'.
     static func adaptToNextPoint(_ edge: Edge) -> Edge
 
+    /// Scale factor required to fit the specified field within the given frame size.
+    static func visualScale(field: Field<Self>, width: Float, height: Float) -> Float
+
     /// Coordinates of the point's area center in Cartesian coordinate representation.
-    static func toCartesianCoords(_ point: Point) -> (Float, Float)
+    static func visualPosition(_ point: Point) -> (Float, Float)
 }
 
 protocol TopologyEdge: Comparable & Hashable & CaseIterable {

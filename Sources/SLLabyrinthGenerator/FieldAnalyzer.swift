@@ -10,7 +10,7 @@ import Foundation
 final class FieldAnalyzer {
     static func pathsGraph<T: Topology>(_ field: Field<T>) -> PathsGraph<T> {
         var unhandled = field.allPoints()
-        var graph = PathsGraph<T>()
+        let graph = PathsGraph<T>()
 
         while !unhandled.isEmpty {
             guard let point = unhandled.first else { continue }

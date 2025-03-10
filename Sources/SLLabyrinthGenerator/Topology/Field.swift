@@ -15,8 +15,6 @@ class Field<T: Topology> {
     func nodeAt(_ point: T.Point) -> Node<T>? { nil }
     func superpositionAt(_ point: T.Point) -> NodeSuperposition<T>? { nil }
 
-    func topologyType() -> any Topology.Type { T.self }
-
     func applyBorderConstraints() {
         allSuperpositions().forEach { superposition in
             T.Edge.allCases.forEach { edge in

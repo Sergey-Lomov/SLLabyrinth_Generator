@@ -27,7 +27,14 @@ final class SquareTopology: Topology {
         }
     }
 
-    static func toCartesianCoords(_ point: SquarePoint) -> (Float, Float) {
+    static func visualScale(field: Field<SquareTopology>, width: Float, height: Float) -> Float {
+        guard let field = field as? SquareField else { return 1 }
+        let hScale = width / Float(field.size.0)
+        let vScale = height / Float(field.size.1)
+        return min(hScale, vScale)
+    }
+
+    static func visualPosition(_ point: SquarePoint) -> (Float, Float) {
         (Float(point.x) + 0.5, Float(point.y) + 0.5)
     }
 }

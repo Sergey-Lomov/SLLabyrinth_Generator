@@ -50,7 +50,7 @@ final class SquareField: Field<SquareTopology> {
     }
 
     override func contains(_ point: SquarePoint) -> Bool {
-        (0..<size.0).contains(point.x) && (0..<size.0).contains(point.x)
+        (0..<size.0).contains(point.x) && (0..<size.0).contains(point.y)
     }
 
     override func nodeAt(_ point: SquarePoint) -> Node<SquareTopology>? {

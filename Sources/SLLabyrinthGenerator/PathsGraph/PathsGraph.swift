@@ -35,9 +35,9 @@ final class PathsGraph<T: Topology> {
             }
 
             let leftToRightPoints = leftToSource.points + [vertex.point] + sourceToRight.points
-            let rightToLeftPoints = Array(leftToRightPoints.reversed())
+            let rightToLeftPoints = rightToSource.points + [vertex.point] + sourceToLeft.points
             let leftToRight = Edge(points: leftToRightPoints, from: left, to: right)
-            let rightToLeft = Edge(points: leftToRightPoints, from: right, to: left)
+            let rightToLeft = Edge(points: rightToLeftPoints, from: right, to: left)
 
             removeVertex(vertex)
             appendEdge(leftToRight)

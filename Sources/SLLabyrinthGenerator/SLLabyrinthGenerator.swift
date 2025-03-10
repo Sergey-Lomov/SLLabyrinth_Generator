@@ -5,10 +5,6 @@
 //  Created by serhii.lomov on 03.03.2025.
 //
 
-public func setup() {
-    SquareTopologyVisualizer.reristerInProvider()
-}
-
 open class LabyrinthGenerator {
     let configuration: GeneratorConfiguration
 
@@ -30,11 +26,6 @@ open class LabyrinthGenerator {
         var uncollapsed = field.allSuperpositions()
         while !uncollapsed.isEmpty {
             collapsingStep(uncollapsed: &uncollapsed, field: field)
-
-            if let squareField = field as? SquareField {
-                print(SquareFieldPrinter().print(squareField))
-                print("\n")
-            }
         }
     }
 
