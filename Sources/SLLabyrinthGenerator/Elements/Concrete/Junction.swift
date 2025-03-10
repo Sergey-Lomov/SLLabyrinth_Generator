@@ -21,7 +21,7 @@ class JunctionSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
         vaiations.count
     }
 
-    override func applyRestriction(_ restriction: ElementRestriction<T>) {
+    override func applyRestriction(_ restriction: TopologyBasedElementRestriction<T>) {
         switch restriction {
         case .wall(let edge):
             vaiations = vaiations.filter { !$0.contains(edge) }
@@ -30,7 +30,7 @@ class JunctionSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
         }
     }
 
-    override func waveFunctionCollapse() -> LabyrinthElement<T>? {
+    override func waveFunctionCollapse() -> TopologyBasedLabyrinthElement<T>? {
         guard let variation = vaiations.randomElement() else { return nil }
         return Junction(entrances: variation)
     }

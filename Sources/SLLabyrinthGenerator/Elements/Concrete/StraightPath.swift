@@ -21,7 +21,7 @@ class StraightPathSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
         paths.count
     }
 
-    override func applyRestriction(_ restriction: ElementRestriction<T>) {
+    override func applyRestriction(_ restriction: TopologyBasedElementRestriction<T>) {
         switch restriction {
         case .wall(let edge):
             paths = paths.filter { $0.0 != edge && $0.1 != edge }
@@ -30,7 +30,7 @@ class StraightPathSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
         }
     }
 
-    override func waveFunctionCollapse() -> LabyrinthElement<T>? {
+    override func waveFunctionCollapse() -> TopologyBasedLabyrinthElement<T>? {
         guard let path = paths.randomElement() else { return nil }
         return StraightPath(path: path)
     }

@@ -9,9 +9,9 @@ import Foundation
 
 final class Node<T: Topology> {
     var point: T.Point
-    var element: LabyrinthElement<T>? = nil
+    var element: TopologyBasedLabyrinthElement<T>? = nil
 
-    init(point: T.Point, element: LabyrinthElement<T>? = nil) {
+    init(point: T.Point, element: TopologyBasedLabyrinthElement<T>? = nil) {
         self.point = point
         self.element = element
     }

@@ -6,19 +6,19 @@
 //
 
 /// Abstract base class for all labyrinth elements based on their edges—walls or passages.
-class EdgeBasedElement<T: Topology>: LabyrinthElement<T> {
+class EdgeBasedElement<T: Topology>: TopologyBasedLabyrinthElement<T> {
     var passages: [T.Edge]
 
     init(passages: [T.Edge]) {
         self.passages = passages
     }
 
-    override func outcomeRestrictions(point: T.Point, field: Field<T>) -> OutcomeRestrictions {
+    override func outcomeRestrictions<FT>(point: Point, field: Field<FT>) -> OutcomeRestrictions where FT : Topology, T.Point == FT.Point {
         T.Edge.allCases.reduce(into: OutcomeRestrictions()) { restrictions, edge in
             let target = T.nextPoint(point: point, edge: edge)
             let adaptedEdge = T.adaptToNextPoint(edge)
 
-            let restriction: ElementRestriction<T> = passages.contains(edge) ?
+            let restriction: TopologyBasedElementRestriction<T> = passages.contains(edge) ?
                 .passage(edge: adaptedEdge) :
                 .wall(edge: adaptedEdge)
 

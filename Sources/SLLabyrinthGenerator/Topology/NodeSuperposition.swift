@@ -28,18 +28,18 @@ final class NodeSuperposition<T> where T: Topology {
         }
     }
 
-    func applyRestriction(_ restriction: ElementRestriction<T>) {
+    func applyRestriction<R: ElementRestriction>(_ restriction: R) where R.Edge == T.Edge {
         elementsSuperpositions.forEach {
             $0.applyRestriction(restriction)
         }
     }
 
-    func waveFunctionCollapse() -> LabyrinthElement<T>? {
+    func waveFunctionCollapse() -> TopologyBasedLabyrinthElement<T>? {
         let available = elementsSuperpositions.filter { $0.entropy > 0 }
         return available.randomElement()?.waveFunctionCollapse()
     }
 }
 
 protocol ElementRestrictionApplicable {
-    func applyRestriction<T: Topology>(_ restriction: ElementRestriction<T>)
+    func applyRestriction<T: Topology>(_ restriction: TopologyBasedElementRestriction<T>)
 }

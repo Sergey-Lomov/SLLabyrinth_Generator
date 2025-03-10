@@ -20,7 +20,7 @@ class Field<T: Topology> {
             T.Edge.allCases.forEach { edge in
                 let next = T.nextPoint(point: superposition.point, edge: edge)
                 if !contains(next) {
-                    let restriction = ElementRestriction<T>.wall(edge: edge)
+                    let restriction = TopologyBasedElementRestriction<T>.wall(edge: edge)
                     superposition.applyRestriction(restriction)
                 }
             }

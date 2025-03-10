@@ -21,7 +21,7 @@ class DeadendSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
         entrances.count
     }
 
-    override func applyRestriction(_ restriction: ElementRestriction<T>) {
+    override func applyRestriction(_ restriction: TopologyBasedElementRestriction<T>) {
         switch restriction {
         case .wall(let edge):
             entrances = entrances.filter { $0 != edge }
@@ -30,7 +30,7 @@ class DeadendSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
         }
     }
 
-    override func waveFunctionCollapse() -> LabyrinthElement<T>? {
+    override func waveFunctionCollapse() -> TopologyBasedLabyrinthElement<T>? {
         guard let target = entrances.randomElement() else { return nil }
         return Deadend(entrance: target)
     }

@@ -19,12 +19,18 @@ class LabyrinthElementSuperposition<T: Topology> {
     /// This method applies restrictions to the superposition. This may decrease the possible values for superposition properties and, if so, decrease the superposition entropy.
     /// For example, we have a square topology, and the superposition is "deadend with entrance from any edge" (entropy 4). The nearest south node superposition collapses and produces the restriction "wall at north."
     /// For this node, it means a wall at the south, so now we have the superposition "deadend with entrance from any edge except south" (entropy 3).
-    func applyRestriction(_ restriction: ElementRestriction<T>) {}
+    func applyRestriction<R: ElementRestriction>(_ restriction: R) where R.Edge == T.Edge {
+        if let restriction = restriction as? TopologyBasedElementRestriction<T> {
+            applyRestriction(restriction)
+        }
+    }
+
+    func applyRestriction(_ restriction: TopologyBasedElementRestriction<T>) {}
 
     /// Collapse means superposition resolution. Thus, the superposition becomes a fully determined element.
     /// For example, the superposition "deadend with entrance from south or west" may collapse to the element "deadend with entrance from south."
     /// - Returns: A new element, or nil if element creation fails (due to applied restrictions)
-    func waveFunctionCollapse() -> LabyrinthElement<T>? { return nil }
+    func waveFunctionCollapse() -> TopologyBasedLabyrinthElement<T>? { return nil }
 
     required init() {}
 }

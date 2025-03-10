@@ -23,14 +23,14 @@ class SolidSuperposition<T: Topology>: LabyrinthElementSuperposition<T> {
         available ? 1 : 0
     }
 
-    override func applyRestriction(_ restriction: ElementRestriction<T>) {
+    override func applyRestriction(_ restriction: TopologyBasedElementRestriction<T>) {
         switch restriction {
         case .passage(_): available = false
         default: break
         }
     }
 
-    override func waveFunctionCollapse() -> LabyrinthElement<T>? {
+    override func waveFunctionCollapse() -> TopologyBasedLabyrinthElement<T>? {
         available ? Solid() : nil
     }
 }
