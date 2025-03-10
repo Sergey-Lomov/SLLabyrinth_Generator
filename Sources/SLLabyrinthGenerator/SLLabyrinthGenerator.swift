@@ -5,6 +5,10 @@
 //  Created by serhii.lomov on 03.03.2025.
 //
 
+public func setup() {
+    SquareTopologyVisualizer.reristerInProvider()
+}
+
 open class LabyrinthGenerator {
     let configuration: GeneratorConfiguration
 

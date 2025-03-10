@@ -11,6 +11,7 @@ protocol Topology {
     associatedtype Edge: TopologyEdge
     associatedtype Point: TopologyPoint
 
+
     /// This method returns a list of edges that are sufficient to connect all topology points together. For example, in a square topology, it may be a 'right'-'down' pair or any other pair consisting of one vertical and one horizontal edge.
     static func coverageFlowEdges() -> [Edge]
 
