@@ -12,6 +12,7 @@ public protocol TopologyField {
     associatedtype Point: TopologyPoint
     associatedtype Element: LabyrinthElement where Element.Point == Point
 
+    var size: Size { get }
     init(size: Size)
 
     func allPoints() -> [Point]

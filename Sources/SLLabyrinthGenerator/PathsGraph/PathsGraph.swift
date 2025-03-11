@@ -45,6 +45,15 @@ final class PathsGraph<T: Topology> {
         }
     }
 
+    func appendEdge(points: [T.Point]) {
+        guard let from = points.first, let to = points.last, from != to else { return }
+        let fromVertex = vertices.first { $0.point == from } ?? Vertex(point: from)
+        let toVertex = vertices.first { $0.point == to } ?? Vertex(point: to)
+
+        let edge = Edge(points: points, from: fromVertex, to: toVertex)
+        appendEdge(edge)
+    }
+
     private func appendEdge(_ edge: PathsGraphEdge<T>) {
         edges.insert(edge)
         vertices.insert(edge.from)
@@ -53,22 +62,18 @@ final class PathsGraph<T: Topology> {
         toMap.append(key: edge.to, arrayValue: edge)
     }
 
-    func appendEdge(points: [T.Point]) {
-        guard let from = points.first, let to = points.last, from != to else { return }
-        let fromVertex = vertices.first { $0.point == from } ?? Vertex(point: from)
-        let toVertex = vertices.first { $0.point == to } ?? Vertex(point: to)
-
-        let edge = Edge(points: points, from: fromVertex, to: toVertex)
-        fromMap.append(key: fromVertex, arrayValue: edge)
-        toMap.append(key: toVertex, arrayValue: edge)
+    private func removeEdge(_ edge: PathsGraphEdge<T>) {
+        edges.remove(edge)
+        fromMap.remove(key: edge.from, arrayValue: edge)
+        toMap.remove(key: edge.to, arrayValue: edge)
+        removeIfUnused(edge.from)
+        removeIfUnused(edge.to)
     }
 
-    private func removeEdge(_ edge: PathsGraphEdge<T>) {
-        edges.insert(edge)
-        vertices.insert(edge.from)
-        vertices.insert(edge.to)
-        fromMap.append(key: edge.from, arrayValue: edge)
-        toMap.append(key: edge.to, arrayValue: edge)
+    private func removeIfUnused(_ vertex: PathsGraphVertex<T>) {
+        let emptyFrom = fromMap[vertex]?.isEmpty ?? true
+        let emptyTo = toMap[vertex]?.isEmpty ?? true
+        if emptyTo && emptyFrom { removeVertex(vertex) }
     }
 
     private func removeVertex(_ vertex: PathsGraphVertex<T>) {

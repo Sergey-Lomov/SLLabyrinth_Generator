@@ -7,15 +7,18 @@
 
 public final class LabyrinthGenerator<T: Topology> {
     let configuration: GeneratorConfiguration<T>
+    var field: T.Field
+
     var superpositions: Dictionary<T.Point, T.Superposition> = [:]
+    var pathsGraph = PathsGraph<T>()
 
     init(configuration: GeneratorConfiguration<T>) {
         self.configuration = configuration
+        self.field = T.Field(size: configuration.size)
     }
 
-    func generateLabyrinth() -> T.Field {
+    func generateLabyrinth() {
         let superProvider = setupSuperProvider()
-        let field = T.Field(size: configuration.size)
         field.allPoints().forEach {
             let nestsed = superProvider.instantiate()
             superpositions[$0] = T.Superposition(point: $0, elementsSuperpositions: nestsed)
@@ -23,8 +26,8 @@ public final class LabyrinthGenerator<T: Topology> {
 
         applyBorderConstraints(field)
         collapse(field)
-
-        return field
+        pathsGraph = FieldAnalyzer.pathsGraph(field)
+//        pathsGraph.compactizePaths()
     }
 
     private func applyBorderConstraints(_ field: T.Field) {
@@ -67,31 +70,31 @@ public final class LabyrinthGenerator<T: Topology> {
         uncollapsed.removeFirst()
     }
 
-    private func postProcess(_ field: T.Field) {
-        var unprocessed = field.allPoints().shuffled()
-        var failed: [T.Point] = []
-        let flowEdges = T.coverageFlowEdges()
-
-        while !unprocessed.isEmpty {
-            guard let point = unprocessed.first else { continue }
-            unprocessed.removeFirst()
-            let success = postProcessPoint(point, atField: field, flowEdges: flowEdges)
-            if !success { failed.append(point) }
-        }
-
-        while !failed.isEmpty {
-            guard let point = failed.first else { continue }
-            failed.removeFirst()
-            let success = postProcessPoint(point, atField: field, flowEdges: flowEdges)
-            if !success {
-                print("Labirynth generator: point postprocessing failed after second try: \(point)")
-            }
-        }
-    }
-
-    private func postProcessPoint(_ point: T.Point, atField field: T.Field, flowEdges: [T.Edge]) -> Bool {
-        return true
-    }
+//    private func postProcess(_ field: T.Field) {
+//        var unprocessed = field.allPoints().shuffled()
+//        var failed: [T.Point] = []
+//        let flowEdges = T.coverageFlowEdges()
+//
+//        while !unprocessed.isEmpty {
+//            guard let point = unprocessed.first else { continue }
+//            unprocessed.removeFirst()
+//            let success = postProcessPoint(point, atField: field, flowEdges: flowEdges)
+//            if !success { failed.append(point) }
+//        }
+//
+//        while !failed.isEmpty {
+//            guard let point = failed.first else { continue }
+//            failed.removeFirst()
+//            let success = postProcessPoint(point, atField: field, flowEdges: flowEdges)
+//            if !success {
+//                print("Labirynth generator: point postprocessing failed after second try: \(point)")
+//            }
+//        }
+//    }
+//
+//    private func postProcessPoint(_ point: T.Point, atField field: T.Field, flowEdges: [T.Edge]) -> Bool {
+//        return true
+//    }
 
     private func setupSuperProvider() -> SuperpositionsProvider<T> {
         let superProvider = SuperpositionsProvider<T>()

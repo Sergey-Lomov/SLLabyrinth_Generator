@@ -32,6 +32,9 @@ public protocol UnconstrainedTopology {
     /// Returns the specified edge in the context of the next point. For example, in square topology, the adapted edge for 'left' is 'right'.
     static func adaptToNextPoint(_ edge: Edge) -> Edge
 
+    /// Scale factor required to fit the area of the specified size within the given frame size.
+    static func visualScale(size: Field.Size, width: Float, height: Float) -> Float
+
     /// Scale factor required to fit the specified field within the given frame size.
     static func visualScale(field: Field, width: Float, height: Float) -> Float
 
@@ -51,6 +54,11 @@ extension Topology {
         edge.opposite() ?? edge
     }
 
+    static func visualScale(field: Field, width: Float, height: Float) -> Float {
+        visualScale(size: field.size, width: width, height: height)
+    }
+
+    // TODO: Remove if still be unused
     static func coverageFlowEdges() -> [Edge] {
         var edges: [Edge] = []
         Edge.allCases.forEach {

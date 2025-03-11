@@ -29,9 +29,9 @@ final class SquareTopology: Topology {
         }
     }
 
-    static func visualScale(field: Field, width: Float, height: Float) -> Float {
-        let hScale = width / Float(field.size.0)
-        let vScale = height / Float(field.size.1)
+    static func visualScale(size: Field.Size, width: Float, height: Float) -> Float {
+        let hScale = width / Float(size.0)
+        let vScale = height / Float(size.1)
         return min(hScale, vScale)
     }
 
