@@ -18,7 +18,7 @@ public protocol TopologyField {
     func allPoints() -> [Point]
     func contains(_ point: Point) -> Bool
     func element(at point: Point) -> Element?
-    func setElement(at point: Point, element: Element?)
+    mutating func setElement(at point: Point, element: Element?)
     func connectedPoints(_ point: Point) -> [Point]
 }
 

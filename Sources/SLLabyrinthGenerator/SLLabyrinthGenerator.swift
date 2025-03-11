@@ -24,13 +24,18 @@ public final class LabyrinthGenerator<T: Topology> {
             superpositions[$0] = T.Superposition(point: $0, elementsSuperpositions: nestsed)
         }
 
-        applyBorderConstraints(field)
-        collapse(field)
+        applyBorderConstraints()
+        collapse()
         pathsGraph = FieldAnalyzer.pathsGraph(field)
-//        pathsGraph.compactizePaths()
+        pathsGraph.compactizePaths()
     }
 
-    private func applyBorderConstraints(_ field: T.Field) {
+    func recalculateGraph() {
+        pathsGraph = FieldAnalyzer.pathsGraph(field)
+        pathsGraph.compactizePaths()
+    }
+
+    private func applyBorderConstraints() {
         superpositions.values.forEach { superposition in
             T.Edge.allCases.forEach { edge in
                 let next = T.nextPoint(point: superposition.point, edge: edge)
@@ -42,14 +47,14 @@ public final class LabyrinthGenerator<T: Topology> {
         }
     }
 
-    private func collapse(_ field: T.Field) {
+    private func collapse() {
         var uncollapsed = Array(superpositions.values)
         while !uncollapsed.isEmpty {
-            collapsingStep(uncollapsed: &uncollapsed, field: field)
+            collapsingStep(uncollapsed: &uncollapsed)
         }
     }
 
-    private func collapsingStep(uncollapsed: inout [T.Superposition], field: T.Field) {
+    private func collapsingStep(uncollapsed: inout [T.Superposition]) {
         uncollapsed = uncollapsed.sorted { $0.entropy < $1.entropy }
         guard let superposition = uncollapsed.first else { return }
         let point = superposition.point
