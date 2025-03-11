@@ -8,11 +8,20 @@
 final class PathsGraph<T: Topology> {
     typealias Vertex = PathsGraphVertex<T>
     typealias Edge = PathsGraphEdge<T>
+    typealias Area = PathsGraphArea<T>
 
     var vertices: Set<Vertex> = []
     var edges: Set<Edge> = []
     var fromMap: Dictionary<Vertex, [Edge]> = [:]
     var toMap: Dictionary<Vertex, [Edge]> = [:]
+
+    var points: Set<T.Point> {
+        if edges.isEmpty {
+            return Set(vertices.map { $0.point })
+        } else {
+            return Set(edges.flatMap { $0.points })
+        }
+    }
 
     /// Embeds vertices that have only two edges into a merged edge. For example, the graph V1--E1-->V2--E2-->V3 will be compacted to V1--E3-->V3, where E3 consists of E1's points plus V2's point plus E2's points.
     func compactizePaths() {
@@ -54,7 +63,85 @@ final class PathsGraph<T: Topology> {
         appendEdge(edge)
     }
 
-    private func appendEdge(_ edge: PathsGraphEdge<T>) {
+//    func edges(of vertex: Vertex) -> [Edge] {
+//        fromMap[vertex, default: []] + toMap[vertex, default: []]
+//    }
+//
+    func nearest(to vertex: Vertex) -> Set<Vertex> {
+        let to = fromMap[vertex]?.map { $0.to } ?? []
+        let from = toMap[vertex]?.map { $0.from} ?? []
+        return Set(to).union(from)
+    }
+
+    func availableFrom(_ vertex: Vertex) -> Set<Vertex> {
+        var result: Set<Vertex> = []
+        var pointers: Set<Vertex> = [vertex]
+
+        while !pointers.isEmpty {
+            result.formUnion(pointers)
+            pointers = pointers.reduce(into: Set<Vertex>()) { acc, pointer in
+                let new = nearest(to: pointer).filter { !result.contains($0) }
+                acc.formUnion(new)
+            }
+        }
+
+        return result
+    }
+
+    func area(from vertex: Vertex) -> Area {
+        let area = Area()
+        var pointers: Set<Vertex> = [vertex]
+        var handled: Set<Vertex> = []
+
+        while !pointers.isEmpty {
+            var nextPointers: Set<Vertex> = []
+            for vertex in pointers {
+                for edge in fromMap[vertex, default: []] {
+                    if isBidirectional(edge) {
+                        area.graph.appendEdge(edge)
+                        nextPointers.insert(edge.to)
+                    } else {
+                        area.outgoing.append(edge)
+                    }
+                }
+
+                for edge in toMap[vertex, default: []] {
+                    if isBidirectional(edge) {
+                        area.graph.appendEdge(edge)
+                        nextPointers.insert(edge.from)
+                    } else {
+                        area.income.append(edge)
+                    }
+                }
+
+                handled.insert(vertex)
+            }
+
+            pointers = nextPointers.filter { !handled.contains($0) }
+        }
+
+        return area
+    }
+
+    func isolatedAreas() -> [Area] {
+        var unhandled = Set(vertices)
+        var areas: [Area] = []
+
+        while !unhandled.isEmpty {
+            guard let vertex = unhandled.first else { continue }
+            let area = area(from: vertex)
+            areas.append(area)
+            unhandled.subtract(area.graph.vertices)
+        }
+
+        return areas
+    }
+
+    private func isBidirectional(_ edge: Edge) -> Bool {
+        fromMap[edge.to, default: []].contains { $0.isReversed(edge) }
+    }
+
+    private func appendEdge(_ edge: Edge) {
         edges.insert(edge)
         vertices.insert(edge.from)
         vertices.insert(edge.to)
@@ -62,7 +149,7 @@ final class PathsGraph<T: Topology> {
         toMap.append(key: edge.to, arrayValue: edge)
     }
 
-    private func removeEdge(_ edge: PathsGraphEdge<T>) {
+    private func removeEdge(_ edge: Edge) {
         edges.remove(edge)
         fromMap.remove(key: edge.from, arrayValue: edge)
         toMap.remove(key: edge.to, arrayValue: edge)
@@ -70,13 +157,13 @@ final class PathsGraph<T: Topology> {
         removeIfUnused(edge.to)
     }
 
-    private func removeIfUnused(_ vertex: PathsGraphVertex<T>) {
+    private func removeIfUnused(_ vertex: Vertex) {
         let emptyFrom = fromMap[vertex]?.isEmpty ?? true
         let emptyTo = toMap[vertex]?.isEmpty ?? true
         if emptyTo && emptyFrom { removeVertex(vertex) }
     }
 
-    private func removeVertex(_ vertex: PathsGraphVertex<T>) {
+    private func removeVertex(_ vertex: Vertex) {
         vertices.remove(vertex)
         fromMap[vertex]?.forEach { removeEdge($0) }
         toMap[vertex]?.forEach { removeEdge($0) }

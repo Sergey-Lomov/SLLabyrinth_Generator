@@ -11,6 +11,7 @@ public final class LabyrinthGenerator<T: Topology> {
 
     var superpositions: Dictionary<T.Point, T.Superposition> = [:]
     var pathsGraph = PathsGraph<T>()
+    var areas: [PathsGraphArea<T>] = []
 
     init(configuration: GeneratorConfiguration<T>) {
         self.configuration = configuration
@@ -26,13 +27,17 @@ public final class LabyrinthGenerator<T: Topology> {
 
         applyBorderConstraints()
         collapse()
+
         pathsGraph = FieldAnalyzer.pathsGraph(field)
         pathsGraph.compactizePaths()
+
+        areas = pathsGraph.isolatedAreas()
+
+        handleUnavailableZones()
     }
 
-    func recalculateGraph() {
-        pathsGraph = FieldAnalyzer.pathsGraph(field)
-        pathsGraph.compactizePaths()
+    func recalculateAreas() {
+        areas = pathsGraph.isolatedAreas()
     }
 
     private func applyBorderConstraints() {
@@ -73,6 +78,10 @@ public final class LabyrinthGenerator<T: Topology> {
         }
 
         uncollapsed.removeFirst()
+    }
+
+    private func handleUnavailableZones() {
+        
     }
 
 //    private func postProcess(_ field: T.Field) {
