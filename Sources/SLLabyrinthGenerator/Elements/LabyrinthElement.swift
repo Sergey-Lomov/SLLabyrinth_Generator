@@ -15,7 +15,7 @@ public protocol LabyrinthElement {
 
     var isVisitable: Bool { get }
     func connectedPoints(_ point: Point) -> [Point]
-    func outcomeRestrictions<F: TopologyField>(point: Point, field: F) -> OutcomeRestrictions where F.Point == Point
+    func outcomeRestrictions<F: TopologyField>(point: Point, field: F) -> OutcomeRestrictions
 }
 
 class TopologyBasedLabyrinthElement<T: Topology>: LabyrinthElement {
@@ -26,5 +26,5 @@ class TopologyBasedLabyrinthElement<T: Topology>: LabyrinthElement {
 
     func connectedPoints(_ point: Point) -> [Point] { [] }
 
-    func outcomeRestrictions<F: TopologyField>(point: Point, field: F) -> OutcomeRestrictions where F.Point == Point { [:] }
+    func outcomeRestrictions<F: TopologyField>(point: Point, field: F) -> OutcomeRestrictions { [:] }
 }

@@ -5,7 +5,7 @@
 //  Created by serhii.lomov on 03.03.2025.
 //
 
-open class LabyrinthGenerator<T: Topology> {
+public final class LabyrinthGenerator<T: Topology> {
     let configuration: GeneratorConfiguration<T>
     var superpositions: Dictionary<T.Point, T.Superposition> = [:]
 
@@ -34,7 +34,7 @@ open class LabyrinthGenerator<T: Topology> {
                 guard !field.contains(next) else { return }
                 let restriction = TopologyBasedElementRestriction<T>.wall(edge: edge)
                 guard let restriction = restriction as? T.ElementRestriction else { return }
-                superposition.applyRestriction(restriction)
+                superposition.applyElementRestriction(restriction)
             }
         }
     }
@@ -60,7 +60,7 @@ open class LabyrinthGenerator<T: Topology> {
         restrictions.forEach { point, pointRestrictions in
             guard let superposition = superpositions[point] else { return }
             pointRestrictions.forEach {
-                superposition.applyRestriction($0)
+                superposition.applyElementRestriction($0)
             }
         }
 
@@ -96,10 +96,10 @@ open class LabyrinthGenerator<T: Topology> {
     private func setupSuperProvider() -> SuperpositionsProvider<T> {
         let superProvider = SuperpositionsProvider<T>()
 
-//        superProvider.reqisterSuperposition(DeadendSuperposition<T>.self)
-//        superProvider.reqisterSuperposition(StraightPathSuperposition<T>.self)
-//        superProvider.reqisterSuperposition(CornerPathSuperposition<T>.self)
-//        superProvider.reqisterSuperposition(JunctionSuperposition<T>.self)
+        superProvider.reqisterSuperposition(DeadendSuperposition<T>.self)
+        superProvider.reqisterSuperposition(StraightPathSuperposition<T>.self)
+        superProvider.reqisterSuperposition(CornerPathSuperposition<T>.self)
+        superProvider.reqisterSuperposition(JunctionSuperposition<T>.self)
 
         return superProvider
     }

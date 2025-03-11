@@ -7,16 +7,19 @@
 
 import Foundation
 
-public protocol Topology {
+// Constraints on associated types were moved to a separate protocol to avoid cycles in type resolution.
+public protocol Topology: UnconstrainedTopology
+where Field.Point == Point,
+      Field.Element.Restriction.Edge == Edge,
+      Superposition.Point == Point,
+      Superposition.Nested.Element == Field.Element {
+}
+
+public protocol UnconstrainedTopology {
     associatedtype Edge: TopologyEdge
     associatedtype Point: TopologyPoint
-
-    associatedtype Field: TopologyField where Field.Point == Point, Field.Element.Restriction.Edge == Edge
-
+    associatedtype Field: TopologyField
     associatedtype Superposition: NodeSuperposition
-    where Superposition.Point == Point,
-            Superposition.Nested.Element == Field.Element,
-            Superposition.Nested.Edge == Edge
 
     typealias ElementRestriction = Superposition.Nested.Element.Restriction
 

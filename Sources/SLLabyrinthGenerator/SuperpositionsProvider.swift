@@ -10,8 +10,10 @@ import Foundation
 final class SuperpositionsProvider<T: Topology> {
     private var superpositions: [T.Superposition.Nested.Type] = []
 
-    func reqisterSuperposition(_ superposition: T.Superposition.Nested.Type) {
-        superpositions.append(superposition)
+    func reqisterSuperposition(_ superposition: any ElementSuperposition.Type) {
+        if let superposition = superposition as? T.Superposition.Nested.Type {
+            superpositions.append(superposition)
+        }
     }
 
     func instantiate() -> [T.Superposition.Nested] {

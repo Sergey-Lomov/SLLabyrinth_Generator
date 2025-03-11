@@ -15,7 +15,7 @@ public protocol NodeSuperposition {
 
     init(point: Point, elementsSuperpositions: [Nested])
     func applyRestriction(_ restriction: NodeRestriction)
-    func applyRestriction(_ restriction: Nested.Element.Restriction)
+    func applyElementRestriction(_ restriction: Nested.Element.Restriction)
     func waveFunctionCollapse() -> Nested.Element?
 }
 
@@ -45,7 +45,7 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
         }
     }
 
-    func applyRestriction<R: ElementRestriction>(_ restriction: R) where R.Edge == T.Edge {
+    func applyElementRestriction(_ restriction: Nested.Element.Restriction) {
         elementsSuperpositions.forEach {
             $0.applyRestriction(restriction)
         }
