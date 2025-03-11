@@ -30,4 +30,12 @@ extension Array {
     func removeOppositePairs<T> () -> Array<Element> where Element == (T, T), T: TopologyEdge {
         filter { $0 != $1.opposite() }
     }
+
+    static func + (lhs: Array<Element>, rhs: Element) -> Array<Element> {
+        lhs + [rhs]
+    }
+
+    static func + (lhs: Element, rhs: Array<Element>) -> Array<Element> {
+        [lhs] + rhs
+    }
 }

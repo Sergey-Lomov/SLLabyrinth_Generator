@@ -12,7 +12,11 @@ struct PathsGraphEdge<T: Topology>: Hashable {
     var from: PathsGraphVertex<T>
     var to: PathsGraphVertex<T>
 
+    var intermediatePoints: [T.Point] {
+        points.filter { $0 != points.first && $0 != points.last }
+    }
+
     func isReversed(_ edge: PathsGraphEdge) -> Bool {
-        points == Array(edge.points.reversed())
+        points == Array(edge.points.reversed()) && edge.to.point == from.point && edge.from.point == to.point
     }
 }

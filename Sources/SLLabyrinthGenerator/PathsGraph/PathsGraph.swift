@@ -34,8 +34,8 @@ final class PathsGraph<T: Topology> {
                 continue
             }
 
-            let leftToRightPoints = leftToSource.points + [vertex.point] + sourceToRight.points
-            let rightToLeftPoints = rightToSource.points + [vertex.point] + sourceToLeft.points
+            let leftToRightPoints = left.point + leftToSource.intermediatePoints + vertex.point + sourceToRight.intermediatePoints + right.point
+            let rightToLeftPoints = right.point + rightToSource.intermediatePoints + vertex.point + sourceToLeft.intermediatePoints + left.point
             let leftToRight = Edge(points: leftToRightPoints, from: left, to: right)
             let rightToLeft = Edge(points: rightToLeftPoints, from: right, to: left)
 
@@ -78,8 +78,8 @@ final class PathsGraph<T: Topology> {
 
     private func removeVertex(_ vertex: PathsGraphVertex<T>) {
         vertices.remove(vertex)
-        fromMap[vertex]?.forEach { edges.remove($0) }
-        toMap[vertex]?.forEach { edges.remove($0) }
+        fromMap[vertex]?.forEach { removeEdge($0) }
+        toMap[vertex]?.forEach { removeEdge($0) }
         fromMap[vertex] = nil
         toMap[vertex] = nil
     }
