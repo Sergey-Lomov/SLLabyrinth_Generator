@@ -104,8 +104,16 @@ public final class LabyrinthGenerator<T: Topology> {
             let strategy = configuration.isolatedAreasStrategy
             let success = strategy.handle(area: area, generator: self)
             if !success { failedCount += 1}
-            recalculatePathsGraph()
-            recalculateIsolatedAreas()
+
+            switch strategy.recalculation {
+            case .paths:
+                recalculatePathsGraph()
+                recalculateIsolatedAreas()
+            case .isolatedAreas:
+                recalculateIsolatedAreas()
+            case .none:
+                break
+            }
         }
     }
 

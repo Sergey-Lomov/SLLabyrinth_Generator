@@ -16,6 +16,8 @@ private struct MergeData<T: Topology> {
 }
 
 final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy<T> {
+    override var recalculation: RecalcualtionLevel { .paths }
+
     override func handle(area: PathsGraphArea<T>, generator: LabyrinthGenerator<T>) -> Bool {
         let points = area.graph.points
         let field = generator.field

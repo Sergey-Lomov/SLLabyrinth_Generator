@@ -7,7 +7,14 @@
 
 import Foundation
 
+enum RecalcualtionLevel {
+    case paths, isolatedAreas, none
+
+}
+
 public class IsolatedAreasStrategy<T: Topology> {
+    var recalculation: RecalcualtionLevel { .none }
+
     func handle(area: PathsGraphArea<T>, generator: LabyrinthGenerator<T>) -> Bool {
         return false
     }
