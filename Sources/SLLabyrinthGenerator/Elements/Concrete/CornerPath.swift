@@ -30,6 +30,10 @@ class CornerPathSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>
         }
     }
 
+    override func resetRestrictions() {
+        paths = T.Edge.allCases.pairs().removeOppositePairs()
+    }
+
     override func waveFunctionCollapse() -> T.Field.Element? {
         guard let path = paths.randomElement() else { return nil }
         return CornerPath<T>(path: path) as? T.Field.Element

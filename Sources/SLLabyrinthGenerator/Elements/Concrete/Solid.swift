@@ -30,6 +30,10 @@ class SolidSuperposition<T: Topology>: TopologyBasedElementSuperposition<T> {
         }
     }
 
+    override func resetRestrictions() {
+        available = true
+    }
+
     override func waveFunctionCollapse() -> T.Field.Element? {
         let solid = Solid<T>() as? T.Field.Element
         return available ? solid : nil

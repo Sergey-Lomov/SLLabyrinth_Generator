@@ -96,6 +96,8 @@ final class PathsGraph<T: Topology> {
         while !pointers.isEmpty {
             var nextPointers: Set<Vertex> = []
             for vertex in pointers {
+                area.graph.vertices.insert(vertex)
+
                 for edge in fromMap[vertex, default: []] {
                     if isBidirectional(edge) {
                         area.graph.appendEdge(edge)

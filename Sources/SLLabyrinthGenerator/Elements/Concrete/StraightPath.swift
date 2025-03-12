@@ -30,6 +30,10 @@ class StraightPathSuperposition<T: Topology>: TopologyBasedElementSuperposition<
         }
     }
 
+    override func resetRestrictions() {
+        paths = Array(T.Edge.allCases).oppositePairs()
+    }
+
     override func waveFunctionCollapse() -> T.Field.Element? {
         guard let path = paths.randomElement() else { return nil }
         return StraightPath<T>(path: path) as? T.Field.Element

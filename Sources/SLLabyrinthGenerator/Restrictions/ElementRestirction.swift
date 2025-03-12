@@ -5,7 +5,7 @@
 //  Created by serhii.lomov on 05.03.2025.
 //
 
-public protocol ElementRestriction {
+public protocol ElementRestriction: SuperpositionRestriction {
     associatedtype Edge: TopologyEdge
 }
 

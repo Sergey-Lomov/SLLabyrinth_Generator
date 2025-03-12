@@ -13,6 +13,7 @@ public protocol LabyrinthElement: AnyObject {
 
     typealias OutcomeRestrictions = Dictionary<Point, [Restriction]>
 
+    var id: String { get }
     var isVisitable: Bool { get }
     func connectedPoints(_ point: Point) -> [Point]
     func outcomeRestrictions<F: TopologyField>(point: Point, field: F) -> OutcomeRestrictions
@@ -26,6 +27,7 @@ class TopologyBasedLabyrinthElement<T: Topology>: LabyrinthElement {
     typealias Restriction = TopologyBasedElementRestriction<T>
 
     var isVisitable: Bool { true }
+    var id: String = "element_" + UUID().uuidString
 
     func connectedPoints(_ point: Point) -> [Point] { [] }
 

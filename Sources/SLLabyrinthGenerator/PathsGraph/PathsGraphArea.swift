@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class PathsGraphArea<T: Topology> {
+public final class PathsGraphArea<T: Topology> {
     var id = UUID()
 
     var graph: PathsGraph = PathsGraph<T>()

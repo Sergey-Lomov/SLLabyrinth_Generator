@@ -22,6 +22,9 @@ public protocol ElementSuperposition {
     /// For this node, it means a wall at the south, so now we have the superposition "deadend with entrance from any edge except south" (entropy 3).
     func applyRestriction(_ restriction: Element.Restriction)
 
+    /// This method reverses all applied restrictions and restores the superposition's initial state.
+    func resetRestrictions()
+
     /// Collapse means superposition resolution. Thus, the superposition becomes a fully determined element.
     /// For example, the superposition "deadend with entrance from south or west" may collapse to the element "deadend with entrance from south."
     /// - Returns: A new element, or nil if element creation fails (due to applied restrictions)
@@ -43,6 +46,7 @@ class TopologyBasedElementSuperposition<T: Topology>: ElementSuperposition {
     }
 
     func applyRestriction(_ restriction: TopologyBasedElementRestriction<T>) {}
+    func resetRestrictions() {}
     func waveFunctionCollapse() -> T.Field.Element? { return nil }
     required init() {}
 }

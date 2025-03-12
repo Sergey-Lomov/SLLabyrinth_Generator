@@ -13,8 +13,8 @@ final class FieldAnalyzer {
         let graph = PathsGraph<T>()
 
         while !unhandled.isEmpty {
-            guard let point = unhandled.first else { continue }
-            unhandled.removeFirst()
+            guard let point = unhandled.last else { continue }
+            unhandled.removeLast()
             guard let element = field.element(at: point), element.isVisitable else {
                 continue
             }

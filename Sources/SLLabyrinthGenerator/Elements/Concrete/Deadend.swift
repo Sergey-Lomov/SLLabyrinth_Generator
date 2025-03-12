@@ -30,6 +30,10 @@ class DeadendSuperposition<T: Topology>: TopologyBasedElementSuperposition<T> {
         }
     }
 
+    override func resetRestrictions() {
+        entrances = Set(T.Edge.allCases)
+    }
+
     override func waveFunctionCollapse() -> T.Field.Element? {
         guard let target = entrances.randomElement() else { return nil }
         return Deadend<T>(entrance: target) as? T.Field.Element

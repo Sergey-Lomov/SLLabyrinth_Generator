@@ -7,4 +7,5 @@
 
 public struct GeneratorConfiguration<T: Topology> {
     let size: T.Field.Size
+    let isolatedAreasStrategy: IsolatedAreasStrategy = RandomMergeIsolatedAreasStrategy<T>()
 }
