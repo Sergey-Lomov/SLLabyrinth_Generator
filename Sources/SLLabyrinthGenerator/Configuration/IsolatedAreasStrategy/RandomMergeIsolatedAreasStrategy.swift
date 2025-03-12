@@ -19,8 +19,6 @@ final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy
     typealias Element = T.Field.Element
     typealias Point = T.Point
 
-    override var recalculation: RecalcualtionLevel { .none }
-
     override func handle(area: PathsGraphArea<T>, generator: LabyrinthGenerator<T>) -> Bool {
         let points = area.graph.points
         let field = generator.field
@@ -106,16 +104,17 @@ final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy
         let area2 = generator.isolatedAreas.first { $0.graph.points.contains(point2) }
         guard let area1 = area1, let area2 = area2 else { return false }
 
-        let embedding1 = generator.pathsGraph.embedVertex(atPoint: point1)
-        let embedding2 = generator.pathsGraph.embedVertex(atPoint: point2)
-        area1.graph.applyEmeddingResult(embedding1)
-        area2.graph.applyEmeddingResult(embedding2)
+        let patch1 = generator.pathsGraph.embedVertex(atPoint: point1)
+        let patch2 = generator.pathsGraph.embedVertex(atPoint: point2)
+        patch1.apply(on: area1.graph)
+        patch2.apply(on: area2.graph)
 
-        let edge1_2 = PathsGraphEdge<T>(
-            points: [point1, point2],
-            from: embedding1.vertex,
-            to: embedding2.vertex
-        )
+        guard let vertex1 = patch1.addedVertices.first,
+              let vertex2 = patch2.addedVertices.first else {
+            return false
+        }
+
+        let edge1_2 = PathsGraphEdge<T>(points: [point1, point2], from: vertex1, to: vertex2)
         let edge2_1 = edge1_2.reversed()
 
         generator.pathsGraph.appendEdge(edge1_2)
@@ -123,7 +122,12 @@ final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy
         area1.merge(area2)
         area1.graph.appendEdge(edge1_2)
         area1.graph.appendEdge(edge2_1)
+
         generator.isolatedAreas.removeAll { $0 == area2 }
+        let compactPatch1 = generator.pathsGraph.compactize(vertex: vertex1)
+        let compactPatch2 = generator.pathsGraph.compactize(vertex: vertex2)
+        compactPatch1.apply(on: area1.graph)
+        compactPatch2.apply(on: area1.graph)
 
         return true
     }

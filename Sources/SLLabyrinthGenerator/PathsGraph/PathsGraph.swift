@@ -4,12 +4,7 @@
 //
 //  Created by serhii.lomov on 09.03.2025.
 //
-
-struct VertexEmbeddingResult<T: Topology> {
-    var vertex: PathsGraphVertex<T>
-    var removedEdges: [PathsGraphEdge<T>] = []
-    var createdEdges: [PathsGraphEdge<T>] = []
-}
+//
 
 final class PathsGraph<T: Topology> {
     typealias Vertex = PathsGraphVertex<T>
@@ -32,32 +27,43 @@ final class PathsGraph<T: Topology> {
     /// Embeds vertices that have only two edges into a merged edge. For example, the graph V1--E1-->V2--E2-->V3 will be compacted to V1--E3-->V3, where E3 consists of E1's points plus V2's point plus E2's points.
     func compactizePaths() {
         for vertex in Array(vertices) {
-            guard let outEdges = fromMap[vertex], outEdges.count == 2,
-                  let inEdges = toMap[vertex], inEdges.count == 2 else {
-                // If a vertex has more or fewer than 2 incoming or outgoing edges, it should not be optimized
-                continue
-            }
-
-            let sourceToLeft = outEdges[0]
-            let sourceToRight = outEdges[1]
-            let left = sourceToLeft.to
-            let right = sourceToRight.to
-            let leftToSource = inEdges.first { $0.isReversed(sourceToLeft) }
-            let rightToSource = inEdges.first { $0.isReversed(sourceToRight) }
-            guard let leftToSource = leftToSource, let rightToSource = rightToSource else {
-                // If the incoming and outgoing edges are not symmetric, a vertex should not be optimized
-                continue
-            }
-
-            let leftToRightPoints = left.point + leftToSource.intermediatePoints + vertex.point + sourceToRight.intermediatePoints + right.point
-            let rightToLeftPoints = right.point + rightToSource.intermediatePoints + vertex.point + sourceToLeft.intermediatePoints + left.point
-            let leftToRight = Edge(points: leftToRightPoints, from: left, to: right)
-            let rightToLeft = Edge(points: rightToLeftPoints, from: right, to: left)
-
-            removeVertex(vertex)
-            appendEdge(leftToRight)
-            appendEdge(rightToLeft)
+            _ = compactize(vertex: vertex)
         }
+    }
+
+    func compactize(vertex: Vertex) -> PathsGraphPatch<T> {
+        var patch = PathsGraphPatch<T>()
+
+        guard let outEdges = fromMap[vertex], outEdges.count == 2,
+              let inEdges = toMap[vertex], inEdges.count == 2 else {
+            // If a vertex has more or fewer than 2 incoming or outgoing edges, it should not be optimized
+            return patch
+        }
+
+        let sourceToLeft = outEdges[0]
+        let sourceToRight = outEdges[1]
+        let left = sourceToLeft.to
+        let right = sourceToRight.to
+        let leftToSource = inEdges.first { $0.isReversed(sourceToLeft) }
+        let rightToSource = inEdges.first { $0.isReversed(sourceToRight) }
+        guard let leftToSource = leftToSource, let rightToSource = rightToSource else {
+            // If the incoming and outgoing edges are not symmetric, a vertex should not be optimized
+            return patch
+        }
+
+        let leftToRightPoints = left.point + leftToSource.intermediatePoints + vertex.point + sourceToRight.intermediatePoints + right.point
+        let rightToLeftPoints = right.point + rightToSource.intermediatePoints + vertex.point + sourceToLeft.intermediatePoints + left.point
+        let leftToRight = Edge(points: leftToRightPoints, from: left, to: right)
+        let rightToLeft = Edge(points: rightToLeftPoints, from: right, to: left)
+
+        removeVertex(vertex)
+        appendEdge(leftToRight)
+        appendEdge(rightToLeft)
+
+        patch.removedVertices.append(vertex)
+        patch.addedEdges.append(leftToRight)
+        patch.addedEdges.append(rightToLeft)
+        return patch
     }
 
     func nearest(to vertex: Vertex) -> Set<Vertex> {
@@ -89,7 +95,7 @@ final class PathsGraph<T: Topology> {
         while !pointers.isEmpty {
             var nextPointers: Set<Vertex> = []
             for vertex in pointers {
-                area.graph.vertices.insert(vertex)
+                area.graph.appendVertex(vertex)
 
                 for edge in fromMap[vertex, default: []] {
                     if isBidirectional(edge) {
@@ -143,8 +149,8 @@ final class PathsGraph<T: Topology> {
 
     func appendEdge(_ edge: Edge) {
         edges.insert(edge)
-        vertices.insert(edge.from)
-        vertices.insert(edge.to)
+        appendVertex(edge.from)
+        appendVertex(edge.to)
         fromMap.append(key: edge.from, arrayValue: edge)
         toMap.append(key: edge.to, arrayValue: edge)
     }
@@ -157,6 +163,10 @@ final class PathsGraph<T: Topology> {
         removeIfUnused(edge.to)
     }
 
+    func appendVertex(_ vertex: Vertex) {
+        vertices.insert(vertex)
+    }
+
     func removeVertex(_ vertex: Vertex) {
         vertices.remove(vertex)
         fromMap[vertex]?.forEach { removeEdge($0) }
@@ -165,20 +175,23 @@ final class PathsGraph<T: Topology> {
         toMap[vertex] = nil
     }
 
-    func embedVertex(atPoint point: T.Point) -> VertexEmbeddingResult<T> {
+    func embedVertex(atPoint point: T.Point) -> PathsGraphPatch<T> {
+        var patch = PathsGraphPatch<T>()
+
         if let exist = vertices.first(where: { $0.point == point }) {
-            return VertexEmbeddingResult(vertex: exist)
+            patch.addedVertices.append(exist)
+            return patch
         }
 
         let newVertex = Vertex(point: point)
-        vertices.insert(newVertex)
-        var result = VertexEmbeddingResult(vertex: newVertex)
+        appendVertex(newVertex)
+        patch.addedVertices.append(newVertex)
 
         edges
             .filter { $0.intermediatePoints.contains(point) }
             .forEach {
                 removeEdge($0)
-                result.removedEdges.append($0)
+                patch.removedEdges.append($0)
 
                 let subPoints = $0.points.split(separator: point)
                 let leftPoints = Array(subPoints[0]) + point
@@ -188,17 +201,11 @@ final class PathsGraph<T: Topology> {
 
                 appendEdge(left)
                 appendEdge(right)
-                result.createdEdges.append(left)
-                result.createdEdges.append(right)
+                patch.addedEdges.append(left)
+                patch.addedEdges.append(right)
         }
 
-        return result
-    }
-
-    func applyEmeddingResult(_ embeding: VertexEmbeddingResult<T>) {
-        vertices.insert(embeding.vertex)
-        embeding.createdEdges.forEach { appendEdge($0) }
-        embeding.removedEdges.forEach { removeEdge($0) }
+        return patch
     }
 
     func merge(_ graph: PathsGraph<T>) {
