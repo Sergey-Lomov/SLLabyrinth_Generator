@@ -16,7 +16,11 @@ struct PathsGraphEdge<T: Topology>: Hashable {
         points.filter { $0 != points.first && $0 != points.last }
     }
 
-    func isReversed(_ edge: PathsGraphEdge) -> Bool {
+    func isReversed(_ edge: PathsGraphEdge<T>) -> Bool {
         points == Array(edge.points.reversed()) && edge.to.point == from.point && edge.from.point == to.point
+    }
+
+    func reversed() -> Self {
+        Self(points: points.reversed(), from: to, to: from)
     }
 }

@@ -5,6 +5,8 @@
 //  Created by serhii.lomov on 03.03.2025.
 //
 
+import Dispatch
+
 private let borderRestrictionId = "field_border"
 
 public final class LabyrinthGenerator<T: Topology> {
@@ -98,6 +100,8 @@ public final class LabyrinthGenerator<T: Topology> {
 //    }
 
     private func handleIsolatedAreas() {
+        let start = DispatchTime.now()
+
         var failedCount = 0
         while isolatedAreas.count > (1 + failedCount) {
             guard let area = isolatedAreas.randomElement() else { continue }
@@ -115,6 +119,10 @@ public final class LabyrinthGenerator<T: Topology> {
                 break
             }
         }
+
+        let end = DispatchTime.now()
+        let elapsed = Double(end.uptimeNanoseconds - start.uptimeNanoseconds) / 1_000_000_000
+        print("Разрешение недоступных областей заняло \(elapsed) секунд")
     }
 
 //    private func postProcess(_ field: T.Field) {

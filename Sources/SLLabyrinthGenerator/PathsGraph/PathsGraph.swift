@@ -5,6 +5,12 @@
 //  Created by serhii.lomov on 09.03.2025.
 //
 
+struct VertexEmbeddingResult<T: Topology> {
+    var vertex: PathsGraphVertex<T>
+    var removedEdges: [PathsGraphEdge<T>] = []
+    var createdEdges: [PathsGraphEdge<T>] = []
+}
+
 final class PathsGraph<T: Topology> {
     typealias Vertex = PathsGraphVertex<T>
     typealias Edge = PathsGraphEdge<T>
@@ -54,19 +60,6 @@ final class PathsGraph<T: Topology> {
         }
     }
 
-    func appendEdge(points: [T.Point]) {
-        guard let from = points.first, let to = points.last, from != to else { return }
-        let fromVertex = vertices.first { $0.point == from } ?? Vertex(point: from)
-        let toVertex = vertices.first { $0.point == to } ?? Vertex(point: to)
-
-        let edge = Edge(points: points, from: fromVertex, to: toVertex)
-        appendEdge(edge)
-    }
-
-//    func edges(of vertex: Vertex) -> [Edge] {
-//        fromMap[vertex, default: []] + toMap[vertex, default: []]
-//    }
-//
     func nearest(to vertex: Vertex) -> Set<Vertex> {
         let to = fromMap[vertex]?.map { $0.to } ?? []
         let from = toMap[vertex]?.map { $0.from} ?? []
@@ -139,11 +132,16 @@ final class PathsGraph<T: Topology> {
         return areas
     }
 
-    private func isBidirectional(_ edge: Edge) -> Bool {
-        fromMap[edge.to, default: []].contains { $0.isReversed(edge) }
+    func appendEdge(points: [T.Point]) {
+        guard let from = points.first, let to = points.last, from != to else { return }
+        let fromVertex = vertices.first { $0.point == from } ?? Vertex(point: from)
+        let toVertex = vertices.first { $0.point == to } ?? Vertex(point: to)
+
+        let edge = Edge(points: points, from: fromVertex, to: toVertex)
+        appendEdge(edge)
     }
 
-    private func appendEdge(_ edge: Edge) {
+    func appendEdge(_ edge: Edge) {
         edges.insert(edge)
         vertices.insert(edge.from)
         vertices.insert(edge.to)
@@ -151,7 +149,7 @@ final class PathsGraph<T: Topology> {
         toMap.append(key: edge.to, arrayValue: edge)
     }
 
-    private func removeEdge(_ edge: Edge) {
+    func removeEdge(_ edge: Edge) {
         edges.remove(edge)
         fromMap.remove(key: edge.from, arrayValue: edge)
         toMap.remove(key: edge.to, arrayValue: edge)
@@ -159,17 +157,74 @@ final class PathsGraph<T: Topology> {
         removeIfUnused(edge.to)
     }
 
-    private func removeIfUnused(_ vertex: Vertex) {
-        let emptyFrom = fromMap[vertex]?.isEmpty ?? true
-        let emptyTo = toMap[vertex]?.isEmpty ?? true
-        if emptyTo && emptyFrom { removeVertex(vertex) }
-    }
-
-    private func removeVertex(_ vertex: Vertex) {
+    func removeVertex(_ vertex: Vertex) {
         vertices.remove(vertex)
         fromMap[vertex]?.forEach { removeEdge($0) }
         toMap[vertex]?.forEach { removeEdge($0) }
         fromMap[vertex] = nil
         toMap[vertex] = nil
+    }
+
+    func embedVertex(atPoint point: T.Point) -> VertexEmbeddingResult<T> {
+        if let exist = vertices.first(where: { $0.point == point }) {
+            return VertexEmbeddingResult(vertex: exist)
+        }
+
+        let newVertex = Vertex(point: point)
+        vertices.insert(newVertex)
+        var result = VertexEmbeddingResult(vertex: newVertex)
+
+        edges
+            .filter { $0.intermediatePoints.contains(point) }
+            .forEach {
+                removeEdge($0)
+                result.removedEdges.append($0)
+
+                let subPoints = $0.points.split(separator: point)
+                let leftPoints = Array(subPoints[0]) + point
+                let rightPoints = point + Array(subPoints[1])
+                let left = Edge(points: leftPoints, from: $0.from, to: newVertex)
+                let right = Edge(points: rightPoints, from: newVertex, to: $0.to)
+
+                appendEdge(left)
+                appendEdge(right)
+                result.createdEdges.append(left)
+                result.createdEdges.append(right)
+        }
+
+        return result
+    }
+
+    func applyEmeddingResult(_ embeding: VertexEmbeddingResult<T>) {
+        vertices.insert(embeding.vertex)
+        embeding.createdEdges.forEach { appendEdge($0) }
+        embeding.removedEdges.forEach { removeEdge($0) }
+    }
+
+    func merge(_ graph: PathsGraph<T>) {
+        vertices.formUnion(graph.vertices)
+        edges.formUnion(graph.edges)
+
+        fromMap.merge(graph.fromMap) { current, new in
+            return current + new
+        }
+
+        toMap.merge(graph.toMap) { current, new in
+            return current + new
+        }
+    }
+
+    private func isBidirectional(_ edge: Edge) -> Bool {
+        existedReverse(edge) != nil
+    }
+
+    private func existedReverse(_ edge: Edge) -> Edge? {
+        fromMap[edge.to, default: []].first { $0.isReversed(edge) }
+    }
+
+    private func removeIfUnused(_ vertex: Vertex) {
+        let emptyFrom = fromMap[vertex]?.isEmpty ?? true
+        let emptyTo = toMap[vertex]?.isEmpty ?? true
+        if emptyTo && emptyFrom { removeVertex(vertex) }
     }
 }

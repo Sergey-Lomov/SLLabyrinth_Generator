@@ -16,7 +16,10 @@ private struct MergeData<T: Topology> {
 }
 
 final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy<T> {
-    override var recalculation: RecalcualtionLevel { .paths }
+    typealias Element = T.Field.Element
+    typealias Point = T.Point
+
+    override var recalculation: RecalcualtionLevel { .none }
 
     override func handle(area: PathsGraphArea<T>, generator: LabyrinthGenerator<T>) -> Bool {
         let points = area.graph.points
@@ -72,9 +75,13 @@ final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy
 
         if let newElement1 = super1.waveFunctionCollapse(),
            let newElement2 = super2.waveFunctionCollapse() {
-            generator.setFieldElement(at: merge.point1, element: newElement1)
-            generator.setFieldElement(at: merge.point2, element: newElement2)
-            return true
+            return replaceElments(
+                element1: newElement1,
+                point1: merge.point1,
+                element2: newElement2,
+                point2: merge.point2,
+                generator: generator
+            )
         } else {
             _ = super1.resetRestrictions()
             _ = super2.resetRestrictions()
@@ -83,5 +90,41 @@ final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy
             return false
         }
 
+    }
+
+    private func replaceElments(
+        element1: Element,
+        point1: Point,
+        element2: Element,
+        point2: Point,
+        generator: LabyrinthGenerator<T>
+    ) -> Bool {
+        generator.setFieldElement(at: point1, element: element1)
+        generator.setFieldElement(at: point2, element: element2)
+
+        let area1 = generator.isolatedAreas.first { $0.graph.points.contains(point1) }
+        let area2 = generator.isolatedAreas.first { $0.graph.points.contains(point2) }
+        guard let area1 = area1, let area2 = area2 else { return false }
+
+        let embedding1 = generator.pathsGraph.embedVertex(atPoint: point1)
+        let embedding2 = generator.pathsGraph.embedVertex(atPoint: point2)
+        area1.graph.applyEmeddingResult(embedding1)
+        area2.graph.applyEmeddingResult(embedding2)
+
+        let edge1_2 = PathsGraphEdge<T>(
+            points: [point1, point2],
+            from: embedding1.vertex,
+            to: embedding2.vertex
+        )
+        let edge2_1 = edge1_2.reversed()
+
+        generator.pathsGraph.appendEdge(edge1_2)
+        generator.pathsGraph.appendEdge(edge2_1)
+        area1.merge(area2)
+        area1.graph.appendEdge(edge1_2)
+        area1.graph.appendEdge(edge2_1)
+        generator.isolatedAreas.removeAll { $0 == area2 }
+
+        return true
     }
 }
