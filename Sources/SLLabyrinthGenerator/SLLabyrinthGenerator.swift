@@ -97,16 +97,6 @@ public final class LabyrinthGenerator<T: Topology> {
         }
     }
 
-//    private func handleIsolatedAreas() {
-//        for area in isolatedAreas {
-//            let strategy = configuration.isolatedAreasStrategy
-//            _ = strategy.handle(area: area, generator: self)
-//        }
-//
-//        calculatePathsGraph()
-//        calculateIsolatedAreas()
-//    }
-
     private func handleIsolatedAreas() {
         timeLog("Calculate isolated areas") { calculateIsolatedAreas() }
         timeLog("Resolve isolated areas") { resolveIsolatedAreas() }

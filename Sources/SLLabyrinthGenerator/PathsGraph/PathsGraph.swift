@@ -11,17 +11,15 @@ final class PathsGraph<T: Topology> {
     typealias Edge = PathsGraphEdge<T>
     typealias Area = PathsGraphArea<T>
 
-    var vertices: Set<Vertex> = []
-    var edges: Set<Edge> = []
+    private(set) var vertices: Set<Vertex> = []
+    private(set) var edges: Set<Edge> = []
     var fromMap: Dictionary<Vertex, [Edge]> = [:]
     var toMap: Dictionary<Vertex, [Edge]> = [:]
 
-    var points: Set<T.Point> {
-        if edges.isEmpty {
-            return Set(vertices.map { $0.point })
-        } else {
-            return Set(edges.flatMap { $0.points })
-        }
+    @Cached var points: Set<T.Point>
+
+    init() {
+        _points.compute = calculatePoints
     }
 
     /// Embeds vertices that have only two edges into a merged edge. For example, the graph V1--E1-->V2--E2-->V3 will be compacted to V1--E3-->V3, where E3 consists of E1's points plus V2's point plus E2's points.
@@ -153,6 +151,7 @@ final class PathsGraph<T: Topology> {
         appendVertex(edge.to)
         fromMap.append(key: edge.from, arrayValue: edge)
         toMap.append(key: edge.to, arrayValue: edge)
+        _points.invaliade()
     }
 
     func removeEdge(_ edge: Edge) {
@@ -161,10 +160,12 @@ final class PathsGraph<T: Topology> {
         toMap.remove(key: edge.to, arrayValue: edge)
         removeIfUnused(edge.from)
         removeIfUnused(edge.to)
+        _points.invaliade()
     }
 
     func appendVertex(_ vertex: Vertex) {
         vertices.insert(vertex)
+        _points.invaliade()
     }
 
     func removeVertex(_ vertex: Vertex) {
@@ -173,6 +174,7 @@ final class PathsGraph<T: Topology> {
         toMap[vertex]?.forEach { removeEdge($0) }
         fromMap[vertex] = nil
         toMap[vertex] = nil
+        _points.invaliade()
     }
 
     func embedVertex(atPoint point: T.Point) -> PathsGraphPatch<T> {
@@ -219,6 +221,14 @@ final class PathsGraph<T: Topology> {
         toMap.merge(graph.toMap) { current, new in
             return current + new
         }
+    }
+
+    private func calculatePoints() -> Set<T.Point> {
+       if edges.isEmpty {
+           return Set(vertices.map { $0.point })
+       } else {
+           return Set(edges.flatMap { $0.points })
+       }
     }
 
     private func isBidirectional(_ edge: Edge) -> Bool {

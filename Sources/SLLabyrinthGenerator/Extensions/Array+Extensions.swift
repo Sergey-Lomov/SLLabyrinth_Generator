@@ -43,3 +43,9 @@ extension Array {
         [lhs] + rhs
     }
 }
+
+extension Array: ZeroRepresentable {
+    static func getZero() -> Array<Element> {
+        Self()
+    }
+}
