@@ -105,7 +105,8 @@ public final class LabyrinthGenerator<T: Topology> {
     private func resolveIsolatedAreas() {
         var failedCount = 0
         while isolatedAreas.count > (1 + failedCount) {
-            guard let area = isolatedAreas.randomElement() else { continue }
+            let sorted = isolatedAreas.sorted { $0.size < $1.size }
+            guard let area = sorted.first else { continue }
             let strategy = configuration.isolatedAreasStrategy
             let success = strategy.handle(area: area, generator: self)
             if !success { failedCount += 1}

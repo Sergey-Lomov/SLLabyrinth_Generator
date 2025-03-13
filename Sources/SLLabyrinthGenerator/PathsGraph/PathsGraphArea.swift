@@ -14,6 +14,8 @@ public final class PathsGraphArea<T: Topology>: IdEquatable {
     var income: [PathsGraphEdge<T>] = []
     var outgoing: [PathsGraphEdge<T>] = []
 
+    var size: Int { graph.points.count }
+
     func merge(_ area: PathsGraphArea<T>) {
         graph.merge(area.graph)
         outgoing = outgoing + area.outgoing

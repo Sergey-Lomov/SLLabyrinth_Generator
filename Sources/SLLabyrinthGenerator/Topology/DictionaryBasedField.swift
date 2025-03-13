@@ -17,6 +17,10 @@ extension DictionaryBasedField {
 
     func element(at point: Point) -> Element? { nodes[point] }
 
+    func contains(_ point: Point) -> Bool {
+        nodes.keys.contains(point)
+    }
+
     mutating func setElement(at point: Point, element: Element?) {
         guard contains(point) else { return }
         nodes[point] = element ?? Element.undefined()

@@ -22,24 +22,37 @@ final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy
     override func handle(area: PathsGraphArea<T>, generator: LabyrinthGenerator<T>) -> Bool {
         let points = area.graph.points
         let field = generator.field
-        var unhandled = points
-            .reduce(into: [MergeData<T>]()) { acc, point in
-                for edge in T.Edge.allCases {
-                    let next = T.nextPoint(point: point, edge: edge)
-                    guard field.contains(next), !points.contains(next) else { continue }
-                    let edge2 = T.adaptToNextPoint(edge)
-                    let merge = MergeData<T>(point1: point, edge1: edge, point2: next, edge2: edge2)
-                    acc.append(merge)
-                }
-            }
-            .shuffled()
-
+        var unhandled = points.shuffled()
         while !unhandled.isEmpty {
-            guard let merge = unhandled.last else { continue }
-            if tryToMerge(merge, generator: generator) {
+            guard let point = unhandled.last else { continue }
+            if tryToMerge(at: point, field: field, areaPoints: points, generator: generator) {
                 return true
             }
             unhandled.removeLast()
+        }
+
+        return false
+    }
+
+    private func tryToMerge(
+        at point: Point,
+        field: T.Field,
+        areaPoints: Set<T.Point>,
+        generator: LabyrinthGenerator<T>
+    ) -> Bool {
+        let merges = T.Edge.allCases
+            .reduce(into: [MergeData<T>]()) { acc, edge in
+                let next = T.nextPoint(point: point, edge: edge)
+                guard field.contains(next), !areaPoints.contains(next) else { return }
+                let edge2 = T.adaptToNextPoint(edge)
+                let merge = MergeData<T>(point1: point, edge1: edge, point2: next, edge2: edge2)
+                acc.append(merge)
+            }
+
+        for merge in merges {
+            if tryToMerge(merge, generator: generator) {
+                return true
+            }
         }
 
         return false
