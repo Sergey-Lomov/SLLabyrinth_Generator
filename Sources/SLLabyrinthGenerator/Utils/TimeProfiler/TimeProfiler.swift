@@ -11,7 +11,7 @@ final class TimeProfiler {
     var logs: [TimeLog] = []
 
     var averageLog: TimeLog {
-        var result = TimeLog()
+        let result = TimeLog()
         let nodes = logs.map { $0.nodes }
         result.nodes = averageNodes(nodes: nodes)
         return result

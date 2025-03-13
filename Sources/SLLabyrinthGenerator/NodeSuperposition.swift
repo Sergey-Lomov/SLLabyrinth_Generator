@@ -37,16 +37,12 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
     var elementsSuperpositions: [Nested] = []
     private var restrictions: [AppliedRestriction] = []
 
-    var entropy: Int {
-        return
-            elementsSuperpositions
-            .map { $0.entropy }
-            .reduce(0, +)
-    }
+    @Cached var entropy: Int
 
     init(point: Point, elementsSuperpositions: [Nested]) {
         self.point = point
         self.elementsSuperpositions = elementsSuperpositions
+        _entropy.compute = caclulateEntropy
     }
 
     func applyRestriction(_ restriction: any SuperpositionRestriction, provider: String) {
@@ -61,6 +57,35 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
         default:
             break
         }
+
+        _entropy.invaliade()
+    }
+
+    func waveFunctionCollapse() -> T.Field.Element? {
+        let available = elementsSuperpositions.filter { $0.entropy > 0 }
+        return available.randomElement()?.waveFunctionCollapse()
+    }
+
+    func resetRestrictions() -> [AppliedRestriction] {
+        defer {
+            restrictions = []
+            _entropy.invaliade()
+        }
+
+        elementsSuperpositions.forEach { $0.resetRestrictions() }
+        return restrictions
+    }
+
+    func resetRestrictions(by provider: String) {
+        resetRestrictions()
+            .filter { $0.provider != provider }
+            .forEach { applyRestriction($0) }
+    }
+
+    private func caclulateEntropy() -> Int {
+        elementsSuperpositions
+            .map { $0.entropy }
+            .reduce(0, +)
     }
 
     private func applyNodeRestriction(_ restriction: NodeRestriction) {
@@ -73,22 +98,5 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
         elementsSuperpositions.forEach {
             $0.applyRestriction(restriction)
         }
-    }
-
-    func waveFunctionCollapse() -> T.Field.Element? {
-        let available = elementsSuperpositions.filter { $0.entropy > 0 }
-        return available.randomElement()?.waveFunctionCollapse()
-    }
-
-    func resetRestrictions() -> [AppliedRestriction] {
-        defer { restrictions = [] }
-        elementsSuperpositions.forEach { $0.resetRestrictions() }
-        return restrictions
-    }
-
-    func resetRestrictions(by provider: String) {
-        resetRestrictions()
-            .filter { $0.provider != provider }
-            .forEach { applyRestriction($0) }
     }
 }
