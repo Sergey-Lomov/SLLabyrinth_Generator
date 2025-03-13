@@ -5,8 +5,6 @@
 //  Created by serhii.lomov on 03.03.2025.
 //
 
-import Dispatch
-
 private let borderRestrictionId = "field_border"
 
 public final class LabyrinthGenerator<T: Topology> {
@@ -17,32 +15,42 @@ public final class LabyrinthGenerator<T: Topology> {
     var pathsGraph = PathsGraph<T>()
     var isolatedAreas: [PathsGraphArea<T>] = []
 
+    private var timeLog = TimeLog()
+
     init(configuration: GeneratorConfiguration<T>) {
         self.configuration = configuration
         self.field = T.Field(size: configuration.size)
     }
 
-    func generateLabyrinth() {
+    func generateLabyrinth() -> TimeLog {
+        timeLog = TimeLog()
+
+        timeLog("Collapse field") {
+            timeLog("Setup superpositions") { setupSuperpositions() }
+            timeLog("Apply borders") { applyBorderConstraints() }
+            timeLog("Collapse") { collapse() }
+        }
+
+        timeLog("Calculate paths graph") { calculatePathsGraph() }
+        timeLog("Handle isolated areas") { handleIsolatedAreas() }
+
+        return timeLog
+    }
+
+    private func setupSuperpositions() {
         let superProvider = setupSuperProvider()
         field.allPoints().forEach {
             let nestsed = superProvider.instantiate()
             superpositions[$0] = T.Superposition(point: $0, elementsSuperpositions: nestsed)
         }
-
-        applyBorderConstraints()
-        collapse()
-
-        recalculatePathsGraph()
-        recalculateIsolatedAreas()
-        handleIsolatedAreas()
     }
 
-    func recalculatePathsGraph() {
+    func calculatePathsGraph() {
         pathsGraph = FieldAnalyzer.pathsGraph(field)
         pathsGraph.compactizePaths()
     }
 
-    func recalculateIsolatedAreas() {
+    func calculateIsolatedAreas() {
         isolatedAreas = pathsGraph.isolatedAreas()
     }
 
@@ -95,13 +103,16 @@ public final class LabyrinthGenerator<T: Topology> {
 //            _ = strategy.handle(area: area, generator: self)
 //        }
 //
-//        recalculatePathsGraph()
-//        recalculateIsolatedAreas()
+//        calculatePathsGraph()
+//        calculateIsolatedAreas()
 //    }
 
     private func handleIsolatedAreas() {
-        let start = DispatchTime.now()
+        timeLog("Calculate isolated areas") { calculateIsolatedAreas() }
+        timeLog("Resolve isolated areas") { resolveIsolatedAreas() }
+    }
 
+    private func resolveIsolatedAreas() {
         var failedCount = 0
         while isolatedAreas.count > (1 + failedCount) {
             guard let area = isolatedAreas.randomElement() else { continue }
@@ -109,10 +120,6 @@ public final class LabyrinthGenerator<T: Topology> {
             let success = strategy.handle(area: area, generator: self)
             if !success { failedCount += 1}
         }
-
-        let end = DispatchTime.now()
-        let elapsed = Double(end.uptimeNanoseconds - start.uptimeNanoseconds) / 1_000_000_000
-        print("Разрешение недоступных областей заняло \(elapsed) секунд")
     }
 
 //    private func postProcess(_ field: T.Field) {

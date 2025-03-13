@@ -7,7 +7,7 @@
 
 import Foundation
 
-public final class PathsGraphArea<T: Topology>: IdEquitable {
+public final class PathsGraphArea<T: Topology>: IdEquatable {
     var id = UUID()
 
     var graph: PathsGraph = PathsGraph<T>()

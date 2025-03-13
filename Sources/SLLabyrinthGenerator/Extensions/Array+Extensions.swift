@@ -8,7 +8,11 @@
 import Foundation
 
 extension Array {
-    func oppositePairs() -> Array<(Element, Element)> where Element: TopologyEdge {
+    mutating func remove(_ element: Element) where Element: Equatable {
+        removeAll { $0 == element }
+    }
+
+    func oppositePairs() -> [(Element, Element)] where Element: TopologyEdge {
         let pairs: [(Element, Element)] = compactMap {
             guard let opposite = $0.opposite() else { return nil }
             return ($0, opposite)
@@ -27,15 +31,15 @@ extension Array {
         return straight || reversed
     }
 
-    func removeOppositePairs<T> () -> Array<Element> where Element == (T, T), T: TopologyEdge {
+    func removeOppositePairs<T> () -> [Element] where Element == (T, T), T: TopologyEdge {
         filter { $0 != $1.opposite() }
     }
 
-    static func + (lhs: Array<Element>, rhs: Element) -> Array<Element> {
+    static func + (lhs: [Element], rhs: Element) -> [Element] {
         lhs + [rhs]
     }
 
-    static func + (lhs: Element, rhs: Array<Element>) -> Array<Element> {
+    static func + (lhs: Element, rhs: [Element]) -> [Element] {
         [lhs] + rhs
     }
 }

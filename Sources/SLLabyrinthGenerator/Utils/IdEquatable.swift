@@ -1,5 +1,5 @@
 //
-//  IdEquitable.swift
+//  IdEquatable.swift
 //  SLLabyrinthIOS
 //
 //  Created by serhii.lomov on 12.03.2025.
@@ -7,11 +7,11 @@
 
 import Foundation
 
-protocol IdEquitable: Equatable {
+protocol IdEquatable: Equatable {
     var id: UUID { get }
 }
 
-extension IdEquitable {
+extension IdEquatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.id == rhs.id
     }
