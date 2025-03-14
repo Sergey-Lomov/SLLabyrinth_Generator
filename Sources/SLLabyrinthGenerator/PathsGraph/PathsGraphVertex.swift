@@ -7,6 +7,6 @@
 
 import Foundation
 
-struct PathsGraphVertex<T: Topology>: Hashable {
+struct PathsGraphVertex<T: Topology>: Hashable, Equatable {
     var point: T.Point
 }

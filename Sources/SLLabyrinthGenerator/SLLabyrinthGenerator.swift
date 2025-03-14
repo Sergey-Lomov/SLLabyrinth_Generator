@@ -5,6 +5,8 @@
 //  Created by serhii.lomov on 03.03.2025.
 //
 
+import Foundation
+
 private let borderRestrictionId = "field_border"
 
 public final class LabyrinthGenerator<T: Topology> {
@@ -13,7 +15,9 @@ public final class LabyrinthGenerator<T: Topology> {
 
     var superpositions: Dictionary<T.Point, T.Superposition> = [:]
     var pathsGraph = PathsGraph<T>()
+    var filteredGraph = PathsGraph<T>()
     var isolatedAreas: [PathsGraphArea<T>] = []
+    var cycledPaths: [PathsGraphPath<T>] = []
 
     private var timeLog = TimeLog()
 
@@ -33,6 +37,7 @@ public final class LabyrinthGenerator<T: Topology> {
 
         timeLog("Calculate paths graph") { calculatePathsGraph() }
         timeLog("Handle isolated areas") { handleIsolatedAreas() }
+        timeLog("Handle cycled pathes") { handleCycledPaths() }
 
         return timeLog
     }
@@ -50,8 +55,13 @@ public final class LabyrinthGenerator<T: Topology> {
         pathsGraph.compactizePaths()
     }
 
-    func calculateIsolatedAreas() {
-        isolatedAreas = pathsGraph.isolatedAreas()
+    func handleCycledPaths() {
+        timeLog("Calculate cycled paths") {
+            filteredGraph = pathsGraph.noDeadendsPaths()
+            filteredGraph.compactizePaths()
+//            cycledPaths = filteredGraph.cycledPaths()
+//            print("Total cycled: \(cycledPaths.count)")
+        }
     }
 
     private func applyBorderConstraints() {
@@ -98,7 +108,9 @@ public final class LabyrinthGenerator<T: Topology> {
     }
 
     private func handleIsolatedAreas() {
-        timeLog("Calculate isolated areas") { calculateIsolatedAreas() }
+        timeLog("Calculate isolated areas") {
+            isolatedAreas = pathsGraph.isolatedAreas()
+        }
         timeLog("Resolve isolated areas") { resolveIsolatedAreas() }
     }
 
