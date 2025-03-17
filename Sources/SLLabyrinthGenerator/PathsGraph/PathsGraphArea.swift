@@ -7,20 +7,31 @@
 
 import Foundation
 
-public final class PathsGraphArea<T: Topology>: IdEquatable {
+public final class PathsGraphArea<T: Topology>: IdEquatable, GraphVertex {
     var id = UUID()
 
     var graph: PathsGraph = PathsGraph<T>()
-    var income: [PathsGraphEdge<T>] = []
-    var outgoing: [PathsGraphEdge<T>] = []
+//    var income: [PathsGraphEdge<T>] = []
+//    var outgoing: [PathsGraphEdge<T>] = []
 
     var size: Int { graph.points.count }
 
+    init() {}
+
+    convenience init(vertex: PathsGraphVertex<T>) {
+        self.init()
+        graph.appendVertex(vertex)
+    }
+
     func merge(_ area: PathsGraphArea<T>) {
         graph.merge(area.graph)
-        outgoing = outgoing + area.outgoing
-        income = income + area.income
-        outgoing = outgoing.filter { !graph.vertices.contains($0.to) }
-        income = outgoing.filter { !graph.vertices.contains($0.from) }
+//        outgoing = outgoing + area.outgoing
+//        income = income + area.income
+//        outgoing = outgoing.filter { !graph.vertices.contains($0.to) }
+//        income = outgoing.filter { !graph.vertices.contains($0.from) }
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }

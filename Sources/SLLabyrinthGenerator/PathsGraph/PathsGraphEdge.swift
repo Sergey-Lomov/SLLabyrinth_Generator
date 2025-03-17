@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct PathsGraphEdge<T: Topology>: Hashable {
+struct PathsGraphEdge<T: Topology>: GraphEdge {
     var points: [T.Point]
     var from: PathsGraphVertex<T>
     var to: PathsGraphVertex<T>

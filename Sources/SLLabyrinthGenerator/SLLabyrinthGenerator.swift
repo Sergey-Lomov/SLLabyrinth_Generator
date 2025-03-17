@@ -16,8 +16,8 @@ public final class LabyrinthGenerator<T: Topology> {
     var superpositions: Dictionary<T.Point, T.Superposition> = [:]
     var pathsGraph = PathsGraph<T>()
     var filteredGraph = PathsGraph<T>()
+    var cyclesAreas: [PathsGraphArea<T>] = []
     var isolatedAreas: [PathsGraphArea<T>] = []
-    var cycledPaths: [PathsGraphPath<T>] = []
 
     private var timeLog = TimeLog()
 
@@ -55,22 +55,50 @@ public final class LabyrinthGenerator<T: Topology> {
         pathsGraph.compactizePaths()
     }
 
+    func calculateCycledAreas() {
+        let areasGraph = filteredGraph.toAreasGraph()
+        areasGraph.groupCycled()
+        cyclesAreas = Array(areasGraph.vertices)
+    }
+
     func handleCycledPaths() {
         timeLog("Calculate cycled paths") {
-            filteredGraph = pathsGraph.noDeadendsPaths()
+            filteredGraph = pathsGraph.noDeadendsGraph()
             filteredGraph.compactizePaths()
-//            cycledPaths = filteredGraph.cycledPaths()
-//            print("Total cycled: \(cycledPaths.count)")
+            let areasGraph = filteredGraph.toAreasGraph()
+            areasGraph.groupCycled()
+            cyclesAreas = areasGraph.vertices
+                .filter { $0.graph.points.count != 1 }
+        }
+    }
+
+    private func applyEmptyFieldConstraints() {
+        eachPointEdgeConstraint { point, edge, hasNext in
+            if hasNext {
+                return TopologyBasedElementRestriction<T>.passage(edge: edge) as? T.ElementRestriction
+            } else {
+                return TopologyBasedElementRestriction<T>.wall(edge: edge) as? T.ElementRestriction
+            }
         }
     }
 
     private func applyBorderConstraints() {
+        eachPointEdgeConstraint { point, edge, hasNext in
+            guard !hasNext else { return nil }
+            return TopologyBasedElementRestriction<T>.wall(edge: edge) as? T.ElementRestriction
+        }
+    }
+
+    private func eachPointEdgeConstraint(
+        handler: (T.Point, T.Edge, Bool) -> T.ElementRestriction?
+    ) {
         superpositions.values.forEach { superposition in
             T.Edge.allCases.forEach { edge in
                 let next = T.nextPoint(point: superposition.point, edge: edge)
-                guard !field.contains(next) else { return }
-                let restriction = TopologyBasedElementRestriction<T>.wall(edge: edge)
-                guard let restriction = restriction as? T.ElementRestriction else { return }
+                let nextExist = field.contains(next)
+                let restriction = handler(superposition.point, edge, nextExist)
+
+                guard let restriction = restriction else { return }
                 superposition.applyRestriction(restriction, provider: borderRestrictionId)
             }
         }
@@ -124,32 +152,6 @@ public final class LabyrinthGenerator<T: Topology> {
             if !success { failedCount += 1}
         }
     }
-
-//    private func postProcess(_ field: T.Field) {
-//        var unprocessed = field.allPoints().shuffled()
-//        var failed: [T.Point] = []
-//        let flowEdges = T.coverageFlowEdges()
-//
-//        while !unprocessed.isEmpty {
-//            guard let point = unprocessed.last else { continue }
-//            unprocessed.removeLast()
-//            let success = postProcessPoint(point, atField: field, flowEdges: flowEdges)
-//            if !success { failed.append(point) }
-//        }
-//
-//        while !failed.isEmpty {
-//            guard let point = failed.last else { continue }
-//            failed.removeLastt()
-//            let success = postProcessPoint(point, atField: field, flowEdges: flowEdges)
-//            if !success {
-//                print("Labirynth generator: point postprocessing failed after second try: \(point)")
-//            }
-//        }
-//    }
-//
-//    private func postProcessPoint(_ point: T.Point, atField field: T.Field, flowEdges: [T.Edge]) -> Bool {
-//        return true
-//    }
 
     private func setupSuperProvider() -> SuperpositionsProvider<T> {
         let superProvider = SuperpositionsProvider<T>()

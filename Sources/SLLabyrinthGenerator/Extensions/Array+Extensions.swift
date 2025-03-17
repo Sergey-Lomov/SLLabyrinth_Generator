@@ -12,6 +12,10 @@ extension Array {
         removeAll { $0 == element }
     }
 
+    func toSet() -> Set<Element> where Element: Hashable {
+        Set(self)
+    }
+
     func oppositePairs() -> [(Element, Element)] where Element: TopologyEdge {
         let pairs: [(Element, Element)] = compactMap {
             guard let opposite = $0.opposite() else { return nil }

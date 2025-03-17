@@ -7,61 +7,11 @@
 
 import Foundation
 
-final class PathsGraphPath<T: Topology>: IdEquatable {
-    typealias Edge = PathsGraphEdge<T>
-    typealias Vertex = PathsGraphVertex<T>
+final class PathsGraphPath<T: Topology>: GraphPath<PathsGraphEdge<T>> {
 
-    let id = UUID()
-    private(set) var edges: [Edge] = []
-    private(set) var vertices: [Vertex] = []
-
-    var isEmpty: Bool { edges.isEmpty }
-    var from: Vertex? { edges.first?.from }
-    var to: Vertex? { edges.last?.to }
-
-    init() {}
-
-    init(edge: Edge) {
-        append(edge)
-    }
-
-    init(path: PathsGraphPath<T>) {
-        self.edges = path.edges
-        self.vertices = path.vertices
-    }
-
-    func append(_ edge: Edge) {
-        guard edge.from == self.to || isEmpty else { return }
-        if isEmpty { vertices.append(edge.from) }
-        vertices.append(edge.to)
-        edges.append(edge)
-    }
-
-    func contains(_ vertex: Vertex) -> Bool {
-        vertices.contains { $0 == vertex }
-    }
-
-    func subpath(from: Vertex? = nil, to: Vertex? = nil) -> PathsGraphPath? {
-        let from = from ?? edges.first?.from
-        let to = to ?? edges.last?.to
-        guard let start = edges.firstIndex(where: { $0.from == from }),
-              let finish = edges.firstIndex(where: { $0.to == to }),
-              start <= finish else {
-            return nil
-        }
-
-        let newPath = PathsGraphPath()
-        edges[start...finish].forEach {
-            newPath.append($0)
-        }
-        return newPath
-    }
-
-    func toGraph() -> PathsGraph<T> {
-        let graph = PathsGraph<T>()
-        edges.forEach {
-            graph.appendEdge($0)
-        }
-        return graph
+    func routeString() -> String {
+        vertices
+            .map { "\($0.point)" }
+            .joined(separator: " ")
     }
 }

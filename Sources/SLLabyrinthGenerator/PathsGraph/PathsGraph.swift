@@ -6,30 +6,21 @@
 //
 //
 
-final class PathsGraph<T: Topology> {
-    typealias Vertex = PathsGraphVertex<T>
+final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
     typealias Edge = PathsGraphEdge<T>
+    typealias Vertex = PathsGraphVertex<T>
     typealias Area = PathsGraphArea<T>
     typealias Path = PathsGraphPath<T>
 
-    private(set) var vertices: Set<Vertex> = []
-    private(set) var edges: Set<Edge> = []
-    var fromMap: Dictionary<Vertex, [Edge]> = [:]
-    var toMap: Dictionary<Vertex, [Edge]> = [:]
-
     @Cached var points: Set<T.Point>
 
-    init() {
+    override init() {
+        super.init()
         _points.compute = calculatePoints
     }
 
-    convenience init(graph: PathsGraph<T>) {
-        self.init()
-
-        self.vertices = graph.vertices
-        self.edges = graph.edges
-        self.fromMap = graph.fromMap
-        self.toMap = graph.toMap
+    override func invalidateCache() {
+        _points.invaliade()
     }
 
     /// Embeds vertices that have only two edges into a merged edge. For example, the graph V1--E1-->V2--E2-->V3 will be compacted to V1--E3-->V3, where E3 consists of E1's points plus V2's point plus E2's points.
@@ -95,7 +86,7 @@ final class PathsGraph<T: Topology> {
         return result
     }
 
-    func area(from vertex: Vertex) -> Area {
+    func areaAvailable(from vertex: Vertex) -> Area {
         let area = Area()
         var pointers: Set<Vertex> = [vertex]
         var handled: Set<Vertex> = []
@@ -109,8 +100,6 @@ final class PathsGraph<T: Topology> {
                     if isBidirectional(edge) {
                         area.graph.appendEdge(edge)
                         nextPointers.insert(edge.to)
-                    } else {
-                        area.outgoing.append(edge)
                     }
                 }
 
@@ -118,8 +107,6 @@ final class PathsGraph<T: Topology> {
                     if isBidirectional(edge) {
                         area.graph.appendEdge(edge)
                         nextPointers.insert(edge.from)
-                    } else {
-                        area.income.append(edge)
                     }
                 }
 
@@ -138,7 +125,7 @@ final class PathsGraph<T: Topology> {
 
         while !unhandled.isEmpty {
             guard let vertex = unhandled.first else { continue }
-            let area = area(from: vertex)
+            let area = areaAvailable(from: vertex)
             areas.append(area)
             unhandled.subtract(area.graph.vertices)
         }
@@ -146,21 +133,7 @@ final class PathsGraph<T: Topology> {
         return areas
     }
 
-//    func cycledPaths() -> [Path] {
-//        var cyles: [Path] = []
-//        var unhandled = Set(edges)
-//        var handled: Dictionary<Edge, [Path]> = [:]
-//
-//        while !unhandled.isEmpty {
-//            guard let edge = unhandled.first else { continue }
-//            unhandled.remove(edge)
-//            cycledPaths(from: edge)
-//        }
-//
-//        return cyles
-//    }
-
-    func noDeadendsPaths() -> PathsGraph {
+    func noDeadendsGraph() -> PathsGraph {
         let result = PathsGraph(graph: self)
 
         var deadends = result.deadends()
@@ -172,57 +145,18 @@ final class PathsGraph<T: Topology> {
         return result
     }
 
-    func cycledPaths() -> [Path] {
-        var cyles: [Path] = []
+    func toAreasGraph() -> AreasGraph<T> {
+        let verticesPairs = vertices.map { ($0, Area(vertex: $0)) }
+        let areasMap = Dictionary(uniqueKeysWithValues: verticesPairs)
 
-        var unhandled = Set(vertices)
-        while !unhandled.isEmpty {
-            guard let vertex = unhandled.first else { continue }
-            let vertexCycles = cycledPaths(from: vertex, unhandled: &unhandled)
-            cyles.append(contentsOf: vertexCycles)
-            unhandled.remove(vertex)
+        let edges: [AreasGraphEdge<T>] = edges.compactMap { edge in
+            let from = areasMap[edge.from]
+            let to = areasMap[edge.to]
+            guard let from = from, let to = to else { return nil }
+            return AreasGraphEdge(pathsEdge: edge, from: from, to: to)
         }
 
-        return cyles
-    }
-
-    private func cycledPaths(from vertex: Vertex, unhandled: inout Set<Vertex>) -> [Path] {
-        var cycled: [Path] = []
-        var current = fromMap[vertex, default: []].map {
-            PathsGraphPath(edge: $0)
-        }
-        print("Start from: \(vertex.point)")
-        while !current.isEmpty {
-            var newCurrent: [Path] = []
-
-            for path in current {
-                guard let lastEdge = path.edges.last else { return [Path]() }
-                unhandled.remove(lastEdge.to)
-                let edges = fromMap[lastEdge.to, default: []]
-
-                for edge in edges {
-                    guard !lastEdge.isReversed(edge) else { continue }
-
-                    if path.contains(edge.to) {
-                        if edge.from == edge.to {
-                            cycled.append(Path(edge: edge))
-                        } else if let cycledPath = path.subpath(from: edge.to) {
-                            cycledPath.append(edge)
-                            cycled.append(cycledPath)
-                        }
-                    } else {
-                        let nextPath = Path(path: path)
-                        nextPath.append(edge)
-                        newCurrent.append(nextPath)
-                    }
-                }
-            }
-
-            current = newCurrent
-            print(current.count)
-        }
-
-        return cycled
+        return AreasGraph(edges: edges)
     }
 
     func appendEdge(points: [T.Point]) {
@@ -232,38 +166,6 @@ final class PathsGraph<T: Topology> {
 
         let edge = Edge(points: points, from: fromVertex, to: toVertex)
         appendEdge(edge)
-    }
-
-    func appendEdge(_ edge: Edge) {
-        edges.insert(edge)
-        appendVertex(edge.from)
-        appendVertex(edge.to)
-        fromMap.append(key: edge.from, arrayValue: edge)
-        toMap.append(key: edge.to, arrayValue: edge)
-        _points.invaliade()
-    }
-
-    func removeEdge(_ edge: Edge) {
-        edges.remove(edge)
-        fromMap.remove(key: edge.from, arrayValue: edge)
-        toMap.remove(key: edge.to, arrayValue: edge)
-        removeIfUnused(edge.from)
-        removeIfUnused(edge.to)
-        _points.invaliade()
-    }
-
-    func appendVertex(_ vertex: Vertex) {
-        vertices.insert(vertex)
-        _points.invaliade()
-    }
-
-    func removeVertex(_ vertex: Vertex) {
-        vertices.remove(vertex)
-        fromMap[vertex]?.forEach { removeEdge($0) }
-        toMap[vertex]?.forEach { removeEdge($0) }
-        fromMap[vertex] = nil
-        toMap[vertex] = nil
-        _points.invaliade()
     }
 
     func embedVertex(atPoint point: T.Point) -> PathsGraphPatch<T> {
@@ -299,19 +201,6 @@ final class PathsGraph<T: Topology> {
         return patch
     }
 
-    func merge(_ graph: PathsGraph<T>) {
-        vertices.formUnion(graph.vertices)
-        edges.formUnion(graph.edges)
-
-        fromMap.merge(graph.fromMap) { current, new in
-            return current + new
-        }
-
-        toMap.merge(graph.toMap) { current, new in
-            return current + new
-        }
-    }
-
     private func calculatePoints() -> Set<T.Point> {
        if edges.isEmpty {
            return Set(vertices.map { $0.point })
@@ -326,12 +215,6 @@ final class PathsGraph<T: Topology> {
 
     private func existedReverse(_ edge: Edge) -> Edge? {
         fromMap[edge.to, default: []].first { $0.isReversed(edge) }
-    }
-
-    private func removeIfUnused(_ vertex: Vertex) {
-        let emptyFrom = fromMap[vertex]?.isEmpty ?? true
-        let emptyTo = toMap[vertex]?.isEmpty ?? true
-        if emptyTo && emptyFrom { removeVertex(vertex) }
     }
 
     private func deadends() -> Set<Vertex> {

@@ -9,5 +9,5 @@ struct SquarePoint: TopologyPoint, CustomStringConvertible {
     var x: Int
     var y: Int
 
-    var description: String { "x: \(x) y: \(y)" }
+    var description: String { "\(x):\(y)" }
 }
