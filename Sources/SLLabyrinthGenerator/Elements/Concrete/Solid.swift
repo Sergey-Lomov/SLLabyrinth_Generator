@@ -16,11 +16,24 @@ class Solid<T: Topology>: EdgeBasedElement<T> {
     }
 }
 
-class SolidSuperposition<T: Topology>: TopologyBasedElementSuperposition<T> {
+final class SolidSuperposition<T: Topology>: TopologyBasedElementSuperposition<T> {
     var available = true
 
     override var entropy: Int {
         available ? 1 : 0
+    }
+
+    required init() {
+        super.init()
+    }
+
+    init(available: Bool) {
+        super.init()
+        self.available = available
+    }
+
+    override func copy() -> Self {
+        Self.init(available: available)
     }
 
     override func applyRestriction(_ restriction: TopologyBasedElementRestriction<T>) {

@@ -14,11 +14,24 @@ class StraightPath<T: Topology>: EdgeBasedElement<T> {
     }
 }
 
-class StraightPathSuperposition<T: Topology>: TopologyBasedElementSuperposition<T> {
-    var paths: [(T.Edge, T.Edge)] = Array(T.Edge.allCases).oppositePairs()
+final class StraightPathSuperposition<T: Topology>: TopologyBasedElementSuperposition<T> {
+    var paths = Array(T.Edge.allCases).oppositePairs()
 
     override var entropy: Int {
         paths.count
+    }
+
+    required init() {
+        super.init()
+    }
+
+    init(paths: [(T.Edge, T.Edge)]) {
+        super.init()
+        self.paths = paths
+    }
+
+    override func copy() -> Self {
+        Self.init(paths: paths)
     }
 
     override func applyRestriction(_ restriction: TopologyBasedElementRestriction<T>) {

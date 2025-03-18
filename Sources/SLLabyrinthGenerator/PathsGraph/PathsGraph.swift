@@ -23,13 +23,20 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
         _points.invaliade()
     }
 
+    func removeAndCompactize(_ edge: Edge) {
+        removeEdge(edge)
+        compactize(vertex: edge.from)
+        compactize(vertex: edge.to)
+    }
+
     /// Embeds vertices that have only two edges into a merged edge. For example, the graph V1--E1-->V2--E2-->V3 will be compacted to V1--E3-->V3, where E3 consists of E1's points plus V2's point plus E2's points.
     func compactizePaths() {
         for vertex in Array(vertices) {
-            _ = compactize(vertex: vertex)
+            compactize(vertex: vertex)
         }
     }
 
+    @discardableResult
     func compactize(vertex: Vertex) -> PathsGraphPatch<T> {
         var patch = PathsGraphPatch<T>()
 
@@ -43,6 +50,9 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
         let sourceToRight = outEdges[1]
         let left = sourceToLeft.to
         let right = sourceToRight.to
+        // If both the right and left edges are self-cycled on the current vertex, the vertex should not be optimized.
+        guard left != right || left != vertex else { return patch }
+
         let leftToSource = inEdges.first { $0.isReversed(sourceToLeft) }
         let rightToSource = inEdges.first { $0.isReversed(sourceToRight) }
         guard let leftToSource = leftToSource, let rightToSource = rightToSource else {
@@ -209,11 +219,15 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
        }
     }
 
-    private func isBidirectional(_ edge: Edge) -> Bool {
+    func isBidirectional(_ path: Path) -> Bool {
+        path.edges.allSatisfy { isBidirectional($0) }
+    }
+
+    func isBidirectional(_ edge: Edge) -> Bool {
         existedReverse(edge) != nil
     }
 
-    private func existedReverse(_ edge: Edge) -> Edge? {
+    func existedReverse(_ edge: Edge) -> Edge? {
         fromMap[edge.to, default: []].first { $0.isReversed(edge) }
     }
 

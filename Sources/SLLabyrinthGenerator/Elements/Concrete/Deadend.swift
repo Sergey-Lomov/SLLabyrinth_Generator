@@ -14,11 +14,24 @@ class Deadend<T: Topology>: EdgeBasedElement<T> {
     }
 }
 
-class DeadendSuperposition<T: Topology>: TopologyBasedElementSuperposition<T> {
+final class DeadendSuperposition<T: Topology>: TopologyBasedElementSuperposition<T> {
     var entrances = Set(T.Edge.allCases)
 
     override var entropy: Int {
         entrances.count
+    }
+
+    required init() {
+        super.init()
+    }
+
+    init(entrances: Set<T.Edge>) {
+        super.init()
+        self.entrances = entrances
+    }
+
+    override func copy() -> Self {
+        Self.init(entrances: entrances)
     }
 
     override func applyRestriction(_ restriction: TopologyBasedElementRestriction<T>) {

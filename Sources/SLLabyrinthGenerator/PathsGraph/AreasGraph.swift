@@ -17,11 +17,12 @@ final class AreasGraph<T: Topology>: Graph<AreasGraphEdge<T>> {
             guard let edge = unhandled.first else { continue }
             unhandled.remove(edge)
             let path = Path(edge: edge)
-            _ = groupCycled(path: path, unhandled: &unhandled)
+            groupCycled(path: path, unhandled: &unhandled)
         }
     }
 
     // If no cycle is found, returns nil. Otherwise, returns the pre-cycle vertex to rollback.
+    @discardableResult
     private func groupCycled(path: Path, unhandled: inout Set<Edge>) -> Vertex? {
         guard let vertex = path.to, let lastEdge = path.edges.last else { return nil }
 

@@ -14,17 +14,28 @@ public protocol NodeSuperposition {
     var entropy: Int { get }
 
     init(point: Point, elementsSuperpositions: [Nested])
+    init(superposition: Self)
+
     func applyRestriction(_ restriction: AppliedRestriction)
-    func applyRestriction(_ restriction: any SuperpositionRestriction, provider: String)
+    func applyRestriction(_ restriction: any SuperpositionRestriction, provider: String, onetime: Bool)
+    func applyRestrictions(_ restrictions: [any SuperpositionRestriction], provider: String, onetime: Bool)
     func waveFunctionCollapse() -> Nested.Element?
 
+    @discardableResult
     func resetRestrictions() -> [AppliedRestriction]
     func resetRestrictions(by provider: String)
+    func resetRestrictions(by providers: [String])
 }
 
 extension NodeSuperposition {
     func applyRestriction(_ applied: AppliedRestriction) {
-        applyRestriction(applied.restriction, provider: applied.provider)
+        applyRestriction(applied.restriction, provider: applied.provider, onetime: applied.isOnetime)
+    }
+
+    func applyRestrictions(_ restrictions: [any SuperpositionRestriction], provider: String, onetime: Bool = false) {
+        restrictions.forEach {
+            applyRestriction($0, provider: provider, onetime: onetime)
+        }
     }
 }
 
@@ -45,9 +56,18 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
         _entropy.compute = caclulateEntropy
     }
 
-    func applyRestriction(_ restriction: any SuperpositionRestriction, provider: String) {
-        let applied = AppliedRestriction(restriction: restriction, provider: provider)
+    init(superposition: TopologyBasedNodeSuperposition<T>) {
+        self.point = superposition.point
+        self.elementsSuperpositions = superposition.elementsSuperpositions.map { $0.copy() }
+        self.restrictions = superposition.restrictions
+    }
+
+    func applyRestriction(_ restriction: any SuperpositionRestriction, provider: String, onetime: Bool = false) {
+        let applied = AppliedRestriction(restriction: restriction, provider: provider, isOnetime: onetime)
         restrictions.append(applied)
+
+        // TODO: Remove testing code
+        validateRestrictions()
 
         switch restriction {
         case let restriction as T.Field.Element.Restriction:
@@ -61,11 +81,39 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
         _entropy.invaliade()
     }
 
+    // TODO: Remove teseting code or refatoring
+    private func validateRestrictions() {
+        let rests = restrictions.compactMap {
+            $0.restriction as? TopologyBasedElementRestriction<T>
+        }
+        for restriction in rests {
+            var opposite: TopologyBasedElementRestriction<T>?
+            switch restriction {
+            case .passage(let edge):
+                opposite = .wall(edge: edge)
+            case .wall(let edge):
+                opposite = .passage(edge: edge)
+            }
+
+            let same = rests.filter { $0 == restriction }
+            if same.count > 1 {
+                print("Restrictions contains duplicate")
+            }
+
+            let existOpposite = rests.first { $0 == opposite }
+            if existOpposite != nil {
+                print("Restrictions contains conflict")
+            }
+        }
+    }
+
     func waveFunctionCollapse() -> T.Field.Element? {
         let available = elementsSuperpositions.filter { $0.entropy > 0 }
+        restrictions = restrictions.filter { !$0.isOnetime }
         return available.randomElement()?.waveFunctionCollapse()
     }
 
+    @discardableResult
     func resetRestrictions() -> [AppliedRestriction] {
         defer {
             restrictions = []
@@ -77,8 +125,14 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
     }
 
     func resetRestrictions(by provider: String) {
+        resetRestrictions(by: [provider])
+    }
+
+    func resetRestrictions(by providers: [String]) {
+        let contains = restrictions.contains(where: { providers.contains($0.provider) })
+        guard contains else { return }
         resetRestrictions()
-            .filter { $0.provider != provider }
+            .filter { !providers.contains($0.provider) }
             .forEach { applyRestriction($0) }
     }
 

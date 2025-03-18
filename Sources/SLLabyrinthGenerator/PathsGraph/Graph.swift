@@ -18,6 +18,7 @@ protocol GraphEdge: Hashable {
 
 class Graph<Edge: GraphEdge> {
     typealias Vertex = Edge.Vertex
+    typealias Path = GraphPath<Edge>
 
     private(set) var edges: Set<Edge> = []
     private(set) var vertices: Set<Vertex> = []
@@ -98,6 +99,33 @@ class Graph<Edge: GraphEdge> {
         toMap.merge(graph.toMap) { current, new in
             return current + new
         }
+    }
+
+    func firstPath<C: Collection, P: Path> (
+        from vertices: C,
+        successValidator: (P) -> Bool,
+        earlyStopValidator: (P) -> Bool = { _ in false }
+    ) -> P? where C.Element == Vertex {
+        var paths = vertices.flatMap { vertex in
+            edges(from: vertex).map { edge in
+                P(edge: edge)
+            }
+        }
+
+        while !paths.isEmpty {
+            let success = paths.first { successValidator($0) }
+            if let success = success { return success }
+
+            paths = paths.flatMap { path in
+                guard let to = path.to else { return [P]() }
+                return edges(from: to).compactMap { edge in
+                    let newPath = path.copy(append: edge)
+                    return earlyStopValidator(newPath) ? nil : newPath
+                }
+            }
+        }
+
+        return nil
     }
 
     private func removeIfUnused(_ vertex: Vertex) {

@@ -14,11 +14,25 @@ class Junction<T: Topology>: EdgeBasedElement<T> {
     }
 }
 
-class JunctionSuperposition<T: Topology>: TopologyBasedElementSuperposition<T> {
-    var variations = initialState()
+final class JunctionSuperposition<T: Topology>: TopologyBasedElementSuperposition<T> {
+    var variations: [[T.Edge]]
 
     static func initialState() -> [[T.Edge]] {
         T.Edge.allCases.combinations().filter { $0.count > 2 }
+    }
+
+    required init() {
+        variations = Self.initialState()
+        super.init()
+    }
+
+    init(variations: [[T.Edge]]) {
+        self.variations = variations
+        super.init()
+    }
+
+    override func copy() -> Self {
+        Self.init(variations: variations)
     }
 
     override var entropy: Int {

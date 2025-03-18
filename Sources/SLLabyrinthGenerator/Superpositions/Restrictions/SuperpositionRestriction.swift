@@ -12,4 +12,5 @@ public protocol SuperpositionRestriction {}
 public struct AppliedRestriction {
     let restriction: any SuperpositionRestriction
     let provider: String
+    let isOnetime: Bool
 }

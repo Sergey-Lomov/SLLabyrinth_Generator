@@ -20,7 +20,7 @@ class GraphPath<Edge: GraphEdge> {
 
     init() {}
 
-    convenience init(edge: Edge) {
+    required convenience init(edge: Edge) {
         self.init()
         append(edge)
     }

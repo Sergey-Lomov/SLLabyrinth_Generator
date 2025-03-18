@@ -9,7 +9,7 @@ public protocol ElementRestriction: SuperpositionRestriction {
     associatedtype Edge: TopologyEdge
 }
 
-enum TopologyBasedElementRestriction<T: Topology>: ElementRestriction {
+enum TopologyBasedElementRestriction<T: Topology>: ElementRestriction, Equatable {
     typealias Edge = T.Edge
 
     case wall(edge: Edge)

@@ -12,6 +12,8 @@ public protocol ElementSuperposition {
     associatedtype Edge: TopologyEdge
     associatedtype Element: LabyrinthElement
 
+    init()
+
     /// Entropy refers to variations in possible superposition resolutions. Typically, entropy decreases when restrictions are applied.
     /// An entropy of 1 means that only one resolution option exists, so the superposition is logically equivalent to the collapsed element type.
     /// An entropy of 0 means that the superposition cannot be resolved at all. This may make sense when the element superposition is part of a node superposition.
@@ -30,7 +32,7 @@ public protocol ElementSuperposition {
     /// - Returns: A new element, or nil if element creation fails (due to applied restrictions)
     func waveFunctionCollapse() -> Element?
 
-    init()
+    func copy() -> Self
 }
 
 class TopologyBasedElementSuperposition<T: Topology>: ElementSuperposition {
@@ -38,6 +40,8 @@ class TopologyBasedElementSuperposition<T: Topology>: ElementSuperposition {
     typealias Element = T.Field.Element
 
     var entropy: Int { 0 }
+
+    required init() {}
 
     func applyRestriction(_ restriction: Element.Restriction) {
         if let restriction = restriction as? TopologyBasedElementRestriction<T> {
@@ -48,5 +52,5 @@ class TopologyBasedElementSuperposition<T: Topology>: ElementSuperposition {
     func applyRestriction(_ restriction: TopologyBasedElementRestriction<T>) {}
     func resetRestrictions() {}
     func waveFunctionCollapse() -> T.Field.Element? { return nil }
-    required init() {}
+    func copy() -> Self { fatalError("Should be overrided in derived class") }
 }

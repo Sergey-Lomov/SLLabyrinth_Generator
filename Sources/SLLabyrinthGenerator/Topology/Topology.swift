@@ -29,6 +29,9 @@ public protocol UnconstrainedTopology {
     /// Returns a point connected to the specified point through the specified edge.
     static func nextPoint(point: Point, edge: Edge) -> Point
 
+    /// Returns the edge from the specified point to the specified point, or nil if the points are not connected by an edge.
+    static func edge(from: Point, to: Point) -> Edge?
+
     /// Returns the specified edge in the context of the next point. For example, in square topology, the adapted edge for 'left' is 'right'.
     static func adaptToNextPoint(_ edge: Edge) -> Edge
 
@@ -49,6 +52,16 @@ public protocol TopologyEdge: Comparable & Hashable & CaseIterable {
 public protocol TopologyPoint: Hashable {}
 
 extension Topology {
+    public static func edge(from: Point, to: Point) -> Edge? {
+        for edge in Edge.allCases {
+            if nextPoint(point: from, edge: edge) == to {
+                return edge
+            }
+        }
+
+        return nil
+    }
+
     // Valid only for topologies with symmetrical edges. For other cases, it should be overridden in derived classes.
     static func adaptToNextPoint(_ edge: Edge) -> Edge {
         edge.opposite() ?? edge
