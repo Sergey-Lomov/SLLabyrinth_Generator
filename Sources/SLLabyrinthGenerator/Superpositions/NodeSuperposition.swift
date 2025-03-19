@@ -5,7 +5,9 @@
 //  Created by serhii.lomov on 05.03.2025.
 //
 
-public protocol NodeSuperposition {
+import Foundation
+
+public protocol NodeSuperposition: IdEquatable, Hashable {
     associatedtype Point: TopologyPoint
     associatedtype Nested: ElementSuperposition
 
@@ -44,6 +46,7 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
     typealias Point = T.Point
     typealias Nested = TopologyBasedElementSuperposition<T>
 
+    var id = UUID().uuidString
     var point: Point
     var elementsSuperpositions: [Nested] = []
     private var restrictions: [AppliedRestriction] = []
@@ -60,6 +63,10 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
         self.point = superposition.point
         self.elementsSuperpositions = superposition.elementsSuperpositions.map { $0.copy() }
         self.restrictions = superposition.restrictions
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 
     func applyRestriction(_ restriction: any SuperpositionRestriction, provider: String, onetime: Bool = false) {

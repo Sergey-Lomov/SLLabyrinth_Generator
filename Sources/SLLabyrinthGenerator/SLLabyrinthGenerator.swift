@@ -114,22 +114,20 @@ public final class LabyrinthGenerator<T: Topology> {
     }
 
     private func collapse() {
-        var uncollapsed = Array(superpositions.values)
+        var uncollapsed = MinEntropyContainer<T>(superpositions.values)
         while !uncollapsed.isEmpty {
-            collapsingStep(uncollapsed: &uncollapsed)
+            collapsingStep(uncollapsed: uncollapsed)
         }
     }
 
-    private func collapsingStep(uncollapsed: inout [Superposition]) {
-        uncollapsed = uncollapsed.sorted { $0.entropy > $1.entropy }
-        guard let superposition = uncollapsed.last else { return }
+    private func collapsingStep(uncollapsed: MinEntropyContainer<T>) {
+        guard let superposition = uncollapsed.getSuperposition() else { return }
+        uncollapsed.remove(superposition)
         let point = superposition.point
         let solid = Solid<T>() as? Element
         let element = superposition.waveFunctionCollapse() ?? solid
         guard let element = element else { return }
-        setFieldElement(at: point, element: element)
-
-        uncollapsed.removeLast()
+        setFieldElement(at: point, element: element, entropyContainer: uncollapsed)
     }
 
     func eraseFieldElement(at point: Point) {
@@ -140,15 +138,29 @@ public final class LabyrinthGenerator<T: Topology> {
         field.setElement(at: point, element: nil)
     }
 
-    func setFieldElement(at point: Point, element: Element) {
+    func setFieldElement(
+        at point: Point,
+        element: Element,
+        entropyContainer: MinEntropyContainer<T>? = nil
+    ) {
         field.setElement(at: point, element: element)
 
         let restrictions = element.outcomeRestrictions(point: point, field: field)
         restrictions.forEach { point, pointRestrictions in
             guard let superposition = superpositions[point] else { return }
+
+            let entoryHandled = entropyContainer?.contains(superposition) ?? false
+            if entoryHandled {
+                entropyContainer?.remove(superposition)
+            }
+
             affectedArea.append(key: element, arrayValue: superposition)
             pointRestrictions.forEach {
                 superposition.applyRestriction($0, provider: element.id, onetime: false)
+            }
+
+            if entoryHandled {
+                entropyContainer?.append(superposition)
             }
         }
     }

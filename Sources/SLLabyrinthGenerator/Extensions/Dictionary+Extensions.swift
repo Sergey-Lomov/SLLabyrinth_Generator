@@ -15,4 +15,12 @@ extension Dictionary {
     mutating func remove<T>(key: Key, arrayValue: T) where Value == Array<T>, T: Equatable {
         self[key]?.removeAll { $0 == arrayValue }
     }
+
+    mutating func append<T>(key: Key, setValue: T) where Value == Set<T> {
+        self[key, default: []].insert(setValue)
+    }
+
+    mutating func remove<T>(key: Key, setValue: T) where Value == Set<T>, T: Equatable {
+        self[key]?.remove(setValue)
+    }
 }

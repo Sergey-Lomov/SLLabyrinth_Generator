@@ -8,7 +8,7 @@
 import Foundation
 
 public final class PathsGraphArea<T: Topology>: IdEquatable, GraphVertex {
-    var id = UUID().uuidString
+    public var id = UUID().uuidString
     var graph: PathsGraph = PathsGraph<T>()
 
     var size: Int { graph.points.count }
