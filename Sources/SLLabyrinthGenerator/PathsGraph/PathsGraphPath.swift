@@ -20,9 +20,10 @@ final class PathsGraphPath<T: Topology>: GraphPath<PathsGraphEdge<T>> {
     }
 
     var lenght: Int {
-        edges
-            .map { $0.points.count }
+        let edgesLengths = edges
+            .map { $0.points.count - 1 }
             .reduce(0, +)
+        return edgesLengths + 1
     }
 
     func routeString() -> String {
