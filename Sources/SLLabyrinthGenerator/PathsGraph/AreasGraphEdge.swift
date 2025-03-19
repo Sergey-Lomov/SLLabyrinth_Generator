@@ -13,4 +13,8 @@ struct AreasGraphEdge<T: Topology>: GraphEdge {
     let pathsEdge: PathsGraphEdge<T>
     let from: PathsGraphArea<T>
     let to: PathsGraphArea<T>
+
+    func isReversed(_ edge: AreasGraphEdge<T>) -> Bool {
+        from == edge.to && to == edge.from && pathsEdge.isReversed(edge.pathsEdge)
+    }
 }

@@ -99,8 +99,8 @@ final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy
 //
 //        let passage1 = Restriction.passage(edge: merge.edge1)
 //        let passage2 = Restriction.passage(edge: merge.edge2)
-//        let appliedPassage1 = AppliedRestriction(restriction: passage1, provider: merge.id)
-//        let appliedPassage2 = AppliedRestriction(restriction: passage2, provider: merge.id)
+//        let appliedPassage1 = AppliedRestriction(restriction: passage1, provider: merge.id, isOnetime: true)
+//        let appliedPassage2 = AppliedRestriction(restriction: passage2, provider: merge.id, isOnetime: true)
 //        newRestrictions1.append(appliedPassage1)
 //        newRestrictions2.append(appliedPassage2)
 //
@@ -109,7 +109,7 @@ final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy
 //
 //        if let newElement1 = super1.waveFunctionCollapse(),
 //           let newElement2 = super2.waveFunctionCollapse() {
-//            return replaceElments(
+//            return replaceElements(
 //                element1: newElement1,
 //                point1: merge.point1,
 //                element2: newElement2,
@@ -126,7 +126,17 @@ final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy
 
     }
 
+//    private func replaceElements(
+//        element1: Element,
+//        point1: Point,
+//        element2: Element,
+//        point2: Point,
+//        generator: Generator
+//    ) -> Bool {
     private func handleSuccessRegeneration(point1: Point, point2: Point, generator: Generator) -> Bool {
+//        generator.setFieldElement(at: point1, element: element1)
+//        generator.setFieldElement(at: point2, element: element2)
+
         let area1 = generator.isolatedAreas.first { $0.graph.points.contains(point1) }
         let area2 = generator.isolatedAreas.first { $0.graph.points.contains(point2) }
         guard let area1 = area1, let area2 = area2 else { return false }

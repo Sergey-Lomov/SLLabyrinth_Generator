@@ -19,6 +19,10 @@ public final class LabyrinthGenerator<T: Topology> {
     var cyclesAreas: [PathsGraphArea<T>] = []
     var isolatedAreas: [PathsGraphArea<T>] = []
 
+    // TODO: Remove testing code
+    var savedField: T.Field?
+    var savedSuperpositions: Dictionary<T.Point, T.Superposition> = [:]
+
     private var timeLog = TimeLog()
 
     init(configuration: GeneratorConfiguration<T>) {
@@ -37,9 +41,21 @@ public final class LabyrinthGenerator<T: Topology> {
 
         timeLog("Calculate paths graph") { calculatePathsGraph() }
         timeLog("Handle isolated areas") { handleIsolatedAreas() }
+
+        savedField = field.copy()
+        let pairs = superpositions.map { ($0, T.Superposition(superposition: $1)) }
+        savedSuperpositions = Dictionary(uniqueKeysWithValues: pairs)
+
         timeLog("Handle cycles areas") { handleCyclesAreas() }
 
         return timeLog
+    }
+
+    func restoreSaved() {
+        guard let savedField = savedField else { return }
+        field = savedField.copy()
+        let pairs = savedSuperpositions.map { ($0, T.Superposition(superposition: $1)) }
+        superpositions = Dictionary(uniqueKeysWithValues: pairs)
     }
 
     private func setupSuperpositions() {
@@ -151,10 +167,13 @@ public final class LabyrinthGenerator<T: Topology> {
         guard configuration.cycledAreasStrategy != nil else { return }
 
         timeLog("Calculate cycles areas") { calculateCyclesAreas() }
-       // timeLog("Resolve cycles areas") { resolveCyclesAreas() }
+        timeLog("Resolve cycles areas") { resolveCyclesAreas() }
+
+        filteredGraph = pathsGraph.noDeadendsGraph()
+        filteredGraph.compactizePaths()
     }
 
-    private func calculateCyclesAreas() {
+    func calculateCyclesAreas() {
         filteredGraph = pathsGraph.noDeadendsGraph()
         filteredGraph.compactizePaths()
         let areasGraph = filteredGraph.toAreasGraph()
@@ -169,6 +188,7 @@ public final class LabyrinthGenerator<T: Topology> {
         cyclesAreas.forEach {
             strategy.handle(area: $0, generator: self)
         }
+        type(of: strategy).postprocessing(generator: self)
     }
 
     private func handleIsolatedAreas() {

@@ -14,6 +14,8 @@ protocol GraphEdge: Hashable {
 
     var from: Vertex { get }
     var to: Vertex { get }
+
+    func isReversed(_ edge: Self) -> Bool
 }
 
 class Graph<Edge: GraphEdge> {
@@ -104,7 +106,8 @@ class Graph<Edge: GraphEdge> {
     func firstPath<C: Collection, P: Path> (
         from vertices: C,
         successValidator: (P) -> Bool,
-        earlyStopValidator: (P) -> Bool = { _ in false }
+        earlyStopValidator: (P) -> Bool = { _ in false },
+        forbidReversed: Bool = true
     ) -> P? where C.Element == Vertex {
         var paths = vertices.flatMap { vertex in
             edges(from: vertex).map { edge in
@@ -119,6 +122,8 @@ class Graph<Edge: GraphEdge> {
             paths = paths.flatMap { path in
                 guard let to = path.to else { return [P]() }
                 return edges(from: to).compactMap { edge in
+                    guard let lastEdge = path.edges.last else { return nil }
+                    if forbidReversed && lastEdge.isReversed(edge) { return nil }
                     let newPath = path.copy(append: edge)
                     return earlyStopValidator(newPath) ? nil : newPath
                 }

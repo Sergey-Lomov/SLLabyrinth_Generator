@@ -18,7 +18,11 @@ final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
         self.minLength = minLength
     }
 
-    override func handle(area: PathsGraphArea<T>, generator: LabyrinthGenerator<T>) -> Bool {
+    override class func postprocessing(generator: Generator) {
+        generator.calculatePathsGraph()
+    }
+
+    override func handle(area: PathsGraphArea<T>, generator: Generator) -> Bool {
         while let cycle: PathsGraphPath<T> = area.graph.firstPath(
             from: area.graph.vertices,
             successValidator: { $0.from == $0.to && area.graph.isBidirectional($0) },
@@ -56,12 +60,7 @@ final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
         return false
     }
 
-    private func tryCut(
-        point1: T.Point,
-        point2: T.Point,
-        areaId: UUID,
-        generator: LabyrinthGenerator<T>
-    ) -> Bool {
+    private func tryCut(point1: T.Point, point2: T.Point, areaId: UUID, generator: LabyrinthGenerator<T>) -> Bool {
         guard let edge1 = T.edge(from: point1, to: point2) else { return false }
         let edge2 = T.adaptToNextPoint(edge1)
 

@@ -15,6 +15,7 @@ public protocol TopologyField {
     var size: Size { get }
     init(size: Size)
 
+    func copy() -> Self
     func allPoints() -> [Point]
     func contains(_ point: Point) -> Bool
     func element(at point: Point) -> Element?

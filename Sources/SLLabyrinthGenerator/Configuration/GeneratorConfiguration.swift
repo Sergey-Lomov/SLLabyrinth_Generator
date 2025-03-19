@@ -13,7 +13,7 @@ public struct GeneratorConfiguration<T: Topology> {
     static func basic(size: T.Field.Size) -> GeneratorConfiguration<T> {
         var config = GeneratorConfiguration(size: size)
         config.isolatedAreasStrategy = RandomMergeIsolatedAreasStrategy()
-        config.cycledAreasStrategy = MinLengthCycledAreasStrategy(minLength: 15)
+        config.cycledAreasStrategy = MinLengthCycledAreasStrategy(minLength: 25)
         return config
     }
 }

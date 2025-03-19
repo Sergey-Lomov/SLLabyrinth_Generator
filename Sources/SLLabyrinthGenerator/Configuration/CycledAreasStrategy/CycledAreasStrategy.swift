@@ -8,8 +8,12 @@
 import Foundation
 
 public class CycledAreasStrategy<T: Topology> {
+    typealias Generator = LabyrinthGenerator<T>
+
     @discardableResult
-    func handle(area: PathsGraphArea<T>, generator: LabyrinthGenerator<T>) -> Bool {
-        return false
+    func handle(area: PathsGraphArea<T>, generator: Generator) -> Bool {
+        fatalError("Should be implemented in derived class")
     }
+
+    class func postprocessing(generator: Generator) {}
 }
