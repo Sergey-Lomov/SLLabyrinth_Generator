@@ -114,7 +114,7 @@ public final class LabyrinthGenerator<T: Topology> {
     }
 
     private func collapse() {
-        var uncollapsed = MinEntropyContainer<T>(superpositions.values)
+        let uncollapsed = MinEntropyContainer<T>(superpositions.values)
         while !uncollapsed.isEmpty {
             collapsingStep(uncollapsed: uncollapsed)
         }
