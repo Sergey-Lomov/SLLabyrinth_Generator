@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol LabyrinthElement: AnyObject {
+public protocol LabyrinthElement: AnyObject, Hashable {
     associatedtype Point: TopologyPoint
     associatedtype Restriction: ElementRestriction
 
@@ -21,13 +21,17 @@ public protocol LabyrinthElement: AnyObject {
     static func undefined<U: LabyrinthElement>() -> U?
 }
 
-class TopologyBasedLabyrinthElement<T: Topology>: LabyrinthElement {
+class TopologyBasedLabyrinthElement<T: Topology>: LabyrinthElement, IdEquatable {
 
     typealias Point = T.Point
     typealias Restriction = TopologyBasedElementRestriction<T>
 
     var isVisitable: Bool { true }
     var id: String = "element_" + UUID().uuidString
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 
     func connectedPoints(_ point: Point) -> [Point] { [] }
 

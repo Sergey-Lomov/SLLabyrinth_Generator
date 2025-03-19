@@ -60,7 +60,7 @@ final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
         return false
     }
 
-    private func tryCut(point1: T.Point, point2: T.Point, areaId: UUID, generator: LabyrinthGenerator<T>) -> Bool {
+    private func tryCut(point1: T.Point, point2: T.Point, areaId: String, generator: LabyrinthGenerator<T>) -> Bool {
         guard let edge1 = T.edge(from: point1, to: point2) else { return false }
         let edge2 = T.adaptToNextPoint(edge1)
 
@@ -72,11 +72,11 @@ final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
             point1 : [restriction1],
             point2 : [restriction2]
         ]
-        let provider = providerPrefix + areaId.uuidString
+        let provider = providerPrefix + areaId
 
         let success = generator.regenerate(
             points: [point1, point2],
-            onetimeRestrioctions: restrictions,
+            onetimeRestrictions: restrictions,
             restrictionsProvider: provider
         )
 

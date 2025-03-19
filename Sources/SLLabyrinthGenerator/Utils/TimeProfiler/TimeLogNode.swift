@@ -8,7 +8,7 @@
 import Foundation
 
 final class TimeLogNode: IdEquatable, CustomDebugStringConvertible, CustomReflectable {
-    let id = UUID()
+    let id = UUID().uuidString
 
     var title: String
     var time: Double

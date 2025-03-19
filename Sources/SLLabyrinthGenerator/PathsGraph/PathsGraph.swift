@@ -156,8 +156,9 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
     }
 
     func toAreasGraph() -> AreasGraph<T> {
-        let verticesPairs = vertices.map { ($0, Area(vertex: $0)) }
-        let areasMap = Dictionary(uniqueKeysWithValues: verticesPairs)
+        let areasMap = vertices
+            .map { ($0, Area(vertex: $0)) }
+            .toDictionary()
 
         let edges: [AreasGraphEdge<T>] = edges.compactMap { edge in
             let from = areasMap[edge.from]

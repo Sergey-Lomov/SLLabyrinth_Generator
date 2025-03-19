@@ -10,24 +10,32 @@ import Foundation
 private let borderRestrictionId = "field_border"
 
 public final class LabyrinthGenerator<T: Topology> {
-    let configuration: GeneratorConfiguration<T>
-    var field: T.Field
+    typealias Point = T.Point
+    typealias Edge = T.Edge
+    typealias Field = T.Field
+    typealias Element = T.Field.Element
+    typealias Superposition = T.Superposition
+    typealias ElementRestriction = T.ElementRestriction
 
-    var superpositions: Dictionary<T.Point, T.Superposition> = [:]
+    let configuration: GeneratorConfiguration<T>
+    var field: Field
+
+    var superpositions: Dictionary<Point, Superposition> = [:]
+    private var affectedArea: Dictionary<Element, [Superposition]> = [:]
     var pathsGraph = PathsGraph<T>()
     var filteredGraph = PathsGraph<T>()
     var cyclesAreas: [PathsGraphArea<T>] = []
     var isolatedAreas: [PathsGraphArea<T>] = []
 
     // TODO: Remove testing code
-    var savedField: T.Field?
-    var savedSuperpositions: Dictionary<T.Point, T.Superposition> = [:]
+    var savedField: Field?
+    var savedSuperpositions: Dictionary<Point, Superposition> = [:]
 
     private var timeLog = TimeLog()
 
     init(configuration: GeneratorConfiguration<T>) {
         self.configuration = configuration
-        self.field = T.Field(size: configuration.size)
+        self.field = Field(size: configuration.size)
     }
 
     func generateLabyrinth() -> TimeLog {
@@ -43,8 +51,9 @@ public final class LabyrinthGenerator<T: Topology> {
         timeLog("Handle isolated areas") { handleIsolatedAreas() }
 
         savedField = field.copy()
-        let pairs = superpositions.map { ($0, T.Superposition(superposition: $1)) }
-        savedSuperpositions = Dictionary(uniqueKeysWithValues: pairs)
+        savedSuperpositions = superpositions
+            .map { ($0, Superposition(superposition: $1)) }
+            .toDictionary()
 
         timeLog("Handle cycles areas") { handleCyclesAreas() }
 
@@ -54,15 +63,16 @@ public final class LabyrinthGenerator<T: Topology> {
     func restoreSaved() {
         guard let savedField = savedField else { return }
         field = savedField.copy()
-        let pairs = savedSuperpositions.map { ($0, T.Superposition(superposition: $1)) }
-        superpositions = Dictionary(uniqueKeysWithValues: pairs)
+        superpositions = savedSuperpositions
+            .map { ($0, Superposition(superposition: $1)) }
+            .toDictionary()
     }
 
     private func setupSuperpositions() {
         let superProvider = setupSuperProvider()
         field.allPoints().forEach {
             let nestsed = superProvider.instantiate()
-            superpositions[$0] = T.Superposition(point: $0, elementsSuperpositions: nestsed)
+            superpositions[$0] = Superposition(point: $0, elementsSuperpositions: nestsed)
         }
     }
 
@@ -74,9 +84,9 @@ public final class LabyrinthGenerator<T: Topology> {
     private func applyEmptyFieldConstraints() {
         eachPointEdgeConstraint { point, edge, hasNext in
             if hasNext {
-                return TopologyBasedElementRestriction<T>.passage(edge: edge) as? T.ElementRestriction
+                return TopologyBasedElementRestriction<T>.passage(edge: edge) as? ElementRestriction
             } else {
-                return TopologyBasedElementRestriction<T>.wall(edge: edge) as? T.ElementRestriction
+                return TopologyBasedElementRestriction<T>.wall(edge: edge) as? ElementRestriction
             }
         }
     }
@@ -84,15 +94,15 @@ public final class LabyrinthGenerator<T: Topology> {
     private func applyBorderConstraints() {
         eachPointEdgeConstraint { point, edge, hasNext in
             guard !hasNext else { return nil }
-            return TopologyBasedElementRestriction<T>.wall(edge: edge) as? T.ElementRestriction
+            return TopologyBasedElementRestriction<T>.wall(edge: edge) as? ElementRestriction
         }
     }
 
     private func eachPointEdgeConstraint(
-        handler: (T.Point, T.Edge, Bool) -> T.ElementRestriction?
+        handler: (Point, Edge, Bool) -> ElementRestriction?
     ) {
         superpositions.values.forEach { superposition in
-            T.Edge.allCases.forEach { edge in
+            Edge.allCases.forEach { edge in
                 let next = T.nextPoint(point: superposition.point, edge: edge)
                 let nextExist = field.contains(next)
                 let restriction = handler(superposition.point, edge, nextExist)
@@ -110,11 +120,11 @@ public final class LabyrinthGenerator<T: Topology> {
         }
     }
 
-    private func collapsingStep(uncollapsed: inout [T.Superposition]) {
+    private func collapsingStep(uncollapsed: inout [Superposition]) {
         uncollapsed = uncollapsed.sorted { $0.entropy > $1.entropy }
         guard let superposition = uncollapsed.last else { return }
         let point = superposition.point
-        let solid = Solid<T>() as? T.Field.Element
+        let solid = Solid<T>() as? Element
         let element = superposition.waveFunctionCollapse() ?? solid
         guard let element = element else { return }
         setFieldElement(at: point, element: element)
@@ -122,12 +132,21 @@ public final class LabyrinthGenerator<T: Topology> {
         uncollapsed.removeLast()
     }
 
-    func setFieldElement(at point: T.Point, element: T.Field.Element) {
+    func eraseFieldElement(at point: Point) {
+        guard let element = field.element(at: point) else { return }
+        affectedArea[element, default: []]
+            .forEach { $0.resetRestrictions(by: element.id) }
+        affectedArea[element] = nil
+        field.setElement(at: point, element: nil)
+    }
+
+    func setFieldElement(at point: Point, element: Element) {
         field.setElement(at: point, element: element)
 
         let restrictions = element.outcomeRestrictions(point: point, field: field)
         restrictions.forEach { point, pointRestrictions in
             guard let superposition = superpositions[point] else { return }
+            affectedArea.append(key: element, arrayValue: superposition)
             pointRestrictions.forEach {
                 superposition.applyRestriction($0, provider: element.id, onetime: false)
             }
@@ -135,32 +154,38 @@ public final class LabyrinthGenerator<T: Topology> {
     }
 
     func regenerate(
-        points: [T.Point],
-        onetimeRestrioctions: Dictionary<T.Point, [T.ElementRestriction]> = [:],
+        points: [Point],
+        onetimeRestrictions: Dictionary<Point, [ElementRestriction]> = [:],
         restrictionsProvider: String = ""
     ) -> Bool {
-        let providers = points.compactMap { field.element(at: $0)?.id }
+        let originalElements: Dictionary<Point, Element> = points
+            .compactMap {
+                guard let element = field.element(at: $0) else { return nil }
+                return ($0, element)
+            }
+            .toDictionary()
+        
+        points.forEach { eraseFieldElement(at: $0) }
 
-        let supsPairs = superpositions.map { point, sup in
-            let copy = T.Superposition(superposition: sup)
-            copy.resetRestrictions(by: providers)
-            let additional = onetimeRestrioctions[copy.point, default: []]
-            copy.applyRestrictions(additional, provider: restrictionsProvider, onetime: true)
-            return (point, copy)
+        onetimeRestrictions.forEach { point, restrictions in
+            guard let sup = superpositions[point] else { return }
+            sup.applyRestrictions(restrictions, provider: restrictionsProvider, onetime: true)
         }
-        let sups = Dictionary(uniqueKeysWithValues: supsPairs)
 
-        let newElements: [(T.Point, T.Field.Element)] = points.compactMap { point in
-            guard let sup = sups[point] else { return nil }
+        let newElements: [(Point, Element)] = points.compactMap { point in
+            guard let sup = superpositions[point] else { return nil }
             guard let element = sup.waveFunctionCollapse() else { return nil }
             return (point, element)
         }
 
-        guard newElements.count == points.count else { return false }
-        superpositions = sups
-        newElements.forEach { setFieldElement(at: $0, element: $1) }
+        let success = newElements.count == points.count
+        if success {
+            newElements.forEach { setFieldElement(at: $0, element: $1) }
+        } else {
+            originalElements.forEach { setFieldElement(at: $0, element: $1) }
+        }
 
-        return true
+        return success
     }
 
     private func handleCyclesAreas() {

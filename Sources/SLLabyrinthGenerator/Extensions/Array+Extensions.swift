@@ -12,10 +12,25 @@ extension Array {
         removeAll { $0 == element }
     }
 
+    // Converters
     func toSet() -> Set<Element> where Element: Hashable {
         Set(self)
     }
 
+    func toDictionary<K, V>() -> Dictionary<K, V> where K: Hashable, Element == (K, V) {
+        Dictionary(uniqueKeysWithValues: self)
+    }
+
+    // Operators
+    static func + (lhs: [Element], rhs: Element) -> [Element] {
+        lhs + [rhs]
+    }
+
+    static func + (lhs: Element, rhs: [Element]) -> [Element] {
+        [lhs] + rhs
+    }
+
+    // Edge manipulation utils
     func oppositePairs() -> [(Element, Element)] where Element: TopologyEdge {
         let pairs: [(Element, Element)] = compactMap {
             guard let opposite = $0.opposite() else { return nil }
@@ -39,13 +54,6 @@ extension Array {
         filter { $0 != $1.opposite() }
     }
 
-    static func + (lhs: [Element], rhs: Element) -> [Element] {
-        lhs + [rhs]
-    }
-
-    static func + (lhs: Element, rhs: [Element]) -> [Element] {
-        [lhs] + rhs
-    }
 }
 
 extension Array: ZeroRepresentable {
