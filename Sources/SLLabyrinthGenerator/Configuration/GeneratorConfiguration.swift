@@ -7,8 +7,13 @@
 
 public struct GeneratorConfiguration<T: Topology> {
     let size: T.Field.Size
+    let elementsWeights = ElementsWeightsContainer()
     var isolatedAreasStrategy: IsolatedAreasStrategy<T>? = nil
     var cycledAreasStrategy: CycledAreasStrategy<T>? = nil
+
+    func setWeigth(_ superposition: any WeightableSuperposition.Type, weight: Float) {
+        elementsWeights.setWeigth(superposition, weight: weight)
+    }
 
     static func basic(size: T.Field.Size) -> GeneratorConfiguration<T> {
         var config = GeneratorConfiguration(size: size)

@@ -21,7 +21,7 @@ public protocol NodeSuperposition: IdEquatable, Hashable {
     func applyRestriction(_ restriction: AppliedRestriction)
     func applyRestriction(_ restriction: any SuperpositionRestriction, provider: String, onetime: Bool)
     func applyRestrictions(_ restrictions: [any SuperpositionRestriction], provider: String, onetime: Bool)
-    func waveFunctionCollapse() -> Nested.Element?
+    func waveFunctionCollapse(weights: ElementsWeightsContainer) -> Nested.Element?
 
     @discardableResult
     func resetRestrictions() -> [AppliedRestriction]
@@ -114,10 +114,12 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
         }
     }
 
-    func waveFunctionCollapse() -> T.Field.Element? {
+    func waveFunctionCollapse(weights: ElementsWeightsContainer) -> T.Field.Element? {
         let available = elementsSuperpositions.filter { $0.entropy > 0 }
         restrictions = restrictions.filter { !$0.isOnetime }
-        return available.randomElement()?.waveFunctionCollapse()
+        let weighted = available.map { ($0, weights.weight($0)) }
+        let elementSuperposition = RandomPicker.weigthed(weighted)
+        return elementSuperposition?.waveFunctionCollapse()
     }
 
     @discardableResult

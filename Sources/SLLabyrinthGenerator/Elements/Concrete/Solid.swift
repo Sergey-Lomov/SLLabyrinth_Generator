@@ -16,7 +16,11 @@ class Solid<T: Topology>: EdgeBasedElement<T> {
     }
 }
 
-final class SolidSuperposition<T: Topology>: TopologyBasedElementSuperposition<T> {
+final class SolidSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, WeightableSuperposition {
+    typealias Element = Solid
+
+    static var weigthCategory: String { "solid" }
+
     var available = true
 
     override var entropy: Int {

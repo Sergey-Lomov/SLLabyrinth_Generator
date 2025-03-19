@@ -35,7 +35,7 @@ public protocol ElementSuperposition {
     func copy() -> Self
 }
 
-class TopologyBasedElementSuperposition<T: Topology>: ElementSuperposition {
+class TopologyBasedElementSuperposition<T: Topology>: ElementSuperposition {    
     typealias Edge = T.Edge
     typealias Element = T.Field.Element
 

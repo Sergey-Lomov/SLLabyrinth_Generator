@@ -125,7 +125,8 @@ public final class LabyrinthGenerator<T: Topology> {
         uncollapsed.remove(superposition)
         let point = superposition.point
         let solid = Solid<T>() as? Element
-        let element = superposition.waveFunctionCollapse() ?? solid
+        let generated = superposition.waveFunctionCollapse(weights: configuration.elementsWeights)
+        let element = generated ?? solid
         guard let element = element else { return }
         setFieldElement(at: point, element: element, entropyContainer: uncollapsed)
     }
@@ -186,7 +187,8 @@ public final class LabyrinthGenerator<T: Topology> {
 
         let newElements: [(Point, Element)] = points.compactMap { point in
             guard let sup = superpositions[point] else { return nil }
-            guard let element = sup.waveFunctionCollapse() else { return nil }
+            let element = sup.waveFunctionCollapse(weights: configuration.elementsWeights)
+            guard let element = element else { return nil }
             return (point, element)
         }
 
