@@ -34,6 +34,10 @@ final class AreasGraph<T: Topology>: Graph<AreasGraphEdge<T>> {
         var nextEdge = edges(from: vertex).first
         while nextEdge != nil {
             guard let edge = nextEdge else { continue }
+// TODO: remove test code
+            if handledVertexEdges.contains(edge) {
+                print("Now will crash")
+            }
             handledVertexEdges.insert(edge)
 
             guard !edge.pathsEdge.isReversed(lastEdge.pathsEdge) else {

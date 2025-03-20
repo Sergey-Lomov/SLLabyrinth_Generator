@@ -21,17 +21,13 @@ public protocol LabyrinthElement: AnyObject, Hashable {
     static func undefined<U: LabyrinthElement>() -> U?
 }
 
-class TopologyBasedLabyrinthElement<T: Topology>: LabyrinthElement, IdEquatable {
+class TopologyBasedLabyrinthElement<T: Topology>: LabyrinthElement, IdHashable {
 
     typealias Point = T.Point
     typealias Restriction = TopologyBasedElementRestriction<T>
 
     var isVisitable: Bool { true }
     var id: String = "element_" + UUID().uuidString
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
 
     func connectedPoints(_ point: Point) -> [Point] { [] }
 

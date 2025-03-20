@@ -19,45 +19,44 @@ final class JunctionSuperposition<T: Topology>: TopologyBasedElementSuperpositio
 
     static var weigthCategory: String { "junction" }
 
-    var variations: [[T.Edge]]
+    private var passagesVariations: [[T.Edge]] = initialState()
 
     static func initialState() -> [[T.Edge]] {
         T.Edge.allCases.combinations().filter { $0.count > 2 }
     }
 
     required init() {
-        variations = Self.initialState()
         super.init()
     }
 
     init(variations: [[T.Edge]]) {
-        self.variations = variations
+        self.passagesVariations = variations
         super.init()
     }
 
     override func copy() -> Self {
-        Self.init(variations: variations)
+        Self.init(variations: passagesVariations)
     }
 
     override var entropy: Int {
-        variations.count
+        passagesVariations.count
     }
 
     override func applyRestriction(_ restriction: TopologyBasedElementRestriction<T>) {
         switch restriction {
-        case .wall(let edge):
-            variations = variations.filter { !$0.contains(edge) }
+        case .wall(let edge), .fieldEdge(let edge):
+            passagesVariations = passagesVariations.filter { !$0.contains(edge) }
         case .passage(let edge):
-            variations = variations.filter { $0.contains(edge) }
+            passagesVariations = passagesVariations.filter { $0.contains(edge) }
         }
     }
 
     override func resetRestrictions() {
-        variations = Self.initialState()
+        passagesVariations = Self.initialState()
     }
 
     override func waveFunctionCollapse() -> T.Field.Element? {
-        guard let variation = variations.randomElement() else { return nil }
+        guard let variation = passagesVariations.randomElement() else { return nil }
         return Junction<T>(entrances: variation) as? T.Field.Element
     }
 }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol NodeSuperposition: IdEquatable, Hashable {
+public protocol NodeSuperposition: IdHashable {
     associatedtype Point: TopologyPoint
     associatedtype Nested: ElementSuperposition
 
@@ -65,10 +65,6 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
         self.restrictions = superposition.restrictions
     }
 
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-
     func applyRestriction(_ restriction: any SuperpositionRestriction, provider: String, onetime: Bool = false) {
         let applied = AppliedRestriction(restriction: restriction, provider: provider, isOnetime: onetime)
         restrictions.append(applied)
@@ -100,6 +96,8 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
                 opposite = .wall(edge: edge)
             case .wall(let edge):
                 opposite = .passage(edge: edge)
+            default:
+                break
             }
 
             let same = rests.filter { $0 == restriction }

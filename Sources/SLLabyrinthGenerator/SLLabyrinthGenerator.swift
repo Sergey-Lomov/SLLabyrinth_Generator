@@ -7,8 +7,6 @@
 
 import Foundation
 
-private let borderRestrictionId = "field_border"
-
 public final class LabyrinthGenerator<T: Topology> {
     typealias Point = T.Point
     typealias Edge = T.Edge
@@ -16,6 +14,9 @@ public final class LabyrinthGenerator<T: Topology> {
     typealias Element = T.Field.Element
     typealias Superposition = T.Superposition
     typealias ElementRestriction = T.ElementRestriction
+
+    private static var borderRestrictionId: String { "field_border" }
+    private static var emptyFieldRestrictionId: String { "empty_field" }
 
     let configuration: GeneratorConfiguration<T>
     var field: Field
@@ -48,14 +49,14 @@ public final class LabyrinthGenerator<T: Topology> {
         }
 
         timeLog("Calculate paths graph") { calculatePathsGraph() }
-        timeLog("Handle isolated areas") { handleIsolatedAreas() }
-
-        savedField = field.copy()
-        savedSuperpositions = superpositions
-            .map { ($0, Superposition(superposition: $1)) }
-            .toDictionary()
-
-        timeLog("Handle cycles areas") { handleCyclesAreas() }
+//        timeLog("Handle isolated areas") { handleIsolatedAreas() }
+//
+//        savedField = field.copy()
+//        savedSuperpositions = superpositions
+//            .map { ($0, Superposition(superposition: $1)) }
+//            .toDictionary()
+//
+//        timeLog("Handle cycles areas") { handleCyclesAreas() }
 
         return timeLog
     }
@@ -84,9 +85,13 @@ public final class LabyrinthGenerator<T: Topology> {
     private func applyEmptyFieldConstraints() {
         eachPointEdgeConstraint { point, edge, hasNext in
             if hasNext {
-                return TopologyBasedElementRestriction<T>.passage(edge: edge) as? ElementRestriction
+                let element = TopologyBasedElementRestriction<T>.passage(edge: edge)
+                guard let element = element as? ElementRestriction else { return nil }
+                return (element, Self.emptyFieldRestrictionId)
             } else {
-                return TopologyBasedElementRestriction<T>.wall(edge: edge) as? ElementRestriction
+                let element = TopologyBasedElementRestriction<T>.passage(edge: edge)
+                guard let element = element as? ElementRestriction else { return nil }
+                return (element, Self.borderRestrictionId)
             }
         }
     }
@@ -94,12 +99,14 @@ public final class LabyrinthGenerator<T: Topology> {
     private func applyBorderConstraints() {
         eachPointEdgeConstraint { point, edge, hasNext in
             guard !hasNext else { return nil }
-            return TopologyBasedElementRestriction<T>.wall(edge: edge) as? ElementRestriction
+            let restriction = TopologyBasedElementRestriction<T>.fieldEdge(edge: edge)
+            guard let restriction = restriction as? ElementRestriction else { return nil }
+            return (restriction, Self.borderRestrictionId)
         }
     }
 
     private func eachPointEdgeConstraint(
-        handler: (Point, Edge, Bool) -> ElementRestriction?
+        handler: (Point, Edge, Bool) -> (ElementRestriction, String)?
     ) {
         superpositions.values.forEach { superposition in
             Edge.allCases.forEach { edge in
@@ -108,7 +115,7 @@ public final class LabyrinthGenerator<T: Topology> {
                 let restriction = handler(superposition.point, edge, nextExist)
 
                 guard let restriction = restriction else { return }
-                superposition.applyRestriction(restriction, provider: borderRestrictionId, onetime: false)
+                superposition.applyRestriction(restriction.0, provider: restriction.1, onetime: false)
             }
         }
     }
@@ -258,6 +265,7 @@ public final class LabyrinthGenerator<T: Topology> {
         superProvider.reqisterSuperposition(StraightPathSuperposition<T>.self)
         superProvider.reqisterSuperposition(CornerPathSuperposition<T>.self)
         superProvider.reqisterSuperposition(JunctionSuperposition<T>.self)
+        superProvider.reqisterSuperposition(OneWayHolderSuperposition<T>.self)
 
         return superProvider
     }

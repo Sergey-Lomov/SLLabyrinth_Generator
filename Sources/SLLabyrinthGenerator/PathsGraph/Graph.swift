@@ -9,7 +9,7 @@ import Foundation
 
 protocol GraphVertex: Hashable {}
 
-protocol GraphEdge: Hashable {
+protocol GraphEdge: IdHashable {
     associatedtype Vertex: GraphVertex
 
     var from: Vertex { get }

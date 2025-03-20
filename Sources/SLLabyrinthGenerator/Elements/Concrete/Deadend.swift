@@ -38,7 +38,7 @@ final class DeadendSuperposition<T: Topology>: TopologyBasedElementSuperposition
 
     override func applyRestriction(_ restriction: TopologyBasedElementRestriction<T>) {
         switch restriction {
-        case .wall(let edge):
+        case .wall(let edge), .fieldEdge(let edge):
             entrances = entrances.filter { $0 != edge }
         case .passage(let edge):
             entrances = entrances.filter { $0 == edge }

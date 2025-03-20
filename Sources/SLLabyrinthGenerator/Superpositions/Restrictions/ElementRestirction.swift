@@ -12,6 +12,7 @@ public protocol ElementRestriction: SuperpositionRestriction {
 enum TopologyBasedElementRestriction<T: Topology>: ElementRestriction, Equatable {
     typealias Edge = T.Edge
 
+    case fieldEdge(edge: Edge)
     case wall(edge: Edge)
     case passage(edge: Edge)
 }

@@ -40,7 +40,7 @@ final class CornerPathSuperposition<T: Topology>: TopologyBasedElementSuperposit
 
     override func applyRestriction(_ restriction: TopologyBasedElementRestriction<T>) {
         switch restriction {
-        case .wall(let edge):
+        case .wall(let edge), .fieldEdge(let edge):
             paths = paths.filter { $0 != edge && $1 != edge }
         case .passage(let edge):
             paths = paths.filter { $0 == edge || $1 == edge }

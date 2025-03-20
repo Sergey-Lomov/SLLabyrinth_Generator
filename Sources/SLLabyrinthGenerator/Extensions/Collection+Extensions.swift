@@ -30,15 +30,17 @@ extension Collection {
         let maxIndex = Int(pow(2, Double(count))) - 1
 
         for i in 1...maxIndex {
-            var indexArray: Array<Element> = []
-            enumerated().forEach { index, element in
-                if i & (1 << index) > 0 {
-                    indexArray.append(element)
-                }
-            }
+            let indexArray = elementsByMask(i)
             results.append(indexArray)
         }
 
         return results
+    }
+
+    func elementsByMask(_ mask: Int) -> [Element] {
+        enumerated().compactMap { index, element in
+            let selected = mask & (1 << index) > 0
+            return selected ? element : nil
+        }
     }
 }

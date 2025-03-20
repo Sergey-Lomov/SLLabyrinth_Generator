@@ -28,10 +28,6 @@ struct PathsGraphEdge<T: Topology>: GraphEdge {
         }
     }
 
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-
     func isReversed(_ edge: PathsGraphEdge<T>) -> Bool {
         points == Array(edge.points.reversed())
     }

@@ -37,7 +37,8 @@ final class MinEntropyContainer<T: Topology> {
             let minEmpty = map[entropy, default: []].isEmpty
             if minEmpty {
                 map[entropy] = nil
-                minEntropy = map.keys.min() ?? .max
+                let entropies = map.keys.filter { !(map[$0]?.isEmpty ?? true) }
+                minEntropy = entropies.min() ?? .max
             }
         }
         count -= 1

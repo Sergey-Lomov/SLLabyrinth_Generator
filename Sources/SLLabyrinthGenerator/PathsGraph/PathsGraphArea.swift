@@ -7,7 +7,7 @@
 
 import Foundation
 
-public final class PathsGraphArea<T: Topology>: IdEquatable, GraphVertex {
+public final class PathsGraphArea<T: Topology>: IdHashable, GraphVertex {
     public var id = UUID().uuidString
     var graph: PathsGraph = PathsGraph<T>()
 
@@ -26,9 +26,5 @@ public final class PathsGraphArea<T: Topology>: IdEquatable, GraphVertex {
 //        income = income + area.income
 //        outgoing = outgoing.filter { !graph.vertices.contains($0.to) }
 //        income = outgoing.filter { !graph.vertices.contains($0.from) }
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
     }
 }
