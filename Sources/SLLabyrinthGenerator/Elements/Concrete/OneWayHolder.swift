@@ -35,7 +35,7 @@ final class OneWayHolder<T: Topology>: EdgeBasedElement<T> {
         oneways.forEach {
             let point = T.nextPoint(point: point, edge: $0)
             let edge = T.adaptToNextPoint($0)
-            let counter = CounterOneWayRestriction<T>(edge: edge)
+            let counter = OneWayRestriction<T>(edge: edge)
             restrictions.append(key: point, arrayValue: counter)
         }
 
@@ -43,7 +43,7 @@ final class OneWayHolder<T: Topology>: EdgeBasedElement<T> {
     }
 }
 
-final class CounterOneWayRestriction<T: Topology>: ElementRestriction, IdHashable {
+final class OneWayRestriction<T: Topology>: ElementRestriction, IdHashable {
     typealias Edge = T.Edge
 
     let id = UUID().uuidString
@@ -101,8 +101,8 @@ final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperpos
     }
 
     override func applySpecificRestriction(_ restriction: any ElementRestriction) {
-        if let counter = restriction as? CounterOneWayRestriction<T> {
-            unavailable.append(counter.edge)
+        if let noOneWay = restriction as? OneWayRestriction<T> {
+            unavailable.append(noOneWay.edge)
         }
     }
 

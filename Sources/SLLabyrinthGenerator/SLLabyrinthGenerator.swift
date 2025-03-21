@@ -48,14 +48,14 @@ public final class LabyrinthGenerator<T: Topology> {
         }
 
         timeLog("Calculate paths graph") { calculatePathsGraph() }
-        timeLog("Handle isolated areas") { handleIsolatedAreas() }
+//        timeLog("Handle isolated areas") { handleIsolatedAreas() }
 
 //        savedField = field.copy()
 //        savedSuperpositions = superpositions
 //            .map { ($0, Superposition(superposition: $1)) }
 //            .toDictionary()
 
-        timeLog("Handle cycles areas") { handleCyclesAreas() }
+//        timeLog("Handle cycles areas") { handleCyclesAreas() }
 
         return timeLog
     }
