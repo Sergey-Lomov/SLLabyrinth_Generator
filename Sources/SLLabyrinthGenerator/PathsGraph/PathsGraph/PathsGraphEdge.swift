@@ -39,4 +39,8 @@ struct PathsGraphEdge<T: Topology>: GraphEdge {
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.points == rhs.points
     }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(points)
+    }
 }

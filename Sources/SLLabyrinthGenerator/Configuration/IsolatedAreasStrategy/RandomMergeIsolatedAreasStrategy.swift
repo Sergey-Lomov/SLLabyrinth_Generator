@@ -21,7 +21,10 @@ final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy
     typealias Restriction = TopologyBasedElementRestriction<T>
     typealias Generator = LabyrinthGenerator<T>
 
-    override func handle(area: PathsGraphArea<T>, generator: Generator) -> Bool {
+    override func handle(area: PathsGraphArea<T>,
+                         incomes: [AreasGraphEdge<T>],
+                         outgoings: [AreasGraphEdge<T>],
+                         generator: LabyrinthGenerator<T>) -> Bool {
         let points = area.graph.points
         let field = generator.field
         var unhandled = points.shuffled()
@@ -80,65 +83,14 @@ final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy
         } else {
             return false
         }
-
-//        guard let super1 = generator.superpositions[merge.point1],
-//              let super2 = generator.superpositions[merge.point2],
-//              let element1 = generator.field.element(at: merge.point1),
-//              let element2 = generator.field.element(at: merge.point2) else {
-//            return false
-//        }
-//
-//        let initialRestrictions1 = super1.resetRestrictions()
-//        let initialRestrictions2 = super2.resetRestrictions()
-//
-//        var newRestrictions1 = initialRestrictions1
-//            .filter { $0.provider != element1.id && $0.provider != element2.id }
-//        var newRestrictions2 = initialRestrictions2
-//            .filter { $0.provider != element1.id && $0.provider != element2.id }
-//
-//        let passage1 = Restriction.passage(edge: merge.edge1)
-//        let passage2 = Restriction.passage(edge: merge.edge2)
-//        let appliedPassage1 = AppliedRestriction(restriction: passage1, provider: merge.id, isOnetime: true)
-//        let appliedPassage2 = AppliedRestriction(restriction: passage2, provider: merge.id, isOnetime: true)
-//        newRestrictions1.append(appliedPassage1)
-//        newRestrictions2.append(appliedPassage2)
-//
-//        newRestrictions1.forEach { super1.applyRestriction($0) }
-//        newRestrictions2.forEach { super2.applyRestriction($0) }
-//
-//        if let newElement1 = super1.waveFunctionCollapse(),
-//           let newElement2 = super2.waveFunctionCollapse() {
-//            return replaceElements(
-//                element1: newElement1,
-//                point1: merge.point1,
-//                element2: newElement2,
-//                point2: merge.point2,
-//                generator: generator
-//            )
-//        } else {
-//            super1.resetRestrictions()
-//            super2.resetRestrictions()
-//            initialRestrictions1.forEach { super1.applyRestriction($0) }
-//            initialRestrictions2.forEach { super2.applyRestriction($0) }
-//            return false
-//        }
-
     }
 
-//    private func replaceElements(
-//        element1: Element,
-//        point1: Point,
-//        element2: Element,
-//        point2: Point,
-//        generator: Generator
-//    ) -> Bool {
     private func handleSuccessRegeneration(point1: Point, point2: Point, generator: Generator) -> Bool {
-//        generator.setFieldElement(at: point1, element: element1)
-//        generator.setFieldElement(at: point2, element: element2)
-
-        let area1 = generator.isolatedAreas.first { $0.graph.points.contains(point1) }
-        let area2 = generator.isolatedAreas.first { $0.graph.points.contains(point2) }
-        guard let area1 = area1, let area2 = area2 else { return false }
+        let area1 = generator.isolatedAreas.firstVertexContains(point1)
+        let area2 = generator.isolatedAreas.firstVertexContains(point2)
+        guard let area1 = area1, let area2 = area2 else {
+            return false
+        }
 
         let patch1 = generator.pathsGraph.embedVertex(atPoint: point1)
         let patch2 = generator.pathsGraph.embedVertex(atPoint: point2)
@@ -152,14 +104,13 @@ final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy
 
         let edge1_2 = PathsGraphEdge<T>(points: [point1, point2], from: vertex1, to: vertex2)
         let edge2_1 = edge1_2.reversed()
-
         generator.pathsGraph.appendEdge(edge1_2)
         generator.pathsGraph.appendEdge(edge2_1)
         area1.merge(area2)
         area1.graph.appendEdge(edge1_2)
         area1.graph.appendEdge(edge2_1)
 
-        generator.isolatedAreas.removeAll { $0 == area2 }
+        generator.isolatedAreas.removeVertex(area2, removeUnused: false)
         let compactPatch1 = generator.pathsGraph.compactize(vertex: vertex1)
         let compactPatch2 = generator.pathsGraph.compactize(vertex: vertex2)
         compactPatch1.apply(on: area1.graph)

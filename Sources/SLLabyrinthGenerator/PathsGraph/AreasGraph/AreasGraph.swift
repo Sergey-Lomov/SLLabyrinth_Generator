@@ -11,6 +11,42 @@ final class AreasGraph<T: Topology>: Graph<AreasGraphEdge<T>> {
     typealias Edge = AreasGraphEdge<T>
     typealias Path = AreasGraphPath<T>
 
+    func firstVertexContains(_ point: T.Point) -> Vertex? {
+        vertices.first { $0.graph.points.contains(point) }
+    }
+
+    func groupAreas(_ areas: [Vertex]) -> Vertex {
+        let grouped = Vertex()
+        areas.forEach { grouped.merge($0) }
+        appendVertex(grouped)
+
+        areas
+            .flatMap { edges(from: $0) }
+            .forEach {
+                removeEdge($0)
+                if areas.contains($0.to) {
+                    grouped.graph.appendEdge($0.pathsEdge)
+                } else {
+                    let edge = Edge(pathsEdge: $0.pathsEdge, from: grouped, to: $0.to)
+                    appendEdge(edge)
+                }
+            }
+
+        areas
+            .flatMap { edges(to: $0) }
+            .forEach {
+                removeEdge($0)
+                if areas.contains($0.from) {
+                    grouped.graph.appendEdge($0.pathsEdge)
+                } else {
+                    let edge = Edge(pathsEdge: $0.pathsEdge, from: $0.from, to: grouped)
+                    appendEdge(edge)
+                }
+            }
+
+        return grouped
+    }
+
     func groupCycled() {
         var unhandled = Set(edges)
         while !unhandled.isEmpty {
@@ -34,10 +70,6 @@ final class AreasGraph<T: Topology>: Graph<AreasGraphEdge<T>> {
         var nextEdge = edges(from: vertex).first
         while nextEdge != nil {
             guard let edge = nextEdge else { continue }
-// TODO: remove test code
-            if handledVertexEdges.contains(edge) {
-                print("Now will crash")
-            }
             handledVertexEdges.insert(edge)
 
             guard !edge.pathsEdge.isReversed(lastEdge.pathsEdge) else {
@@ -72,37 +104,5 @@ final class AreasGraph<T: Topology>: Graph<AreasGraphEdge<T>> {
         guard let cycleIncome = cycleIncome else { return nil }
 
         return cycleIncome.from
-    }
-
-    private func groupAreas(_ areas: [Vertex]) -> Vertex {
-        let grouped = Vertex()
-        areas.forEach { grouped.merge($0) }
-        appendVertex(grouped)
-
-        areas
-            .flatMap { edges(from: $0) }
-            .forEach {
-                removeEdge($0)
-                if areas.contains($0.to) {
-                    grouped.graph.appendEdge($0.pathsEdge)
-                } else {
-                    let edge = Edge(pathsEdge: $0.pathsEdge, from: grouped, to: $0.to)
-                    appendEdge(edge)
-                }
-            }
-
-        areas
-            .flatMap { edges(to: $0) }
-            .forEach {
-                removeEdge($0)
-                if areas.contains($0.from) {
-                    grouped.graph.appendEdge($0.pathsEdge)
-                } else {
-                    let edge = Edge(pathsEdge: $0.pathsEdge, from: $0.from, to: grouped)
-                    appendEdge(edge)
-                }
-            }
-
-        return grouped
     }
 }

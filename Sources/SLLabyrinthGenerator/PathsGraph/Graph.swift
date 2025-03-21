@@ -9,7 +9,7 @@ import Foundation
 
 protocol GraphVertex: Hashable {}
 
-protocol GraphEdge: IdHashable {
+protocol GraphEdge: Hashable {
     associatedtype Vertex: GraphVertex
 
     var from: Vertex { get }
@@ -45,7 +45,6 @@ class Graph<Edge: GraphEdge> {
 
     func appendEdge(_ edge: Edge) {
         guard !edges.contains(edge) else { return }
-
         edges.insert(edge)
         appendVertex(edge.from)
         appendVertex(edge.to)
@@ -54,12 +53,17 @@ class Graph<Edge: GraphEdge> {
         invalidateCache()
     }
 
-    func removeEdge(_ edge: Edge) {
+    func removeEdge(_ edge: Edge, removeUnused: Bool = true) {
         edges.remove(edge)
         fromMap.remove(key: edge.from, arrayValue: edge)
         toMap.remove(key: edge.to, arrayValue: edge)
-        removeIfUnused(edge.from)
-        removeIfUnused(edge.to)
+
+        if removeUnused {
+            removeIfUnused(edge.from)
+            removeIfUnused(edge.to)
+        }
+
+        
         invalidateCache()
     }
 
@@ -69,10 +73,10 @@ class Graph<Edge: GraphEdge> {
         invalidateCache()
     }
 
-    func removeVertex(_ vertex: Vertex) {
+    func removeVertex(_ vertex: Vertex, removeUnused: Bool = true) {
         vertices.remove(vertex)
-        fromMap[vertex]?.forEach { removeEdge($0) }
-        toMap[vertex]?.forEach { removeEdge($0) }
+        fromMap[vertex]?.forEach { removeEdge($0, removeUnused: removeUnused) }
+        toMap[vertex]?.forEach { removeEdge($0, removeUnused: removeUnused) }
         fromMap[vertex] = nil
         toMap[vertex] = nil
         invalidateCache()
@@ -101,6 +105,8 @@ class Graph<Edge: GraphEdge> {
         toMap.merge(graph.toMap) { current, new in
             return current + new
         }
+
+        invalidateCache()
     }
 
     func firstPath<C: Collection, P: Path> (

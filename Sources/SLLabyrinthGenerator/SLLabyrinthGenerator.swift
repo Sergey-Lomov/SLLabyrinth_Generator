@@ -25,7 +25,7 @@ public final class LabyrinthGenerator<T: Topology> {
     var pathsGraph = PathsGraph<T>()
     var filteredGraph = PathsGraph<T>()
     var cyclesAreas: [PathsGraphArea<T>] = []
-    var isolatedAreas: [PathsGraphArea<T>] = []
+    var isolatedAreas = AreasGraph<T>()
 
     // TODO: Remove testing code
     var savedField: Field?
@@ -55,7 +55,7 @@ public final class LabyrinthGenerator<T: Topology> {
 //            .map { ($0, Superposition(superposition: $1)) }
 //            .toDictionary()
 
-        timeLog("Handle cycles areas") { handleCyclesAreas() }
+//        timeLog("Handle cycles areas") { handleCyclesAreas() }
 
         return timeLog
     }
@@ -237,7 +237,7 @@ public final class LabyrinthGenerator<T: Topology> {
         guard configuration.isolatedAreasStrategy != nil else { return }
 
         timeLog("Calculate isolated areas") {
-            isolatedAreas = pathsGraph.isolatedAreas().vertices.toArray()
+            isolatedAreas = pathsGraph.isolatedAreas()
         }
         timeLog("Resolve isolated areas") { resolveIsolatedAreas() }
     }
@@ -245,12 +245,18 @@ public final class LabyrinthGenerator<T: Topology> {
     private func resolveIsolatedAreas() {
         guard let strategy = configuration.isolatedAreasStrategy else { return }
 
-        var failedCount = 0
-        while isolatedAreas.count > (1 + failedCount) {
-            let sorted = isolatedAreas.sorted { $0.size < $1.size }
+        while isolatedAreas.vertices.count > 1 {
+            let sorted = isolatedAreas.vertices.sorted { $0.size < $1.size }
             guard let area = sorted.first else { continue }
-            let success = strategy.handle(area: area, generator: self)
-            if !success { failedCount += 1}
+            let success = strategy.handle(
+                area: area,
+                incomes: isolatedAreas.edges(to: area),
+                outgoings: isolatedAreas.edges(from: area),
+                generator: self
+            )
+            if !success {
+                isolatedAreas.removeVertex(area)
+            }
         }
     }
 
@@ -261,7 +267,7 @@ public final class LabyrinthGenerator<T: Topology> {
         superProvider.reqisterSuperposition(StraightPathSuperposition<T>.self)
         superProvider.reqisterSuperposition(CornerPathSuperposition<T>.self)
         superProvider.reqisterSuperposition(JunctionSuperposition<T>.self)
-//        superProvider.reqisterSuperposition(OneWayHolderSuperposition<T>.self)
+        superProvider.reqisterSuperposition(OneWayHolderSuperposition<T>.self)
 
         return superProvider
     }

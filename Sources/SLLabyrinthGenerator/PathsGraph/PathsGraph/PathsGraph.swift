@@ -137,7 +137,7 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
     func isolatedAreas() -> AreasGraph<T> {
         var unhandledVertices = Set(vertices)
         var interareasEdges = Set(edges)
-        var areas = AreasGraph<T>()
+        let areas = AreasGraph<T>()
 
         while !unhandledVertices.isEmpty {
             guard let vertex = unhandledVertices.first else { continue }
