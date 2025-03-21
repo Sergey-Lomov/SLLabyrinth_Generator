@@ -96,10 +96,11 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
         return result
     }
 
-    func areaAvailable(from vertex: Vertex) -> Area {
+    private func availableArea(from vertex: Vertex) -> (Area, Set<Edge>) {
         let area = Area()
         var pointers: Set<Vertex> = [vertex]
         var handled: Set<Vertex> = []
+        var outareaEdges: Set<Edge> = []
 
         while !pointers.isEmpty {
             var nextPointers: Set<Vertex> = []
@@ -110,6 +111,8 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
                     if isBidirectional(edge) {
                         area.graph.appendEdge(edge)
                         nextPointers.insert(edge.to)
+                    } else {
+                        outareaEdges.insert(edge)
                     }
                 }
 
@@ -117,6 +120,8 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
                     if isBidirectional(edge) {
                         area.graph.appendEdge(edge)
                         nextPointers.insert(edge.from)
+                    } else {
+                        outareaEdges.insert(edge)
                     }
                 }
 
@@ -126,18 +131,30 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
             pointers = nextPointers.filter { !handled.contains($0) }
         }
 
-        return area
+        return (area, outareaEdges)
     }
 
-    func isolatedAreas() -> [Area] {
-        var unhandled = Set(vertices)
-        var areas: [Area] = []
+    func isolatedAreas() -> AreasGraph<T> {
+        var unhandledVertices = Set(vertices)
+        var interareasEdges = Set(edges)
+        var areas = AreasGraph<T>()
 
-        while !unhandled.isEmpty {
-            guard let vertex = unhandled.first else { continue }
-            let area = areaAvailable(from: vertex)
-            areas.append(area)
-            unhandled.subtract(area.graph.vertices)
+        while !unhandledVertices.isEmpty {
+            guard let vertex = unhandledVertices.first else { continue }
+            let areaData = availableArea(from: vertex)
+            let area = areaData.0
+            areas.appendVertex(area)
+            unhandledVertices.subtract(area.graph.vertices)
+            interareasEdges.formUnion(areaData.1)
+        }
+
+        interareasEdges.forEach { edge in
+            let fromArea = areas.vertices.first { $0.graph.vertices.contains(edge.from) }
+            let toArea = areas.vertices.first { $0.graph.vertices.contains(edge.to) }
+            guard let fromArea = fromArea, let toArea = toArea else { return }
+
+            let areasEdge = AreasGraphEdge(pathsEdge: edge, from: fromArea, to: toArea)
+            areas.appendEdge(areasEdge)
         }
 
         return areas

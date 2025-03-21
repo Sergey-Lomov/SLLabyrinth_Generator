@@ -48,14 +48,14 @@ public final class LabyrinthGenerator<T: Topology> {
         }
 
         timeLog("Calculate paths graph") { calculatePathsGraph() }
-//        timeLog("Handle isolated areas") { handleIsolatedAreas() }
+        timeLog("Handle isolated areas") { handleIsolatedAreas() }
 
 //        savedField = field.copy()
 //        savedSuperpositions = superpositions
 //            .map { ($0, Superposition(superposition: $1)) }
 //            .toDictionary()
 
-//        timeLog("Handle cycles areas") { handleCyclesAreas() }
+        timeLog("Handle cycles areas") { handleCyclesAreas() }
 
         return timeLog
     }
@@ -237,7 +237,7 @@ public final class LabyrinthGenerator<T: Topology> {
         guard configuration.isolatedAreasStrategy != nil else { return }
 
         timeLog("Calculate isolated areas") {
-            isolatedAreas = pathsGraph.isolatedAreas()
+            isolatedAreas = pathsGraph.isolatedAreas().vertices.toArray()
         }
         timeLog("Resolve isolated areas") { resolveIsolatedAreas() }
     }
@@ -261,7 +261,7 @@ public final class LabyrinthGenerator<T: Topology> {
         superProvider.reqisterSuperposition(StraightPathSuperposition<T>.self)
         superProvider.reqisterSuperposition(CornerPathSuperposition<T>.self)
         superProvider.reqisterSuperposition(JunctionSuperposition<T>.self)
-        superProvider.reqisterSuperposition(OneWayHolderSuperposition<T>.self)
+//        superProvider.reqisterSuperposition(OneWayHolderSuperposition<T>.self)
 
         return superProvider
     }

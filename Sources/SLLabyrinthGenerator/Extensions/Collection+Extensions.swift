@@ -12,6 +12,10 @@ extension Collection {
         indices.contains(index) ? self[index] : nil
     }
 
+    func toArray() -> [Element] {
+        Array(self)
+    }
+
     func pairs(allowDuplication: Bool = false) -> Array<(Element, Element)> where Element: Comparable {
         return reduce(into: Array<(Element, Element)>()) { arr, element in
             forEach {
