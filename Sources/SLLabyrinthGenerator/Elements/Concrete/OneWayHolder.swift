@@ -115,11 +115,13 @@ final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperpos
         let passages = T.Edge.allCases.filter { !variation.contains($0) }
         let filtered = variation.filter { !unavailable.contains($0) }
 
+        guard !filtered.isEmpty else { return nil }
+
         let onewayMaxMask = 1 << filtered.count
         let onewayMask = Int.random(in: 1..<onewayMaxMask)
         let oneways = filtered.elementsByMask(onewayMask)
-
         let holder = OneWayHolder<T>(passages: passages, oneways: oneways)
-        return oneways.isEmpty ? nil : holder as? T.Field.Element
+
+        return holder as? T.Field.Element
     }
 }
