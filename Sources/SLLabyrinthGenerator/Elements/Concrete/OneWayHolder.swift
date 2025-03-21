@@ -28,6 +28,30 @@ final class OneWayHolder<T: Topology>: EdgeBasedElement<T> {
             T.nextPoint(point: point, edge: $0)
         }
     }
+
+    override func outcomeRestrictions<F>(point: EdgeBasedElement<T>.Point, field: F) -> EdgeBasedElement<T>.OutcomeRestrictions where F : TopologyField {
+        var restrictions = super.outcomeRestrictions(point: point, field: field)
+
+        oneways.forEach {
+            let point = T.nextPoint(point: point, edge: $0)
+            let edge = T.adaptToNextPoint($0)
+            let counter = CounterOneWayRestriction<T>(edge: edge)
+            restrictions.append(key: point, arrayValue: counter)
+        }
+
+        return restrictions
+    }
+}
+
+final class CounterOneWayRestriction<T: Topology>: ElementRestriction, IdHashable {
+    typealias Edge = T.Edge
+
+    let id = UUID().uuidString
+    let edge: Edge
+
+    init(edge: Edge) {
+        self.edge = edge
+    }
 }
 
 final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, WeightableSuperposition {
@@ -44,7 +68,10 @@ final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperpos
 
     override var entropy: Int {
         wallsVariations
-            .map { 1 << $0.count - 1 }
+            .map { variation in
+                let filtered = variation.filter { !unavailable.contains($0) }
+                return filtered.isEmpty ? 0 : 1 << filtered.count - 1
+            }
             .reduce(0, +)
     }
 
@@ -61,7 +88,7 @@ final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperpos
         Self.init(variations: wallsVariations)
     }
 
-    override func applyRestriction(_ restriction: TopologyBasedElementRestriction<T>) {
+    override func applyCommonRestriction(_ restriction: TopologyBasedElementRestriction<T>) {
         switch restriction {
         case .wall(let edge):
             wallsVariations = wallsVariations.filter { $0.contains(edge) }
@@ -73,6 +100,12 @@ final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperpos
         }
     }
 
+    override func applySpecificRestriction(_ restriction: any ElementRestriction) {
+        if let counter = restriction as? CounterOneWayRestriction<T> {
+            unavailable.append(counter.edge)
+        }
+    }
+
     override func resetRestrictions() {
         wallsVariations = Self.initialState()
     }
@@ -80,14 +113,13 @@ final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperpos
     override func waveFunctionCollapse() -> T.Field.Element? {
         guard let variation = wallsVariations.randomElement() else { return nil }
         let passages = T.Edge.allCases.filter { !variation.contains($0) }
+        let filtered = variation.filter { !unavailable.contains($0) }
 
-        let onewayMaxMask = 1 << variation.count
+        let onewayMaxMask = 1 << filtered.count
         let onewayMask = Int.random(in: 1..<onewayMaxMask)
-        let oneways = variation
-            .elementsByMask(onewayMask)
-            .filter { !unavailable.contains($0) }
+        let oneways = filtered.elementsByMask(onewayMask)
 
         let holder = OneWayHolder<T>(passages: passages, oneways: oneways)
-        return holder as? T.Field.Element
+        return oneways.isEmpty ? nil : holder as? T.Field.Element
     }
 }

@@ -10,7 +10,6 @@ import Foundation
 // Constraints on associated types were moved to a separate protocol to avoid cycles in type resolution.
 public protocol Topology: UnconstrainedTopology
 where Field.Point == Point,
-      Field.Element.Restriction.Edge == Edge,
       Superposition.Point == Point,
       Superposition.Nested.Element == Field.Element {
 }
@@ -20,8 +19,6 @@ public protocol UnconstrainedTopology {
     associatedtype Point: TopologyPoint
     associatedtype Field: TopologyField
     associatedtype Superposition: NodeSuperposition
-
-    typealias ElementRestriction = Superposition.Nested.Element.Restriction
 
     /// This method returns a list of edges that are sufficient to connect all topology points together. For example, in a square topology, it may be a 'right'-'down' pair or any other pair consisting of one vertical and one horizontal edge.
     static func coverageFlowEdges() -> [Edge]

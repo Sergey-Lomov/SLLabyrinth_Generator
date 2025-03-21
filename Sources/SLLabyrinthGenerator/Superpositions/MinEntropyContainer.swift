@@ -18,7 +18,7 @@ final class MinEntropyContainer<T: Topology> {
     var isEmpty: Bool { count == 0 }
 
     init<C: Collection>(_ superpositions: C) where C.Element == Superposition {
-        superpositions.forEach { map.append(key: $0.entropy, setValue: $0) }
+        superpositions.forEach { map.insert(key: $0.entropy, setValue: $0) }
         minEntropy = map.keys.min() ?? .max
         count = superpositions.count
     }
@@ -26,7 +26,7 @@ final class MinEntropyContainer<T: Topology> {
     func append(_ sup: Superposition) {
         let entropy = sup.entropy
         minEntropy = min(minEntropy, entropy)
-        map.append(key: entropy, setValue: sup)
+        map.insert(key: entropy, setValue: sup)
         count += 1
     }
 

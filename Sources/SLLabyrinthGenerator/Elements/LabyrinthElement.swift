@@ -9,9 +9,9 @@ import Foundation
 
 public protocol LabyrinthElement: AnyObject, Hashable {
     associatedtype Point: TopologyPoint
-    associatedtype Restriction: ElementRestriction
+//    associatedtype Restriction: ElementRestriction
 
-    typealias OutcomeRestrictions = Dictionary<Point, [Restriction]>
+    typealias OutcomeRestrictions = Dictionary<Point, [any ElementRestriction]>
 
     var id: String { get }
     var isVisitable: Bool { get }

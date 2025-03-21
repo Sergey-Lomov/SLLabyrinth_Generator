@@ -22,7 +22,7 @@ public protocol ElementSuperposition {
     /// This method applies restrictions to the superposition. This may decrease the possible values for superposition properties and, if so, decrease the superposition entropy.
     /// For example, we have a square topology, and the superposition is "deadend with entrance from any edge" (entropy 4). The nearest south node superposition collapses and produces the restriction "wall at north."
     /// For this node, it means a wall at the south, so now we have the superposition "deadend with entrance from any edge except south" (entropy 3).
-    func applyRestriction(_ restriction: Element.Restriction)
+    func applyRestriction(_ restriction: any ElementRestriction)
 
     /// This method reverses all applied restrictions and restores the superposition's initial state.
     func resetRestrictions()
@@ -43,13 +43,17 @@ class TopologyBasedElementSuperposition<T: Topology>: ElementSuperposition {
 
     required init() {}
 
-    func applyRestriction(_ restriction: Element.Restriction) {
+    func applyRestriction(_ restriction: any ElementRestriction) {
         if let restriction = restriction as? TopologyBasedElementRestriction<T> {
-            applyRestriction(restriction)
+            applyCommonRestriction(restriction)
+        } else {
+            applySpecificRestriction(restriction)
         }
     }
 
-    func applyRestriction(_ restriction: TopologyBasedElementRestriction<T>) {}
+    func applyCommonRestriction(_ restriction: TopologyBasedElementRestriction<T>) {}
+    func applySpecificRestriction(_ restriction: any ElementRestriction) {}
+    
     func resetRestrictions() {}
     func waveFunctionCollapse() -> T.Field.Element? { return nil }
     func copy() -> Self { fatalError("Should be overrided in derived class") }

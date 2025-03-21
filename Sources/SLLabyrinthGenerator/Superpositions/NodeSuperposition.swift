@@ -73,7 +73,7 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
         validateRestrictions()
 
         switch restriction {
-        case let restriction as T.Field.Element.Restriction:
+        case let restriction as any ElementRestriction:
             applyElementRestriction(restriction)
         case let restriction as NodeRestriction:
             applyNodeRestriction(restriction)
@@ -155,7 +155,7 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
         }
     }
 
-    private func applyElementRestriction(_ restriction: Nested.Element.Restriction) {
+    private func applyElementRestriction(_ restriction: any ElementRestriction) {
         elementsSuperpositions.forEach {
             $0.applyRestriction(restriction)
         }

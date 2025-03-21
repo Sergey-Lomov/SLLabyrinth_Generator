@@ -61,9 +61,8 @@ final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy
     }
 
     private func tryToMerge(_ merge: MergeData<T>, generator: Generator) -> Bool {
-        let restriction1 = Restriction.passage(edge: merge.edge1) as? T.Field.Element.Restriction
-        let restriction2 = Restriction.passage(edge: merge.edge2) as? T.Field.Element.Restriction
-        guard let restriction1 = restriction1, let restriction2 = restriction2 else { return false }
+        let restriction1 = Restriction.passage(edge: merge.edge1)
+        let restriction2 = Restriction.passage(edge: merge.edge2)
 
         let restrictions = [
             merge.point1 : [restriction1],

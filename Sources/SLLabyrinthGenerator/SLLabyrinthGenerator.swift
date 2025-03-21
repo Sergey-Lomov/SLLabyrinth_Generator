@@ -13,7 +13,6 @@ public final class LabyrinthGenerator<T: Topology> {
     typealias Field = T.Field
     typealias Element = T.Field.Element
     typealias Superposition = T.Superposition
-    typealias ElementRestriction = T.ElementRestriction
 
     private static var borderRestrictionId: String { "field_border" }
     private static var emptyFieldRestrictionId: String { "empty_field" }
@@ -49,14 +48,14 @@ public final class LabyrinthGenerator<T: Topology> {
         }
 
         timeLog("Calculate paths graph") { calculatePathsGraph() }
-//        timeLog("Handle isolated areas") { handleIsolatedAreas() }
-//
+        timeLog("Handle isolated areas") { handleIsolatedAreas() }
+
 //        savedField = field.copy()
 //        savedSuperpositions = superpositions
 //            .map { ($0, Superposition(superposition: $1)) }
 //            .toDictionary()
-//
-//        timeLog("Handle cycles areas") { handleCyclesAreas() }
+
+        timeLog("Handle cycles areas") { handleCyclesAreas() }
 
         return timeLog
     }
@@ -86,11 +85,9 @@ public final class LabyrinthGenerator<T: Topology> {
         eachPointEdgeConstraint { point, edge, hasNext in
             if hasNext {
                 let element = TopologyBasedElementRestriction<T>.passage(edge: edge)
-                guard let element = element as? ElementRestriction else { return nil }
                 return (element, Self.emptyFieldRestrictionId)
             } else {
                 let element = TopologyBasedElementRestriction<T>.passage(edge: edge)
-                guard let element = element as? ElementRestriction else { return nil }
                 return (element, Self.borderRestrictionId)
             }
         }
@@ -100,13 +97,12 @@ public final class LabyrinthGenerator<T: Topology> {
         eachPointEdgeConstraint { point, edge, hasNext in
             guard !hasNext else { return nil }
             let restriction = TopologyBasedElementRestriction<T>.fieldEdge(edge: edge)
-            guard let restriction = restriction as? ElementRestriction else { return nil }
             return (restriction, Self.borderRestrictionId)
         }
     }
 
     private func eachPointEdgeConstraint(
-        handler: (Point, Edge, Bool) -> (ElementRestriction, String)?
+        handler: (Point, Edge, Bool) -> (any ElementRestriction, String)?
     ) {
         superpositions.values.forEach { superposition in
             Edge.allCases.forEach { edge in
@@ -175,7 +171,7 @@ public final class LabyrinthGenerator<T: Topology> {
 
     func regenerate(
         points: [Point],
-        onetimeRestrictions: Dictionary<Point, [ElementRestriction]> = [:],
+        onetimeRestrictions: Dictionary<Point, [any ElementRestriction]> = [:],
         restrictionsProvider: String = ""
     ) -> Bool {
         let originalElements: Dictionary<Point, Element> = points

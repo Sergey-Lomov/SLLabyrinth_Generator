@@ -42,7 +42,7 @@ final class JunctionSuperposition<T: Topology>: TopologyBasedElementSuperpositio
         passagesVariations.count
     }
 
-    override func applyRestriction(_ restriction: TopologyBasedElementRestriction<T>) {
+    override func applyCommonRestriction(_ restriction: TopologyBasedElementRestriction<T>) {
         switch restriction {
         case .wall(let edge), .fieldEdge(let edge):
             passagesVariations = passagesVariations.filter { !$0.contains(edge) }

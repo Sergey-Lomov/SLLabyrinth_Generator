@@ -40,7 +40,7 @@ final class SolidSuperposition<T: Topology>: TopologyBasedElementSuperposition<T
         Self.init(available: available)
     }
 
-    override func applyRestriction(_ restriction: TopologyBasedElementRestriction<T>) {
+    override func applyCommonRestriction(_ restriction: TopologyBasedElementRestriction<T>) {
         switch restriction {
         case .passage(_): available = false
         default: break

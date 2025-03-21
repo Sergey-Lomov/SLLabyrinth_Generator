@@ -38,7 +38,7 @@ final class StraightPathSuperposition<T: Topology>: TopologyBasedElementSuperpos
         Self.init(paths: paths)
     }
 
-    override func applyRestriction(_ restriction: TopologyBasedElementRestriction<T>) {
+    override func applyCommonRestriction(_ restriction: TopologyBasedElementRestriction<T>) {
         switch restriction {
         case .wall(let edge), .fieldEdge(let edge):
             paths = paths.filter { $0.0 != edge && $0.1 != edge }

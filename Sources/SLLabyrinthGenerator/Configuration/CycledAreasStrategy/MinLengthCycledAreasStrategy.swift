@@ -64,9 +64,8 @@ final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
         guard let edge1 = T.edge(from: point1, to: point2) else { return false }
         let edge2 = T.adaptToNextPoint(edge1)
 
-        let restriction1 = Restriction.wall(edge: edge1) as? T.Field.Element.Restriction
-        let restriction2 = Restriction.wall(edge: edge2) as? T.Field.Element.Restriction
-        guard let restriction1 = restriction1, let restriction2 = restriction2 else { return false }
+        let restriction1 = Restriction.wall(edge: edge1)
+        let restriction2 = Restriction.wall(edge: edge2)
 
         let restrictions = [
             point1 : [restriction1],

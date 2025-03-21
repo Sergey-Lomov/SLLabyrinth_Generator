@@ -16,7 +16,7 @@ extension Dictionary {
         self[key]?.removeAll { $0 == arrayValue }
     }
 
-    mutating func append<T>(key: Key, setValue: T) where Value == Set<T> {
+    mutating func insert<T>(key: Key, setValue: T) where Value == Set<T> {
         self[key, default: []].insert(setValue)
     }
 
