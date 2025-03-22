@@ -23,6 +23,10 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
         _points.invaliade()
     }
 
+    func contains(_ point: T.Point) -> Bool {
+        points.contains(point)
+    }
+
     func removeAndCompactize(_ edge: Edge) {
         removeEdge(edge)
         compactize(vertex: edge.from)
@@ -40,8 +44,8 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
     func compactize(vertex: Vertex) -> PathsGraphPatch<T> {
         var patch = PathsGraphPatch<T>()
 
-        guard let outEdges = fromMap[vertex], outEdges.count == 2,
-              let inEdges = toMap[vertex], inEdges.count == 2 else {
+        guard let outEdges = fromMap[vertex]?.toArray(), outEdges.count == 2,
+              let inEdges = toMap[vertex]?.toArray(), inEdges.count == 2 else {
             // If a vertex has more or fewer than 2 incoming or outgoing edges, it should not be optimized
             return patch
         }
@@ -136,7 +140,7 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
 
     func isolatedAreas() -> AreasGraph<T> {
         var unhandledVertices = Set(vertices)
-        var interareasEdges = Set(edges)
+        var interareasEdges: Set<Edge> = []
         let areas = AreasGraph<T>()
 
         while !unhandledVertices.isEmpty {

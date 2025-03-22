@@ -21,16 +21,12 @@ final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy
     typealias Restriction = TopologyBasedElementRestriction<T>
     typealias Generator = LabyrinthGenerator<T>
 
-    override func handle(area: PathsGraphArea<T>,
-                         incomes: [AreasGraphEdge<T>],
-                         outgoings: [AreasGraphEdge<T>],
-                         generator: LabyrinthGenerator<T>) -> Bool {
-        let points = area.graph.points
+    override func handle(area: PathsGraphArea<T>, generator: LabyrinthGenerator<T>) -> Bool {
         let field = generator.field
-        var unhandled = points.shuffled()
+        var unhandled = area.graph.points.shuffled()
         while !unhandled.isEmpty {
             guard let point = unhandled.last else { continue }
-            if tryToMerge(at: point, field: field, areaPoints: points, generator: generator) {
+            if tryToMerge(at: point, field: field, area: area, generator: generator) {
                 return true
             }
             unhandled.removeLast()
@@ -42,13 +38,13 @@ final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy
     private func tryToMerge(
         at point: Point,
         field: T.Field,
-        areaPoints: Set<T.Point>,
+        area: PathsGraphArea<T>,
         generator: Generator
     ) -> Bool {
         let merges = T.Edge.allCases
             .reduce(into: [MergeData<T>]()) { acc, edge in
                 let next = T.nextPoint(point: point, edge: edge)
-                guard field.contains(next), !areaPoints.contains(next) else { return }
+                guard field.contains(next), !area.graph.contains(next) else { return }
                 let edge2 = T.adaptToNextPoint(edge)
                 let merge = MergeData<T>(point1: point, edge1: edge, point2: next, edge2: edge2)
                 acc.append(merge)
@@ -106,15 +102,15 @@ final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy
         let edge2_1 = edge1_2.reversed()
         generator.pathsGraph.appendEdge(edge1_2)
         generator.pathsGraph.appendEdge(edge2_1)
-        area1.merge(area2)
-        area1.graph.appendEdge(edge1_2)
-        area1.graph.appendEdge(edge2_1)
 
-        generator.isolatedAreas.removeVertex(area2, removeUnused: false)
-        let compactPatch1 = generator.pathsGraph.compactize(vertex: vertex1)
-        let compactPatch2 = generator.pathsGraph.compactize(vertex: vertex2)
-        compactPatch1.apply(on: area1.graph)
-        compactPatch2.apply(on: area1.graph)
+        let areasEdge1_2 = AreasGraphEdge(pathsEdge: edge1_2, from: area1, to: area2)
+        let areasEdge2_1 = AreasGraphEdge(pathsEdge: edge2_1, from: area2, to: area1)
+        generator.isolatedAreas.appendEdge(areasEdge1_2)
+        generator.isolatedAreas.appendEdge(areasEdge2_1)
+        generator.isolatedAreas.groupFirstMuttuallyReachable(from: areasEdge1_2)
+
+        generator.pathsGraph.compactize(vertex: vertex1)
+        generator.pathsGraph.compactize(vertex: vertex2)
 
         return true
     }

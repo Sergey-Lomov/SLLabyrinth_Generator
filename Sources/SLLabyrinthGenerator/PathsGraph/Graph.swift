@@ -24,8 +24,8 @@ class Graph<Edge: GraphEdge> {
 
     private(set) var edges: Set<Edge> = []
     private(set) var vertices: Set<Vertex> = []
-    private(set) var fromMap: Dictionary<Vertex, [Edge]> = [:]
-    private(set) var toMap: Dictionary<Vertex, [Edge]> = [:]
+    private(set) var fromMap: Dictionary<Vertex, Set<Edge>> = [:]
+    private(set) var toMap: Dictionary<Vertex, Set<Edge>> = [:]
 
     convenience init(graph: Graph<Edge>) {
         self.init()
@@ -43,20 +43,24 @@ class Graph<Edge: GraphEdge> {
 
     internal func invalidateCache() {}
 
+    func contains(_ vertex: Vertex) -> Bool {
+        vertices.contains(vertex)
+    }
+
     func appendEdge(_ edge: Edge) {
         guard !edges.contains(edge) else { return }
         edges.insert(edge)
         appendVertex(edge.from)
         appendVertex(edge.to)
-        fromMap.append(key: edge.from, arrayValue: edge)
-        toMap.append(key: edge.to, arrayValue: edge)
+        fromMap.insert(key: edge.from, setValue: edge)
+        toMap.insert(key: edge.to, setValue: edge)
         invalidateCache()
     }
 
     func removeEdge(_ edge: Edge, removeUnused: Bool = true) {
         edges.remove(edge)
-        fromMap.remove(key: edge.from, arrayValue: edge)
-        toMap.remove(key: edge.to, arrayValue: edge)
+        fromMap.remove(key: edge.from, setValue: edge)
+        toMap.remove(key: edge.to, setValue: edge)
 
         if removeUnused {
             removeIfUnused(edge.from)
@@ -82,16 +86,16 @@ class Graph<Edge: GraphEdge> {
         invalidateCache()
     }
 
-    func edges(from vertex: Vertex) -> [Edge] {
+    func edges(from vertex: Vertex) -> Set<Edge> {
         fromMap[vertex, default: []]
     }
 
-    func edges(to vertex: Vertex) -> [Edge] {
+    func edges(to vertex: Vertex) -> Set<Edge> {
         toMap[vertex, default: []]
     }
 
-    func edges(of vertex: Vertex) -> [Edge] {
-        edges(from: vertex) + edges(to: vertex)
+    func edges(of vertex: Vertex) -> Set<Edge> {
+        edges(from: vertex).union(edges(to: vertex))
     }
 
     func merge(_ graph: Graph<Edge>) {
@@ -99,11 +103,11 @@ class Graph<Edge: GraphEdge> {
         edges.formUnion(graph.edges)
 
         fromMap.merge(graph.fromMap) { current, new in
-            return current + new
+            return current.union(new)
         }
 
         toMap.merge(graph.toMap) { current, new in
-            return current + new
+            return current.union(new)
         }
 
         invalidateCache()

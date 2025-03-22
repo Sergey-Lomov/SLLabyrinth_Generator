@@ -8,10 +8,7 @@
 import Foundation
 
 public class IsolatedAreasStrategy<T: Topology> {
-    func handle(area: PathsGraphArea<T>,
-                incomes: [AreasGraphEdge<T>],
-                outgoings: [AreasGraphEdge<T>],
-                generator: LabyrinthGenerator<T>) -> Bool {
+    func handle(area: PathsGraphArea<T>, generator: LabyrinthGenerator<T>) -> Bool {
         return false
     }
 }

@@ -248,12 +248,7 @@ public final class LabyrinthGenerator<T: Topology> {
         while isolatedAreas.vertices.count > 1 {
             let sorted = isolatedAreas.vertices.sorted { $0.size < $1.size }
             guard let area = sorted.first else { continue }
-            let success = strategy.handle(
-                area: area,
-                incomes: isolatedAreas.edges(to: area),
-                outgoings: isolatedAreas.edges(from: area),
-                generator: self
-            )
+            let success = strategy.handle(area: area, generator: self )
             if !success {
                 isolatedAreas.removeVertex(area)
             }
@@ -267,7 +262,7 @@ public final class LabyrinthGenerator<T: Topology> {
         superProvider.reqisterSuperposition(StraightPathSuperposition<T>.self)
         superProvider.reqisterSuperposition(CornerPathSuperposition<T>.self)
         superProvider.reqisterSuperposition(JunctionSuperposition<T>.self)
-        superProvider.reqisterSuperposition(OneWayHolderSuperposition<T>.self)
+//        superProvider.reqisterSuperposition(OneWayHolderSuperposition<T>.self)
 
         return superProvider
     }

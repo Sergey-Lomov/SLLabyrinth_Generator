@@ -9,7 +9,7 @@ import Foundation
 
 public final class PathsGraphArea<T: Topology>: IdHashable, GraphVertex {
     public var id = UUID().uuidString
-    var graph: PathsGraph = PathsGraph<T>()
+    var graph = PathsGraph<T>()
 
     var size: Int { graph.points.count }
 
