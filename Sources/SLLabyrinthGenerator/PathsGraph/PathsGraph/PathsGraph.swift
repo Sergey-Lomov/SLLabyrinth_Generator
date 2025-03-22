@@ -104,7 +104,7 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
         let area = Area()
         var pointers: Set<Vertex> = [vertex]
         var handled: Set<Vertex> = []
-        var outareaEdges: Set<Edge> = []
+        var oneways: Set<Edge> = []
 
         while !pointers.isEmpty {
             var nextPointers: Set<Vertex> = []
@@ -116,7 +116,7 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
                         area.graph.appendEdge(edge)
                         nextPointers.insert(edge.to)
                     } else {
-                        outareaEdges.insert(edge)
+                        oneways.insert(edge)
                     }
                 }
 
@@ -125,7 +125,7 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
                         area.graph.appendEdge(edge)
                         nextPointers.insert(edge.from)
                     } else {
-                        outareaEdges.insert(edge)
+                        oneways.insert(edge)
                     }
                 }
 
@@ -135,6 +135,9 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
             pointers = nextPointers.filter { !handled.contains($0) }
         }
 
+        let outareaEdges = oneways.filter {
+            !area.graph.contains($0.from) || !area.graph.contains($0.to)
+        }
         return (area, outareaEdges)
     }
 

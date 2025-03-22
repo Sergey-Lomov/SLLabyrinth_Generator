@@ -262,7 +262,7 @@ public final class LabyrinthGenerator<T: Topology> {
         superProvider.reqisterSuperposition(StraightPathSuperposition<T>.self)
         superProvider.reqisterSuperposition(CornerPathSuperposition<T>.self)
         superProvider.reqisterSuperposition(JunctionSuperposition<T>.self)
-//        superProvider.reqisterSuperposition(OneWayHolderSuperposition<T>.self)
+        superProvider.reqisterSuperposition(OneWayHolderSuperposition<T>.self)
 
         return superProvider
     }
