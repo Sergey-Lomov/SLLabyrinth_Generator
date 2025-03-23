@@ -35,7 +35,7 @@ final class OneWayHolder<T: Topology>: EdgeBasedElement<T> {
         oneways.forEach {
             let point = T.nextPoint(point: point, edge: $0)
             let edge = T.adaptToNextPoint($0)
-            let counter = OneWayRestriction<T>(edge: edge)
+            let counter = OneWayRestriction<T>(edge: edge, type: .locked)
             restrictions.append(key: point, arrayValue: counter)
         }
 
@@ -46,29 +46,43 @@ final class OneWayHolder<T: Topology>: EdgeBasedElement<T> {
 final class OneWayRestriction<T: Topology>: ElementRestriction, IdHashable {
     typealias Edge = T.Edge
 
+    enum RestrictionType {
+        case locked, required
+    }
+
     let id = UUID().uuidString
     let edge: Edge
+    let type: RestrictionType
 
-    init(edge: Edge) {
+    init(edge: Edge, type: RestrictionType) {
         self.edge = edge
+        self.type = type
     }
 }
 
-final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, WeightableSuperposition {
+final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, CategorizedSuperposition {
     typealias Element = StraightPath
 
-    static var weigthCategory: String { "one_way_holder" }
+    static var category: String { "one_way_holder" }
 
     private var wallsVariations = initialState()
-    private var onewaysUnavailable: [Edge] = []
+    private var onewaysUnavailable: Set<Edge> = []
+    private var onewaysForced: Set<Edge> = []
 
     static func initialState() -> [[T.Edge]] {
         T.Edge.allCases.combinations().filter { $0.count >= 1 }
     }
 
     override var entropy: Int {
-        wallsVariations
-            .map { 1 << $0.count - 1 }
+        guard onewaysForced.intersection(onewaysUnavailable).isEmpty else { return 0 }
+        return wallsVariations
+            .map {
+                if onewaysForced.isEmpty {
+                    return 1 << $0.count -  1
+                } else {
+                    return 1 << $0.count - onewaysForced.count
+                }
+            }
             .reduce(0, +)
     }
 
@@ -98,8 +112,13 @@ final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperpos
     }
 
     override func applySpecificRestriction(_ restriction: any ElementRestriction) {
-        if let noOneWay = restriction as? OneWayRestriction<T> {
-            appendOnewaysUnavailable(noOneWay.edge)
+        guard let oneWay = restriction as? OneWayRestriction<T> else { return }
+        switch oneWay.type {
+        case .locked:
+            appendOnewaysUnavailable(oneWay.edge)
+        case .required:
+            onewaysForced.insert(oneWay.edge)
+            wallsVariations = wallsVariations.filter { $0.contains(oneWay.edge) }
         }
     }
 
@@ -108,24 +127,30 @@ final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperpos
     }
 
     override func waveFunctionCollapse() -> T.Field.Element? {
-        guard let variation = wallsVariations.randomElement() else { return nil }
-        let passages = T.Edge.allCases.filter { !variation.contains($0) }
-        let filtered = variation.filter { !onewaysUnavailable.contains($0) }
+        guard let walls = wallsVariations.randomElement() else { return nil }
+        let passages = T.Edge.allCases.filter { !walls.contains($0) }
+        let optionalOneways = walls.filter {
+            !onewaysUnavailable.contains($0) && !onewaysForced.contains($0)
+        }
 
-        guard !filtered.isEmpty else {
+        guard !optionalOneways.isEmpty || !onewaysForced.isEmpty else {
             return nil
         }
 
-        let onewayMaxMask = 1 << filtered.count
-        let onewayMask = Int.random(in: 1..<onewayMaxMask)
-        let oneways = filtered.elementsByMask(onewayMask)
-        let holder = OneWayHolder<T>(passages: passages, oneways: oneways)
+        var selectedOptional: [Edge] = []
+        if !optionalOneways.isEmpty {
+            let onewayMaxMask = 1 << optionalOneways.count
+            let onewayMask = Int.random(in: 1..<onewayMaxMask)
+            selectedOptional = optionalOneways.elementsByMask(onewayMask)
+        }
 
+        let oneways = selectedOptional + onewaysForced
+        let holder = OneWayHolder<T>(passages: passages, oneways: oneways)
         return holder as? T.Field.Element
     }
 
     private func appendOnewaysUnavailable(_ edge: Edge) {
-        onewaysUnavailable.append(edge)
+        onewaysUnavailable.insert(edge)
         wallsVariations = wallsVariations.filter { !onewaysUnavailable.contains($0) }
     }
 }

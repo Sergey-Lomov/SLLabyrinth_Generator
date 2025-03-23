@@ -14,8 +14,8 @@ class Deadend<T: Topology>: EdgeBasedElement<T> {
     }
 }
 
-final class DeadendSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, WeightableSuperposition {
-    static var weigthCategory: String { "deadend" }
+final class DeadendSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, CategorizedSuperposition {
+    static var category: String { "deadend" }
 
     var entrances = Set(T.Edge.allCases)
 

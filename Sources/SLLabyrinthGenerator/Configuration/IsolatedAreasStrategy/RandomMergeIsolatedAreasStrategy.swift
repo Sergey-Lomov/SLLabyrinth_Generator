@@ -7,75 +7,32 @@
 
 import Foundation
 
-private struct MergeData<T: Topology> {
-    let id = "merge_" + UUID().uuidString
-    let point1: T.Point
-    let edge1: T.Edge
-    let point2: T.Point
-    let edge2: T.Edge
-}
-
 final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy<T> {
     typealias Element = T.Field.Element
-    typealias Point = T.Point
-    typealias Restriction = TopologyBasedElementRestriction<T>
-    typealias Generator = LabyrinthGenerator<T>
 
-    override func handle(area: PathsGraphArea<T>, generator: LabyrinthGenerator<T>) -> Bool {
-        let field = generator.field
-        var unhandled = area.graph.points.shuffled()
-        while !unhandled.isEmpty {
-            guard let point = unhandled.last else { continue }
-            if tryToMerge(at: point, field: field, area: area, generator: generator) {
-                return true
-            }
-            unhandled.removeLast()
+    override func handle(area: Area, graph: Graph, generator: Generator) -> Bool {
+        tryOnEachMerge(area: area, field: generator.field) {
+            tryToMerge($0, generator: generator)
         }
-
-        return false
     }
 
-    private func tryToMerge(
-        at point: Point,
-        field: T.Field,
-        area: PathsGraphArea<T>,
-        generator: Generator
-    ) -> Bool {
-        let merges = T.Edge.allCases
-            .reduce(into: [MergeData<T>]()) { acc, edge in
-                let next = T.nextPoint(point: point, edge: edge)
-                guard field.contains(next), !area.graph.contains(next) else { return }
-                let edge2 = T.adaptToNextPoint(edge)
-                let merge = MergeData<T>(point1: point, edge1: edge, point2: next, edge2: edge2)
-                acc.append(merge)
-            }
-
-        for merge in merges {
-            if tryToMerge(merge, generator: generator) {
-                return true
-            }
-        }
-
-        return false
-    }
-
-    private func tryToMerge(_ merge: MergeData<T>, generator: Generator) -> Bool {
-        let restriction1 = Restriction.passage(edge: merge.edge1)
-        let restriction2 = Restriction.passage(edge: merge.edge2)
+    private func tryToMerge(_ merge: Merge, generator: Generator) -> Bool {
+        let restriction1 = Restriction.passage(edge: merge.innerEdge)
+        let restriction2 = Restriction.passage(edge: merge.outerEdge)
 
         let restrictions = [
-            merge.point1 : [restriction1],
-            merge.point2 : [restriction2]
+            merge.innerPoint : [restriction1],
+            merge.outerPoint : [restriction2]
         ]
 
         let success = generator.regenerate(
-            points: [merge.point1, merge.point2],
-            onetimeRestrictions: restrictions,
+            points: [merge.innerPoint, merge.outerPoint],
+            restrictions: restrictions,
             restrictionsProvider: merge.id
         )
 
         if success {
-            return handleSuccessRegeneration(point1: merge.point1, point2: merge.point2, generator: generator)
+            return handleSuccessRegeneration(point1: merge.innerPoint, point2: merge.outerPoint, generator: generator)
         } else {
             return false
         }

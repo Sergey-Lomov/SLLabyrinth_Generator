@@ -14,10 +14,10 @@ class CornerPath<T: Topology>: EdgeBasedElement<T> {
     }
 }
 
-final class CornerPathSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, WeightableSuperposition {
+final class CornerPathSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, CategorizedSuperposition {
     typealias Element = CornerPath
 
-    static var weigthCategory: String { "corner_path" }
+    static var category: String { "corner_path" }
 
     var paths = T.Edge.allCases.pairs().removeOppositePairs()
 

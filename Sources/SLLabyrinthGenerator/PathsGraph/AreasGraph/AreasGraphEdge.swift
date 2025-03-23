@@ -18,4 +18,8 @@ struct AreasGraphEdge<T: Topology>: GraphEdge {
     func isReversed(_ edge: AreasGraphEdge<T>) -> Bool {
         from == edge.to && to == edge.from && pathsEdge.isReversed(edge.pathsEdge)
     }
+
+    func reversed() -> Self {
+        Self(pathsEdge: pathsEdge.reversed(), from: to, to: from)
+    }
 }

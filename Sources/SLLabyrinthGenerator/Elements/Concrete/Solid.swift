@@ -16,10 +16,10 @@ class Solid<T: Topology>: EdgeBasedElement<T> {
     }
 }
 
-final class SolidSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, WeightableSuperposition {
+final class SolidSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, CategorizedSuperposition {
     typealias Element = Solid
 
-    static var weigthCategory: String { "solid" }
+    static var category: String { "solid" }
 
     var available = true
 

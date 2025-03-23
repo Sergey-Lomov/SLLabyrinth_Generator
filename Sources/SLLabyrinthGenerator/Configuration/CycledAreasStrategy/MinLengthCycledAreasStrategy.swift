@@ -75,7 +75,7 @@ final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
 
         let success = generator.regenerate(
             points: [point1, point2],
-            onetimeRestrictions: restrictions,
+            restrictions: restrictions,
             restrictionsProvider: provider
         )
 

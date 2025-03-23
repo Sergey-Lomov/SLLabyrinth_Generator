@@ -11,18 +11,18 @@ public final class ElementsWeightsContainer {
     private let defaultWeigth: Float = 1.0
     private var weights: Dictionary<String, Float> = [:]
 
-    func setWeigth(_ superposition: any WeightableSuperposition.Type, weight: Float) {
-        weights[superposition.weigthCategory] = weight
+    func setWeigth(_ superposition: any CategorizedSuperposition.Type, weight: Float) {
+        weights[superposition.category] = weight
     }
 
     func weight(_ superposition: any ElementSuperposition) -> Float {
-        guard let weightable = superposition as? WeightableSuperposition else { return defaultWeigth }
-        let category = type(of: weightable).weigthCategory
+        guard let categorized = superposition as? CategorizedSuperposition else { return defaultWeigth }
+        let category = type(of: categorized).category
         return weights[category] ?? defaultWeigth
     }
 
     func weigth(_ type: any LabyrinthElement.Type) -> Float {
-        guard let weightable = type as? WeightableSuperposition.Type else { return defaultWeigth }
-        return weights[weightable.weigthCategory] ?? defaultWeigth
+        guard let categorized = type as? CategorizedSuperposition.Type else { return defaultWeigth }
+        return weights[categorized.category] ?? defaultWeigth
     }
 }

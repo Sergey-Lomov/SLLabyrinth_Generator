@@ -14,10 +14,10 @@ class StraightPath<T: Topology>: EdgeBasedElement<T> {
     }
 }
 
-final class StraightPathSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, WeightableSuperposition {
+final class StraightPathSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, CategorizedSuperposition {
     typealias Element = StraightPath
 
-    static var weigthCategory: String { "straight_path" }
+    static var category: String { "straight_path" }
 
     var paths = Array(T.Edge.allCases).oppositePairs()
 

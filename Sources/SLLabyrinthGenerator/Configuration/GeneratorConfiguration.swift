@@ -11,7 +11,7 @@ public struct GeneratorConfiguration<T: Topology> {
     var isolatedAreasStrategy: IsolatedAreasStrategy<T>? = nil
     var cycledAreasStrategy: CycledAreasStrategy<T>? = nil
 
-    func setWeigth(_ superposition: any WeightableSuperposition.Type, weight: Float) {
+    func setWeigth(_ superposition: any CategorizedSuperposition.Type, weight: Float) {
         elementsWeights.setWeigth(superposition, weight: weight)
     }
 

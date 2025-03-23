@@ -49,7 +49,7 @@ public final class LabyrinthGenerator<T: Topology> {
 
         timeLog("Calculate paths graph") { calculatePathsGraph() }
         timeLog("Handle isolated areas") { handleIsolatedAreas() }
-
+//
 //        savedField = field.copy()
 //        savedSuperpositions = superpositions
 //            .map { ($0, Superposition(superposition: $1)) }
@@ -171,7 +171,8 @@ public final class LabyrinthGenerator<T: Topology> {
 
     func regenerate(
         points: [Point],
-        onetimeRestrictions: Dictionary<Point, [any ElementRestriction]> = [:],
+        restrictions: Dictionary<Point, [any SuperpositionRestriction]> = [:],
+        onetime: Bool = true,
         restrictionsProvider: String = ""
     ) -> Bool {
         let originalElements: Dictionary<Point, Element> = points
@@ -183,9 +184,9 @@ public final class LabyrinthGenerator<T: Topology> {
         
         points.forEach { eraseFieldElement(at: $0) }
 
-        onetimeRestrictions.forEach { point, restrictions in
+        restrictions.forEach { point, restrictions in
             guard let sup = superpositions[point] else { return }
-            sup.applyRestrictions(restrictions, provider: restrictionsProvider, onetime: true)
+            sup.applyRestrictions(restrictions, provider: restrictionsProvider, onetime: onetime)
         }
 
         let newElements: [(Point, Element)] = points.compactMap { point in
@@ -199,7 +200,12 @@ public final class LabyrinthGenerator<T: Topology> {
         if success {
             newElements.forEach { setFieldElement(at: $0, element: $1) }
         } else {
-            originalElements.forEach { setFieldElement(at: $0, element: $1) }
+            originalElements.forEach {
+                if let sup = superpositions[$0] {
+                    sup.resetRestrictions(by: restrictionsProvider)
+                }
+                setFieldElement(at: $0, element: $1)
+            }
         }
 
         return success
@@ -242,13 +248,13 @@ public final class LabyrinthGenerator<T: Topology> {
         timeLog("Resolve isolated areas") { resolveIsolatedAreas() }
     }
 
-    private func resolveIsolatedAreas() {
+    func resolveIsolatedAreas() {
         guard let strategy = configuration.isolatedAreasStrategy else { return }
 
         while isolatedAreas.vertices.count > 1 {
             let sorted = isolatedAreas.vertices.sorted { $0.size < $1.size }
             guard let area = sorted.first else { continue }
-            let success = strategy.handle(area: area, generator: self )
+            let success = strategy.handle(area: area, graph: isolatedAreas, generator: self )
             if !success {
                 isolatedAreas.removeVertex(area)
             }

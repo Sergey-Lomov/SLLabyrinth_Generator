@@ -14,10 +14,10 @@ class Junction<T: Topology>: EdgeBasedElement<T> {
     }
 }
 
-final class JunctionSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, WeightableSuperposition {
+final class JunctionSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, CategorizedSuperposition {
     typealias Element = Junction
 
-    static var weigthCategory: String { "junction" }
+    static var category: String { "junction" }
 
     private var passagesVariations: [[T.Edge]] = initialState()
 

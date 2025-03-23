@@ -8,5 +8,5 @@
 import Foundation
 
 public protocol NodeRestriction: SuperpositionRestriction {
-    func validateElement<T>(_ element:T) -> Bool
+    func validateElement<T: ElementSuperposition>(_ element: T) -> Bool
 }

@@ -49,6 +49,7 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
     var id = UUID().uuidString
     var point: Point
     var elementsSuperpositions: [Nested] = []
+    var availableElements: [Nested] = []
     private var restrictions: [AppliedRestriction] = []
 
     @Cached var entropy: Int
@@ -56,12 +57,14 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
     init(point: Point, elementsSuperpositions: [Nested]) {
         self.point = point
         self.elementsSuperpositions = elementsSuperpositions
+        self.availableElements = elementsSuperpositions
         _entropy.compute = caclulateEntropy
     }
 
     init(superposition: TopologyBasedNodeSuperposition<T>) {
         self.point = superposition.point
         self.elementsSuperpositions = superposition.elementsSuperpositions.map { $0.copy() }
+        self.availableElements = elementsSuperpositions
         self.restrictions = superposition.restrictions
     }
 
@@ -89,6 +92,7 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
         let rests = restrictions.compactMap {
             $0.restriction as? TopologyBasedElementRestriction<T>
         }
+        
         for restriction in rests {
             var opposite: TopologyBasedElementRestriction<T>?
             switch restriction {
@@ -113,9 +117,9 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
     }
 
     func waveFunctionCollapse(weights: ElementsWeightsContainer) -> T.Field.Element? {
-        let available = elementsSuperpositions.filter { $0.entropy > 0 }
+        let filtered = availableElements.filter { $0.entropy > 0 }
         restrictions = restrictions.filter { !$0.isOnetime }
-        let weighted = available.map { ($0, weights.weight($0)) }
+        let weighted = filtered.map { ($0, weights.weight($0)) }
         let elementSuperposition = RandomPicker.weigthed(weighted)
         return elementSuperposition?.waveFunctionCollapse()
     }
@@ -127,6 +131,7 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
             _entropy.invaliade()
         }
 
+        availableElements = elementsSuperpositions
         elementsSuperpositions.forEach { $0.resetRestrictions() }
         return restrictions
     }
@@ -144,13 +149,13 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
     }
 
     private func caclulateEntropy() -> Int {
-        elementsSuperpositions
+        availableElements
             .map { $0.entropy }
             .reduce(0, +)
     }
 
     private func applyNodeRestriction(_ restriction: NodeRestriction) {
-        elementsSuperpositions = elementsSuperpositions.filter {
+        availableElements = availableElements.filter {
             restriction.validateElement($0)
         }
     }
