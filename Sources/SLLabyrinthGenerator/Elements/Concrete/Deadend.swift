@@ -36,13 +36,17 @@ final class DeadendSuperposition<T: Topology>: TopologyBasedElementSuperposition
         Self.init(entrances: entrances)
     }
 
-    override func applyCommonRestriction(_ restriction: TopologyBasedElementRestriction<T>) {
+    override func applyCommonRestriction(_ restriction: TopologyBasedElementRestriction<T>) -> Bool {
         switch restriction {
         case .wall(let edge), .fieldEdge(let edge):
             entrances = entrances.filter { $0 != edge }
         case .passage(let edge):
             entrances = entrances.filter { $0 == edge }
+        @unknown default:
+            return false
         }
+
+        return true
     }
 
     override func resetRestrictions() {

@@ -49,7 +49,7 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
     var id = UUID().uuidString
     var point: Point
     var elementsSuperpositions: [Nested] = []
-    var availableElements: [Nested] = []
+    var availableElements: Set<Nested> = []
     private var restrictions: [AppliedRestriction] = []
 
     @Cached var entropy: Int
@@ -57,14 +57,14 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
     init(point: Point, elementsSuperpositions: [Nested]) {
         self.point = point
         self.elementsSuperpositions = elementsSuperpositions
-        self.availableElements = elementsSuperpositions
+        self.availableElements = elementsSuperpositions.toSet()
         _entropy.compute = caclulateEntropy
     }
 
     init(superposition: TopologyBasedNodeSuperposition<T>) {
         self.point = superposition.point
         self.elementsSuperpositions = superposition.elementsSuperpositions.map { $0.copy() }
-        self.availableElements = elementsSuperpositions
+        self.availableElements = elementsSuperpositions.toSet()
         self.restrictions = superposition.restrictions
     }
 
@@ -131,7 +131,7 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
             _entropy.invaliade()
         }
 
-        availableElements = elementsSuperpositions
+        availableElements = elementsSuperpositions.toSet()
         elementsSuperpositions.forEach { $0.resetRestrictions() }
         return restrictions
     }
@@ -162,7 +162,10 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
 
     private func applyElementRestriction(_ restriction: any ElementRestriction) {
         elementsSuperpositions.forEach {
-            $0.applyRestriction(restriction)
+            let handled = $0.applyRestriction(restriction)
+            if !restriction.allowUnhandled && !handled {
+                availableElements.remove($0)
+            }
         }
     }
 }

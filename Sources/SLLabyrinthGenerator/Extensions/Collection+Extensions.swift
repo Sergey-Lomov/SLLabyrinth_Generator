@@ -16,6 +16,10 @@ extension Collection {
         Array(self)
     }
 
+    func toSet() -> Set<Element> where Element: Hashable {
+        Set(self)
+    }
+
     func pairs(allowDuplication: Bool = false) -> Array<(Element, Element)> where Element: Comparable {
         return reduce(into: Array<(Element, Element)>()) { arr, element in
             forEach {

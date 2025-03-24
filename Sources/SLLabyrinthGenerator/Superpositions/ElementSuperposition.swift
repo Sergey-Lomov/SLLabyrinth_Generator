@@ -8,7 +8,7 @@
 import Foundation
 
 /// This protocol describes the element superposition. This means an element with partially undetermined property values. For example, "deadend with an entrance from the north or from the west".
-public protocol ElementSuperposition {
+public protocol ElementSuperposition: IdHashable {
     associatedtype Edge: TopologyEdge
     associatedtype Element: LabyrinthElement
 
@@ -22,7 +22,7 @@ public protocol ElementSuperposition {
     /// This method applies restrictions to the superposition. This may decrease the possible values for superposition properties and, if so, decrease the superposition entropy.
     /// For example, we have a square topology, and the superposition is "deadend with entrance from any edge" (entropy 4). The nearest south node superposition collapses and produces the restriction "wall at north."
     /// For this node, it means a wall at the south, so now we have the superposition "deadend with entrance from any edge except south" (entropy 3).
-    func applyRestriction(_ restriction: any ElementRestriction)
+    func applyRestriction(_ restriction: any ElementRestriction) -> Bool
 
     /// This method reverses all applied restrictions and restores the superposition's initial state.
     func resetRestrictions()
@@ -39,21 +39,22 @@ class TopologyBasedElementSuperposition<T: Topology>: ElementSuperposition {
     typealias Edge = T.Edge
     typealias Element = T.Field.Element
 
+    var id = UUID().uuidString
     var entropy: Int { 0 }
 
     required init() {}
 
-    func applyRestriction(_ restriction: any ElementRestriction) {
+    func applyRestriction(_ restriction: any ElementRestriction) -> Bool {
         if let restriction = restriction as? TopologyBasedElementRestriction<T> {
-            applyCommonRestriction(restriction)
+            return applyCommonRestriction(restriction)
         } else {
-            applySpecificRestriction(restriction)
+            return applySpecificRestriction(restriction)
         }
     }
 
-    func applyCommonRestriction(_ restriction: TopologyBasedElementRestriction<T>) {}
-    func applySpecificRestriction(_ restriction: any ElementRestriction) {}
-    
+    func applyCommonRestriction(_ restriction: TopologyBasedElementRestriction<T>) -> Bool { false }
+    func applySpecificRestriction(_ restriction: any ElementRestriction) -> Bool { false }
+
     func resetRestrictions() {}
     func waveFunctionCollapse() -> T.Field.Element? { return nil }
     func copy() -> Self { fatalError("Should be overrided in derived class") }

@@ -12,145 +12,223 @@ final class OneWayHolder<T: Topology>: EdgeBasedElement<T> {
     typealias Point = T.Point
     typealias Edge = T.Edge
 
-    let oneways: [Edge]
+    let incomes: [Edge]
+    let outgoings: [Edge]
     let walls: [Edge]
 
-    init(passages: [Edge], oneways: [Edge] ) {
-        self.oneways = oneways
-        self.walls = Edge.allCases
-            .filter { !passages.contains($0) && !oneways.contains($0) }
+    init(passages: [Edge], incomes: [Edge], outgoings: [Edge] ) {
+        self.incomes = incomes
+        self.outgoings = outgoings
+
+        let notWalls = passages + incomes + outgoings
+        self.walls = Edge.allCases.filter { !notWalls.contains($0) }
 
         super.init(passages: passages)
     }
 
     override func connectedPoints(_ point: T.Point) -> [T.Point] {
-        (passages + oneways ).map {
+        (passages + outgoings).map {
             T.nextPoint(point: point, edge: $0)
         }
     }
 
-    override func outcomeRestrictions<F>(point: EdgeBasedElement<T>.Point, field: F) -> EdgeBasedElement<T>.OutcomeRestrictions where F : TopologyField {
-        var restrictions = super.outcomeRestrictions(point: point, field: field)
+    override func outcomeRestrictions<F>(point: Point, field: F) -> OutcomeRestrictions where F : TopologyField {
+        Edge.allCases
+            .map { restriction(point: point, edge: $0) }
+            .toDictionary()
+    }
 
-        oneways.forEach {
-            let point = T.nextPoint(point: point, edge: $0)
-            let edge = T.adaptToNextPoint($0)
-            let counter = OneWayRestriction<T>(edge: edge, type: .locked)
-            restrictions.append(key: point, arrayValue: counter)
+    private func restriction(point: Point, edge: Edge) -> (Point, [ElementRestriction]) {
+        let next = T.nextPoint(point: point, edge: edge)
+        let adapted = T.adaptToNextPoint(edge)
+
+        var restriction: ElementRestriction? = nil
+        if incomes.contains(edge) {
+            restriction = OneWayRestriction<T>(edge: adapted, direction: .outgoing)
+        } else if outgoings.contains(edge) {
+            restriction = OneWayRestriction<T>(edge: adapted, direction: .income)
+        } else if passages.contains(edge) {
+            restriction = TopologyBasedElementRestriction<T>.passage(edge: adapted)
+        } else {
+            restriction = TopologyBasedElementRestriction<T>.wall(edge: adapted)
         }
 
-        return restrictions
+        guard let restriction = restriction else {
+            return (next, [])
+        }
+        let onlyRequired = OnlyRequiredOnewaysRestriction()
+        return (next, [restriction, onlyRequired])
     }
 }
 
-final class OneWayRestriction<T: Topology>: ElementRestriction, IdHashable {
+enum OnewayDirection {
+    case income, outgoing
+}
+
+final class OneWayRestriction<T: Topology>: EdgeBasedElementRestriction, IdHashable {
     typealias Edge = T.Edge
 
-    enum RestrictionType {
-        case locked, required
-    }
+    var allowUnhandled: Bool { false }
 
     let id = UUID().uuidString
     let edge: Edge
-    let type: RestrictionType
+    let direction: OnewayDirection
 
-    init(edge: Edge, type: RestrictionType) {
+    init(edge: Edge, direction: OnewayDirection) {
         self.edge = edge
-        self.type = type
+        self.direction = direction
     }
+}
+
+final class OnlyRequiredOnewaysRestriction: ElementRestriction {
+    var allowUnhandled: Bool { true }
 }
 
 final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, CategorizedSuperposition {
     typealias Element = StraightPath
+    typealias EdgesDictionany = Dictionary<EdgeType, Set<Edge>>
+
+    enum EdgeType {
+        case income, outgoing, passage, wall, undefined
+    }
 
     static var category: String { "one_way_holder" }
 
-    private var wallsVariations = initialState()
-    private var onewaysUnavailable: Set<Edge> = []
-    private var onewaysForced: Set<Edge> = []
+    private var allowOptionalOneways = true
+    private var edges = initialEdges()
 
-    static func initialState() -> [[T.Edge]] {
-        T.Edge.allCases.combinations().filter { $0.count >= 1 }
+    private var undefined: Set<Edge> { edges[.undefined, default: []] }
+    private var passages: Set<Edge> { edges[.passage, default: []] }
+    private var walls: Set<Edge> { edges[.wall, default: []] }
+    private var incomes: Set<Edge> { edges[.income, default: []] }
+    private var outgoings: Set<Edge> { edges[.outgoing, default: []] }
+
+    private var haveEntrance: Bool { Self.haveEntrance(edges) }
+    private var haveOneway: Bool { Self.haveOneway(edges) }
+
+    static func initialEdges() -> EdgesDictionany {
+        [EdgeType.undefined: Edge.allCases.toSet()]
+    }
+
+    static func haveEntrance(_ dict: EdgesDictionany) -> Bool {
+        !dict[.passage, default: []].isEmpty || !dict[.income, default: []].isEmpty
+    }
+
+    static func haveOneway(_ dict: EdgesDictionany) -> Bool {
+        !dict[.outgoing, default: []].isEmpty || !dict[.income, default: []].isEmpty
     }
 
     override var entropy: Int {
-        guard onewaysForced.intersection(onewaysUnavailable).isEmpty else { return 0 }
-        return wallsVariations
-            .map {
-                if onewaysForced.isEmpty {
-                    return 1 << $0.count -  1
-                } else {
-                    return 1 << $0.count - onewaysForced.count
-                }
+        let edgeOptions: Int = allowOptionalOneways ? 4 : 2
+        guard (haveEntrance && haveOneway) || !undefined.isEmpty else { return 0 }
+
+        if haveEntrance {
+            if haveOneway {
+                // Any undefined edge may be anything
+                return pow(edgeOptions, undefined.count)
+            } else {
+                // One of undefined edges should be income or outcome
+                return pow(edgeOptions, undefined.count - 1) * 2
             }
-            .reduce(0, +)
+        } else {
+            if haveOneway {
+                // One of undefined edges should be income or passage
+                return pow(edgeOptions, undefined.count - 1) * 2
+            } else {
+                // One of undefined edges should be income
+                return pow(edgeOptions, undefined.count - 1)
+            }
+        }
     }
 
     required init() {
         super.init()
     }
 
-    init(variations: [[T.Edge]]) {
-        self.wallsVariations = variations
-        super.init()
-    }
-
     override func copy() -> Self {
-        Self.init(variations: wallsVariations)
+        let copy = Self.init()
+
+        copy.edges = edges
+        copy.allowOptionalOneways = allowOptionalOneways
+
+        return copy
     }
 
-    override func applyCommonRestriction(_ restriction: TopologyBasedElementRestriction<T>) {
+    override func applyCommonRestriction(_ restriction: TopologyBasedElementRestriction<T>) -> Bool {
         switch restriction {
-        case .wall(let edge):
-            wallsVariations = wallsVariations.filter { $0.contains(edge) }
-        case .fieldEdge(let edge):
-            wallsVariations = wallsVariations.filter { $0.contains(edge) }
-            appendOnewaysUnavailable(edge)
+        case .wall(let edge), .fieldEdge(let edge):
+            edges.remove(key: .undefined, setValue: edge)
+            edges.insert(key: .wall, setValue: edge)
         case .passage(let edge):
-            wallsVariations = wallsVariations.filter { !$0.contains(edge) }
+            edges.remove(key: .undefined, setValue: edge)
+            edges.insert(key: .passage, setValue: edge)
+        @unknown default:
+            return false
         }
+
+        return true
     }
 
-    override func applySpecificRestriction(_ restriction: any ElementRestriction) {
-        guard let oneWay = restriction as? OneWayRestriction<T> else { return }
-        switch oneWay.type {
-        case .locked:
-            appendOnewaysUnavailable(oneWay.edge)
-        case .required:
-            onewaysForced.insert(oneWay.edge)
-            wallsVariations = wallsVariations.filter { $0.contains(oneWay.edge) }
+    override func applySpecificRestriction(_ restriction: any ElementRestriction) -> Bool {
+        switch restriction {
+        case let oneway as OneWayRestriction<T>:
+            applyOnewayRestriction(oneway)
+        case is OnlyRequiredOnewaysRestriction:
+            allowOptionalOneways = false
+        default:
+            return false
+        }
+
+        return true
+    }
+
+    func applyOnewayRestriction(_ restriction: OneWayRestriction<T>) {
+        let edge = restriction.edge
+        edges.remove(key: .undefined, setValue: edge)
+        switch restriction.direction {
+        case .income: edges.insert(key: .income, setValue: edge)
+        case .outgoing: edges.insert(key: .outgoing, setValue: edge)
         }
     }
 
     override func resetRestrictions() {
-        wallsVariations = Self.initialState()
+        edges = Self.initialEdges()
+        allowOptionalOneways = true
     }
 
     override func waveFunctionCollapse() -> T.Field.Element? {
-        guard let walls = wallsVariations.randomElement() else { return nil }
-        let passages = T.Edge.allCases.filter { !walls.contains($0) }
-        let optionalOneways = walls.filter {
-            !onewaysUnavailable.contains($0) && !onewaysForced.contains($0)
+        var edges = edges
+        let undefined = edges[.undefined, default: []].shuffled().toSet()
+
+        undefined.forEach { edge in
+            var types: Set<EdgeType> = [.income, .outgoing, .passage, .wall]
+            let haveEntrance = Self.haveEntrance(edges)
+            let haveOneway = Self.haveOneway(edges)
+
+            if !haveEntrance {
+                types.remove(.outgoing)
+                types.remove(.wall)
+            }
+
+            if !haveOneway {
+                types.remove(.passage)
+                types.remove(.wall)
+            }
+
+            if !allowOptionalOneways && haveOneway {
+                types.remove(.income)
+                types.remove(.outgoing)
+            }
+
+            guard let type = types.randomElement() else { return }
+            edges.insert(key: type, setValue: edge)
         }
 
-        guard !optionalOneways.isEmpty || !onewaysForced.isEmpty else {
-            return nil
-        }
+        let passages = edges[.passage, default: []].toArray()
+        let incomes = edges[.income, default: []].toArray()
+        let outgoings = edges[.outgoing, default: []].toArray()
+        let holder = OneWayHolder<T>(passages: passages, incomes: incomes, outgoings: outgoings)
 
-        var selectedOptional: [Edge] = []
-        if !optionalOneways.isEmpty {
-            let onewayMaxMask = 1 << optionalOneways.count
-            let onewayMask = Int.random(in: 1..<onewayMaxMask)
-            selectedOptional = optionalOneways.elementsByMask(onewayMask)
-        }
-
-        let oneways = selectedOptional + onewaysForced
-        let holder = OneWayHolder<T>(passages: passages, oneways: oneways)
         return holder as? T.Field.Element
-    }
-
-    private func appendOnewaysUnavailable(_ edge: Edge) {
-        onewaysUnavailable.insert(edge)
-        wallsVariations = wallsVariations.filter { !onewaysUnavailable.contains($0) }
     }
 }

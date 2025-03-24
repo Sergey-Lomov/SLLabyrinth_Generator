@@ -13,10 +13,6 @@ extension Array {
     }
 
     // Converters
-    func toSet() -> Set<Element> where Element: Hashable {
-        Set(self)
-    }
-
     func toDictionary<K, V>() -> Dictionary<K, V> where K: Hashable, Element == (K, V) {
         Dictionary(uniqueKeysWithValues: self)
     }

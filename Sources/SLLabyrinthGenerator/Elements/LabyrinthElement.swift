@@ -9,7 +9,6 @@ import Foundation
 
 public protocol LabyrinthElement: AnyObject, Hashable {
     associatedtype Point: TopologyPoint
-//    associatedtype Restriction: ElementRestriction
 
     typealias OutcomeRestrictions = Dictionary<Point, [any ElementRestriction]>
 

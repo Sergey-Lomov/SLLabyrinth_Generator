@@ -245,7 +245,7 @@ public final class LabyrinthGenerator<T: Topology> {
         timeLog("Calculate isolated areas") {
             isolatedAreas = pathsGraph.isolatedAreas()
         }
-        timeLog("Resolve isolated areas") { resolveIsolatedAreas() }
+//        timeLog("Resolve isolated areas") { resolveIsolatedAreas() }
     }
 
     func resolveIsolatedAreas() {

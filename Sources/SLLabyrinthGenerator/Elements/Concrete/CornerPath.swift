@@ -38,13 +38,17 @@ final class CornerPathSuperposition<T: Topology>: TopologyBasedElementSuperposit
         Self.init(paths: paths)
     }
 
-    override func applyCommonRestriction(_ restriction: TopologyBasedElementRestriction<T>) {
+    override func applyCommonRestriction(_ restriction: TopologyBasedElementRestriction<T>) -> Bool {
         switch restriction {
         case .wall(let edge), .fieldEdge(let edge):
             paths = paths.filter { $0 != edge && $1 != edge }
         case .passage(let edge):
             paths = paths.filter { $0 == edge || $1 == edge }
+        @unknown default:
+            return false
         }
+
+        return true
     }
 
     override func resetRestrictions() {

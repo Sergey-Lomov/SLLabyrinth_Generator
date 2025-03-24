@@ -67,30 +67,24 @@ final class OnewaysMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrateg
     }
 
     private func restrictionFor(_ merge: Merge, direction: Direction) -> Dictionary<Point, [any SuperpositionRestriction]> {
-        switch direction {
-        case .income:
-            return [
-                merge.outerPoint: restrictionsFor(edge: merge.outerEdge)
-            ]
-        case .outcome:
-            return [
-                merge.innerPoint: restrictionsFor(edge: merge.innerEdge)
-            ]
-        }
+//        switch direction {
+//        case .income:
+//            return [
+//                merge.outerPoint: restrictionsFor(edge: merge.outerEdge)
+//            ]
+//        case .outcome:
+//            return [
+//                merge.innerPoint: restrictionsFor(edge: merge.innerEdge)
+//            ]
+//        }
+        return [:]
     }
 
-    private func restrictionsFor(edge: Edge) -> [any SuperpositionRestriction] {
-        let edgesRestrictions = Edge.allCases.map {
-            if $0 == edge {
-                return OneWayRestriction<T>(edge: $0, type: .required)
-            } else {
-                return OneWayRestriction<T>(edge: $0, type: .locked)
-            }
-        }
-
-        let typeRestrictions = AvailableElementsRestriction(type: OneWayHolderSuperposition<T>.self)
-        return typeRestrictions + edgesRestrictions
-    }
+//    private func restrictionsFor(edge: Edge) -> [any SuperpositionRestriction] {
+//        let edgeRestriction = OneWayRestriction<T>(edge: edge, direction: .outgoing)
+//        let typeRestrictions = AvailableElementsRestriction(type: OneWayHolderSuperposition<T>.self)
+//        return typeRestrictions + edgeRestriction
+//    }
 
     private func handleSuccessRegeneration(
         merge: Merge,
