@@ -245,20 +245,33 @@ public final class LabyrinthGenerator<T: Topology> {
         timeLog("Calculate isolated areas") {
             isolatedAreas = pathsGraph.isolatedAreas()
         }
-//        timeLog("Resolve isolated areas") { resolveIsolatedAreas() }
+        timeLog("Resolve isolated areas") { resolveIsolatedAreas() }
     }
 
     func resolveIsolatedAreas() {
         guard let strategy = configuration.isolatedAreasStrategy else { return }
 
-        while isolatedAreas.vertices.count > 1 {
-            let sorted = isolatedAreas.vertices.sorted { $0.size < $1.size }
-            guard let area = sorted.first else { continue }
+        var nextArea = isolatedAreas.vertices
+            .sorted { $0.size < $1.size }
+            .first
+
+        while let area = nextArea, isolatedAreas.vertices.count > 1 {
             let success = strategy.handle(area: area, graph: isolatedAreas, generator: self )
             if !success {
                 isolatedAreas.removeVertex(area)
             }
+
+            nextArea = isolatedAreas.vertices
+                .filter {
+                    let noIncome = isolatedAreas.edges(to: $0).isEmpty
+                    let noOutgoing = isolatedAreas.edges(from: $0).isEmpty
+                    return noIncome || noOutgoing
+                }
+                .sorted { $0.size < $1.size }
+                .first
         }
+
+        isolatedAreas.groupCycled()
     }
 
     private func setupSuperProvider() -> SuperpositionsProvider<T> {

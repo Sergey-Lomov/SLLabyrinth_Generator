@@ -7,10 +7,6 @@
 
 import Foundation
 
-private enum Direction {
-    case income, outcome
-}
-
 final class OnewaysMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy<T> {
     override func handle(area: Area, graph: Graph, generator: Generator) -> Bool {
         let incomeRequired = graph.edges(to: area).count == 0
@@ -22,14 +18,14 @@ final class OnewaysMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrateg
         }
 
         if outcomeRequired {
-            let success = tryToAdd(.outcome, area: area, graph: graph, generator: generator)
+            let success = tryToAdd(.outgoing, area: area, graph: graph, generator: generator)
             if !success { return false }
         }
 
         return true
     }
 
-    private func tryToAdd(_ direction: Direction, area: Area, graph: Graph, generator: Generator) -> Bool {
+    private func tryToAdd(_ direction: OnewayDirection, area: Area, graph: Graph, generator: Generator) -> Bool {
         tryOnEachMerge(area: area, field: generator.field) {
             tryToRegenerate(
                 merge: $0,
@@ -42,11 +38,20 @@ final class OnewaysMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrateg
 
     private func tryToRegenerate(
         merge: Merge,
-        direction: Direction,
+        direction: OnewayDirection,
         area: Area,
         graph: Graph,
-        generator: Generator) -> Bool {
-        let restrictions = restrictionFor(merge, direction: direction)
+        generator: Generator
+    ) -> Bool {
+        let innerDirection: OnewayDirection = direction == .income ? .income : .outgoing
+        let outerDirection: OnewayDirection = direction == .income ? .outgoing : .income
+
+        let restrictions = [
+            merge.innerPoint:
+                mergeRestrictions(edge: merge.innerEdge, direction: innerDirection),
+            merge.outerPoint:
+                mergeRestrictions(edge: merge.outerEdge, direction: outerDirection)
+        ]
         let success = generator.regenerate(
             points: [merge.innerPoint, merge.outerPoint],
             restrictions: restrictions,
@@ -66,31 +71,18 @@ final class OnewaysMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrateg
         }
     }
 
-    private func restrictionFor(_ merge: Merge, direction: Direction) -> Dictionary<Point, [any SuperpositionRestriction]> {
-//        switch direction {
-//        case .income:
-//            return [
-//                merge.outerPoint: restrictionsFor(edge: merge.outerEdge)
-//            ]
-//        case .outcome:
-//            return [
-//                merge.innerPoint: restrictionsFor(edge: merge.innerEdge)
-//            ]
-//        }
-        return [:]
+    private func mergeRestrictions(edge: Edge, direction: OnewayDirection) -> [any SuperpositionRestriction] {
+        [
+            OnlyRequiredOnewaysRestriction(),
+            OneWayRestriction<T>(edge: edge, direction: direction)
+        ]
     }
-
-//    private func restrictionsFor(edge: Edge) -> [any SuperpositionRestriction] {
-//        let edgeRestriction = OneWayRestriction<T>(edge: edge, direction: .outgoing)
-//        let typeRestrictions = AvailableElementsRestriction(type: OneWayHolderSuperposition<T>.self)
-//        return typeRestrictions + edgeRestriction
-//    }
 
     private func handleSuccessRegeneration(
         merge: Merge,
         innerArea: Area,
         graph: Graph,
-        direction: Direction,
+        direction: OnewayDirection,
         generator: Generator
     ) -> Bool {
         let outerArea = generator.isolatedAreas.firstVertexContains(merge.outerPoint)
@@ -118,7 +110,7 @@ final class OnewaysMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrateg
 
         generator.pathsGraph.appendEdge(pathsEdge)
         graph.appendEdge(areasEdge)
-//        graph.groupFirstMuttuallyReachable(from: areasEdge)
+        graph.groupFirstMuttuallyReachable(from: areasEdge)
 
         return true
     }

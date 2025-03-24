@@ -20,7 +20,10 @@ final class AreasGraph<T: Topology>: Graph<AreasGraphEdge<T>> {
         while !paths.isEmpty {
             paths = paths.flatMap { path in
                 guard let to = path.to else { return [Path]() }
-                return edges(from: to).map { path.copy(append: $0) }
+                return edges(from: to).compactMap { edge in
+                    guard !path.contains(edge.to) || path.from == edge.to else { return nil }
+                    return path.copy(append: edge)
+                }
             }
 
             for path in paths {
