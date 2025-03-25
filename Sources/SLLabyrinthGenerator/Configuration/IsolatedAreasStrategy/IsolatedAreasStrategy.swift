@@ -28,6 +28,8 @@ public class IsolatedAreasStrategy<T: Topology> {
         return false
     }
 
+    func postprocessing(generator: Generator) {}
+
     internal func tryOnEachPoint(area: Area, field: Field, _ closure: (Point) -> Bool) -> Bool {
         var unhandled = area.graph.points.shuffled()
         while !unhandled.isEmpty {

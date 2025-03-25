@@ -113,15 +113,25 @@ class Graph<Edge: GraphEdge> {
         invalidateCache()
     }
 
+    func path(from: Vertex, to: Vertex, ignores: [Edge] = []) -> Path? {
+        return firstPath(
+            from: [from],
+            successValidator: { $0.to == to },
+            earlyStopValidator: { $0.contains(oneOf: ignores) }
+        )
+    }
+
     func firstPath<C: Collection, P: Path> (
         from vertices: C,
         successValidator: (P) -> Bool,
         earlyStopValidator: (P) -> Bool = { _ in false },
-        forbidReversed: Bool = true
+        forbidReversed: Bool = true,
+        forbidIntersections: Bool = true
     ) -> P? where C.Element == Vertex {
         var paths = vertices.flatMap { vertex in
-            edges(from: vertex).map { edge in
-                P(edge: edge)
+            edges(from: vertex).compactMap { edge in
+                let path = P(edge: edge)
+                return earlyStopValidator(path) ? nil : path
             }
         }
 
@@ -134,6 +144,8 @@ class Graph<Edge: GraphEdge> {
                 return edges(from: to).compactMap { edge in
                     guard let lastEdge = path.edges.last else { return nil }
                     if forbidReversed && lastEdge.isReversed(edge) { return nil }
+                    if forbidIntersections && path.contains(edge.to) && edge.to != path.from { return nil }
+
                     let newPath = path.copy(append: edge)
                     return earlyStopValidator(newPath) ? nil : newPath
                 }

@@ -29,7 +29,7 @@ struct PathsGraphEdge<T: Topology>: GraphEdge {
     }
 
     func isReversed(_ edge: PathsGraphEdge<T>) -> Bool {
-        points == Array(edge.points.reversed())
+        points == edge.points.reversed()
     }
 
     func reversed() -> Self {

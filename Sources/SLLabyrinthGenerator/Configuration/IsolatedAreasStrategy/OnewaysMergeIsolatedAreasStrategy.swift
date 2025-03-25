@@ -8,6 +8,9 @@
 import Foundation
 
 final class OnewaysMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy<T> {
+    private let restrictionsProvider = "oneway_merge"
+    private var affectedPoints: Set<Point> = []
+
     override func handle(area: Area, graph: Graph, generator: Generator) -> Bool {
         let incomeRequired = graph.edges(to: area).count == 0
         let outcomeRequired = graph.edges(from: area).count == 0
@@ -23,6 +26,13 @@ final class OnewaysMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrateg
         }
 
         return true
+    }
+
+    override func postprocessing(generator: Generator) {
+        affectedPoints.forEach {
+            guard let sup = generator.superpositions[$0] else { return }
+            sup.resetRestrictions(by: restrictionsProvider)
+        }
     }
 
     private func tryToAdd(_ direction: OnewayDirection, area: Area, graph: Graph, generator: Generator) -> Bool {
@@ -56,7 +66,7 @@ final class OnewaysMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrateg
             points: [merge.innerPoint, merge.outerPoint],
             restrictions: restrictions,
             onetime: false,
-            restrictionsProvider: merge.id
+            restrictionsProvider: restrictionsProvider
         )
 
         if success {
@@ -85,6 +95,9 @@ final class OnewaysMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrateg
         direction: OnewayDirection,
         generator: Generator
     ) -> Bool {
+        affectedPoints.insert(merge.innerPoint)
+        affectedPoints.insert(merge.outerPoint)
+
         let outerArea = generator.isolatedAreas.firstVertexContains(merge.outerPoint)
         guard let outerArea = outerArea else {
             return false

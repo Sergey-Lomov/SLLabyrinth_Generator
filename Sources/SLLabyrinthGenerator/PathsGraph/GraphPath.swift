@@ -7,10 +7,9 @@
 
 import Foundation
 
-class GraphPath<Edge: GraphEdge> {
+class GraphPath<Edge: GraphEdge>: Hashable {
     typealias Vertex = Edge.Vertex
 
-    let id = UUID()
     private(set) var edges: [Edge] = []
     private(set) var vertices: [Vertex] = []
 
@@ -51,10 +50,19 @@ class GraphPath<Edge: GraphEdge> {
         if isEmpty { vertices.append(edge.from) }
         vertices.append(edge.to)
         edges.append(edge)
+        invalidateCache()
     }
 
     func contains(_ vertex: Vertex) -> Bool {
         vertices.contains { $0 == vertex }
+    }
+
+    func contains(_ edge: Edge) -> Bool {
+        edges.contains { $0 == edge }
+    }
+
+    func contains(oneOf edges: [Edge]) -> Bool {
+        self.edges.contains { edges.contains($0) }
     }
 
     func subpath(from: Vertex? = nil, to: Vertex? = nil) -> Self? {
@@ -73,4 +81,14 @@ class GraphPath<Edge: GraphEdge> {
     func toGraph<G: Graph<Edge>>() -> G {
         return G(edges: edges)
     }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(edges)
+    }
+
+    static func == (lhs: GraphPath, rhs: GraphPath) -> Bool {
+        return lhs.edges == rhs.edges && lhs.vertices == rhs.vertices
+    }
+
+    internal func invalidateCache() {}
 }

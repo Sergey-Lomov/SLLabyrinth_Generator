@@ -49,23 +49,36 @@ public final class LabyrinthGenerator<T: Topology> {
 
         timeLog("Calculate paths graph") { calculatePathsGraph() }
         timeLog("Handle isolated areas") { handleIsolatedAreas() }
-//
-//        savedField = field.copy()
-//        savedSuperpositions = superpositions
-//            .map { ($0, Superposition(superposition: $1)) }
-//            .toDictionary()
 
-//        timeLog("Handle cycles areas") { handleCyclesAreas() }
+        saveState()
+
+        // TODO: remove test code
+        filteredGraph = pathsGraph.noDeadendsGraph()
+        filteredGraph.compactizePaths()
+        calculateCyclesAreas()
+
+        //timeLog("Handle cycles areas") { handleCyclesAreas() }
 
         return timeLog
     }
 
-    func restoreSaved() {
+    func saveState() {
+        savedField = field.copy()
+        savedSuperpositions = superpositions
+            .map { ($0, Superposition(superposition: $1)) }
+            .toDictionary()
+    }
+
+    func restoreSavedState() {
         guard let savedField = savedField else { return }
         field = savedField.copy()
         superpositions = savedSuperpositions
             .map { ($0, Superposition(superposition: $1)) }
             .toDictionary()
+
+        calculatePathsGraph()
+        filteredGraph = pathsGraph.noDeadendsGraph()
+        filteredGraph.compactizePaths()
     }
 
     private func setupSuperpositions() {
@@ -211,7 +224,7 @@ public final class LabyrinthGenerator<T: Topology> {
         return success
     }
 
-    private func handleCyclesAreas() {
+    func handleCyclesAreas() {
         guard configuration.cycledAreasStrategy != nil else { return }
 
         timeLog("Calculate cycles areas") { calculateCyclesAreas() }
@@ -221,7 +234,7 @@ public final class LabyrinthGenerator<T: Topology> {
         filteredGraph.compactizePaths()
     }
 
-    func calculateCyclesAreas() {
+    private func calculateCyclesAreas() {
         filteredGraph = pathsGraph.noDeadendsGraph()
         filteredGraph.compactizePaths()
         let areasGraph = filteredGraph.toAreasGraph()
@@ -230,7 +243,7 @@ public final class LabyrinthGenerator<T: Topology> {
             .filter { $0.graph.points.count != 1 }
     }
 
-    func resolveCyclesAreas() {
+    private func resolveCyclesAreas() {
         guard let strategy = configuration.cycledAreasStrategy else { return }
 
         cyclesAreas.forEach {
@@ -248,7 +261,7 @@ public final class LabyrinthGenerator<T: Topology> {
         timeLog("Resolve isolated areas") { resolveIsolatedAreas() }
     }
 
-    func resolveIsolatedAreas() {
+    private func resolveIsolatedAreas() {
         guard let strategy = configuration.isolatedAreasStrategy else { return }
 
         var nextArea = isolatedAreas.vertices
@@ -271,6 +284,7 @@ public final class LabyrinthGenerator<T: Topology> {
                 .first
         }
 
+        strategy.postprocessing(generator: self)
         isolatedAreas.groupCycled()
     }
 

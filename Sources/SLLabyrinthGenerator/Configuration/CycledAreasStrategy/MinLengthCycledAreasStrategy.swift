@@ -23,13 +23,16 @@ final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
     }
 
     override func handle(area: PathsGraphArea<T>, generator: Generator) -> Bool {
+        var failed: Set<PathsGraphPath<T>> = []
         while let cycle: PathsGraphPath<T> = area.graph.firstPath(
             from: area.graph.vertices,
-            successValidator: { $0.from == $0.to && area.graph.isBidirectional($0) },
-            earlyStopValidator: { $0.lenght >= minLength }
+            successValidator: { $0.from == $0.to },
+            earlyStopValidator: { $0.lenght >= minLength || failed.contains($0)}
         ) {
             let success = handleUnapprovedCycle(cycle, area: area, generator: generator)
-            if !success { return false }
+            if !success {
+                failed.insert(cycle)
+            }
         }
 
         return true
@@ -40,8 +43,19 @@ final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
         area: PathsGraphArea<T>,
         generator: LabyrinthGenerator<T>
     ) -> Bool {
+        let bidirectional = area.graph.isBidirectional(path)
+
         for edge in path.edges {
             guard edge.points.count >= 2 else { continue }
+
+            if !bidirectional {
+                let anotherWay1 = area.graph.path(from: edge.to, to: edge.from, ignores: [edge])
+                let anotherWay2 = area.graph.path(from: edge.from, to: edge.to, ignores: [edge])
+                guard anotherWay1 != nil && anotherWay2 != nil else {
+                    continue
+                }
+            }
+
             for i in (1..<edge.points.count).reversed() {
                 let point1 = edge.points[i]
                 let point2 = edge.points[i-1]

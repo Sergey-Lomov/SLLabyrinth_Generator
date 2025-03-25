@@ -29,4 +29,8 @@ final class SizeBasedIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy<T
         guard let strategy = RandomPicker.weigthed(weigted) else { return false }
         return strategy.handle(area: area, graph: graph, generator: generator)
     }
+
+    override func postprocessing(generator: Generator) {
+        nodes.forEach { $0.strategy.postprocessing(generator: generator) }
+    }
 }
