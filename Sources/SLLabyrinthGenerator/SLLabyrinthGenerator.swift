@@ -51,23 +51,31 @@ public final class LabyrinthGenerator<T: Topology> {
     }
 
     @discardableResult
-    func generateLabyrinth() -> TimeLog {
+    func generateLabyrinth(saveStates: Bool = true) -> TimeLog {
         let timeLog = TimeLog()
 
-        executeStep(.collapse, log: timeLog)
-        executeStep(.paths, log: timeLog)
-        executeStep(.isolated, log: timeLog)
-        executeStep(.cycles, log: timeLog)
+        executeStep(.collapse, log: timeLog, save: saveStates)
+        executeStep(.paths, log: timeLog, save: saveStates)
+        executeStep(.isolated, log: timeLog, save: saveStates)
+        executeStep(.cycles, log: timeLog, save: saveStates)
 
         return timeLog
     }
 
-    func executeStep(_ step: GenerationStep, log: TimeLog = TimeLog()) {
+    func executeStep(_ step: GenerationStep, log: TimeLog = TimeLog(), save: Bool = false) {
         switch step {
-        case .collapse: log("Collapse field") { collapseField(log: $0) }
-        case .paths: log("Calculate paths graph") { calculatePathsGraph(log: $0) }
-        case .isolated: log("Handle isolated areas") { handleIsolatedAreas(log: $0) }
-        case .cycles: log("Handle cycles areas") { handleCyclesAreas(log: $0) }
+        case .collapse: log("Collapse field") {
+            collapseField(log: $0, save: save)
+        }
+        case .paths: log("Calculate paths graph") {
+            calculatePathsGraph(log: $0, save: save)
+        }
+        case .isolated: log("Handle isolated areas") {
+            handleIsolatedAreas(log: $0, save: save)
+        }
+        case .cycles: log("Handle cycles areas") {
+            handleCyclesAreas(log: $0, save: save)
+        }
         }
     }
 
@@ -116,33 +124,45 @@ public final class LabyrinthGenerator<T: Topology> {
         }
     }
 
-    private func collapseField(log timeLog: TimeLog) {
+    private func collapseField(log timeLog: TimeLog, save: Bool = false) {
         timeLog("Setup superpositions") { setupSuperpositions() }
         timeLog("Apply borders") { applyBorderConstraints() }
         timeLog("Collapse") { collapse() }
-        timeLog("Save state") { saveState(step: .collapse) }
+
+        if save {
+            timeLog("Save state") { saveState(step: .collapse) }
+        }
     }
 
-    private func calculatePathsGraph(log timeLog: TimeLog) {
+    private func calculatePathsGraph(log timeLog: TimeLog, save: Bool = false) {
         timeLog("Calculate") { pathsGraph = FieldAnalyzer.pathsGraph(field) }
         timeLog("Compactize") { pathsGraph.compactizePaths() }
-        timeLog("Save state") { saveState(step: .paths) }
+
+        if save {
+            timeLog("Save state") { saveState(step: .paths) }
+        }
     }
 
-    private func handleCyclesAreas(log timeLog: TimeLog) {
+    private func handleCyclesAreas(log timeLog: TimeLog, save: Bool = false) {
         guard configuration.cycledAreasStrategy != nil else { return }
 
         timeLog("Calculate cycles areas") { calculateCyclesAreas() }
         timeLog("Resolve cycles areas") { resolveCyclesAreas() }
-        timeLog("Save state") { saveState(step: .cycles) }
+
+        if save {
+            timeLog("Save state") { saveState(step: .cycles) }
+        }
     }
 
-    private func handleIsolatedAreas(log timeLog: TimeLog) {
+    private func handleIsolatedAreas(log timeLog: TimeLog, save: Bool = false) {
         guard configuration.isolatedAreasStrategy != nil else { return }
 
         timeLog("Calculate isolated areas") { isolatedAreas = pathsGraph.isolatedAreas() }
         timeLog("Resolve isolated areas") { resolveIsolatedAreas() }
-        timeLog("Save state") { saveState(step: .isolated) }
+
+        if save {
+            timeLog("Save state") { saveState(step: .isolated) }
+        }
     }
 
     private func applyEmptyFieldConstraints() {

@@ -10,6 +10,14 @@ import Foundation
 final class TimeProfiler {
     var logs: [TimeLog] = []
 
+    var maxLog: TimeLog? {
+        logs.max { $0.time < $1.time }
+    }
+
+    var minLog: TimeLog? {
+        logs.min { $0.time < $1.time }
+    }
+
     var averageLog: TimeLog {
         let result = TimeLog()
         let nodes = logs.map { $0.nodes }
