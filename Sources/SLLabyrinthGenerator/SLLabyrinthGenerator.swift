@@ -306,18 +306,25 @@ public final class LabyrinthGenerator<T: Topology> {
                 isolatedAreas.removeVertex(area)
             }
 
-            nextArea = isolatedAreas.vertices
-                .filter {
-                    let noIncome = isolatedAreas.edges(to: $0).isEmpty
-                    let noOutgoing = isolatedAreas.edges(from: $0).isEmpty
-                    return noIncome || noOutgoing
-                }
-                .sorted { $0.size < $1.size }
-                .first
+            nextArea = nextIsolatedArea()
+            if nextArea == nil {
+                isolatedAreas.groupCycled()
+                nextArea = nextIsolatedArea()
+            }
         }
 
         strategy.postprocessing(generator: self)
-        isolatedAreas.groupCycled()
+    }
+
+    private func nextIsolatedArea() -> PathsGraphArea<T>? {
+        isolatedAreas.vertices
+            .filter {
+                let noIncome = isolatedAreas.edges(to: $0).isEmpty
+                let noOutgoing = isolatedAreas.edges(from: $0).isEmpty
+                return noIncome || noOutgoing
+            }
+            .sorted { $0.size < $1.size }
+            .first
     }
 
     private func setupSuperProvider() -> SuperpositionsProvider<T> {
