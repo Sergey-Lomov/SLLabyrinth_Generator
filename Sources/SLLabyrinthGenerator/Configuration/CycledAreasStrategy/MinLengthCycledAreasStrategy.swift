@@ -49,8 +49,8 @@ final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
             guard edge.points.count >= 2 else { continue }
 
             if !bidirectional {
-                let anotherWay1 = area.graph.path(from: edge.to, to: edge.from, ignores: [edge])
-                let anotherWay2 = area.graph.path(from: edge.from, to: edge.to, ignores: [edge])
+                let anotherWay1 = area.graph.anyPath(from: edge.to, to: edge.from, ignores: [edge])
+                let anotherWay2 = area.graph.anyPath(from: edge.from, to: edge.to, ignores: [edge])
                 guard anotherWay1 != nil && anotherWay2 != nil else {
                     continue
                 }

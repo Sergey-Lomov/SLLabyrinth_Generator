@@ -50,14 +50,9 @@ public final class LabyrinthGenerator<T: Topology> {
         timeLog("Calculate paths graph") { calculatePathsGraph() }
         timeLog("Handle isolated areas") { handleIsolatedAreas() }
 
-        saveState()
+//        saveState()
 
-        // TODO: remove test code
-        filteredGraph = pathsGraph.noDeadendsGraph()
-        filteredGraph.compactizePaths()
-        calculateCyclesAreas()
-
-        //timeLog("Handle cycles areas") { handleCyclesAreas() }
+        timeLog("Handle cycles areas") { handleCyclesAreas() }
 
         return timeLog
     }
