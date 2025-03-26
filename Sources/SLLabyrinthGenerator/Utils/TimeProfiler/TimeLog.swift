@@ -26,11 +26,15 @@ final class TimeLog: CustomDebugStringConvertible, CustomReflectable {
     }
 
     func callAsFunction(_ title: String, closure: () -> Void) {
+        callAsFunction(title) { _ in closure() }
+    }
+
+    func callAsFunction(_ title: String, closure: (TimeLog) -> Void) {
         let node = TimeLogNode(title: title)
         current.append(node)
         let start = DispatchTime.now()
 
-        closure()
+        closure(self)
 
         let end = DispatchTime.now()
         node.time = Double(end.uptimeNanoseconds - start.uptimeNanoseconds) / 1_000_000_000

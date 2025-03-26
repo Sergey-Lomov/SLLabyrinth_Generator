@@ -11,6 +11,17 @@ final class AreasGraph<T: Topology>: Graph<AreasGraphEdge<T>> {
     typealias Edge = AreasGraphEdge<T>
     typealias Path = AreasGraphPath<T>
 
+    convenience init(graph: AreasGraph<T>) {
+        self.init()
+
+        graph.edges.forEach {
+            let edge = Edge(pathsEdge: $0.pathsEdge,
+                            from: $0.from.copy(),
+                            to: $0.to.copy())
+            appendEdge(edge)
+        }
+    }
+
     func firstVertexContains(_ point: T.Point) -> Vertex? {
         vertices.first { $0.graph.contains(point) }
     }

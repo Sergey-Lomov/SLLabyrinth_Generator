@@ -19,7 +19,7 @@ final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
     }
 
     override class func postprocessing(generator: Generator) {
-        generator.calculatePathsGraph()
+        generator.updatePathsGraph()
     }
 
     override func handle(area: PathsGraphArea<T>, generator: Generator) -> Bool {

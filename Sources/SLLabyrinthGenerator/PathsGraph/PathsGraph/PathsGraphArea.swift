@@ -15,6 +15,11 @@ public final class PathsGraphArea<T: Topology>: IdHashable, GraphVertex {
 
     init() {}
 
+    convenience init(area: PathsGraphArea<T>) {
+        self.init()
+        self.graph = PathsGraph(graph: graph)
+    }
+
     convenience init(vertex: PathsGraphVertex<T>) {
         self.init()
         graph.appendVertex(vertex)
@@ -22,9 +27,9 @@ public final class PathsGraphArea<T: Topology>: IdHashable, GraphVertex {
 
     func merge(_ area: PathsGraphArea<T>) {
         graph.merge(area.graph)
-//        outgoing = outgoing + area.outgoing
-//        income = income + area.income
-//        outgoing = outgoing.filter { !graph.vertices.contains($0.to) }
-//        income = outgoing.filter { !graph.vertices.contains($0.from) }
+    }
+
+    func copy() -> PathsGraphArea<T> {
+        Self(area: self)
     }
 }

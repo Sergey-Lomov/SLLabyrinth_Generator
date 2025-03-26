@@ -7,6 +7,21 @@
 
 import Foundation
 
+enum GenerationStep {
+    case collapse, paths, isolated, cycles
+}
+
+struct GeneratorState<T: Topology> {
+    let field: T.Field
+    let superpositions: Dictionary<T.Point, T.Superposition>
+    let affectedArea: Dictionary<T.Field.Element, [T.Superposition]>
+
+    let pathsGraph: PathsGraph<T>
+    let filteredGraph: PathsGraph<T>
+    let cyclesAreas: [PathsGraphArea<T>]
+    let isolatedAreas: AreasGraph<T>
+}
+
 public final class LabyrinthGenerator<T: Topology> {
     typealias Point = T.Point
     typealias Edge = T.Edge
@@ -28,52 +43,69 @@ public final class LabyrinthGenerator<T: Topology> {
     var isolatedAreas = AreasGraph<T>()
 
     // TODO: Remove testing code
-    var savedField: Field?
-    var savedSuperpositions: Dictionary<Point, Superposition> = [:]
-
-    private var timeLog = TimeLog()
+    private var savedStates: Dictionary<GenerationStep, GeneratorState<T>> = [:]
 
     init(configuration: GeneratorConfiguration<T>) {
         self.configuration = configuration
         self.field = Field(size: configuration.size)
     }
 
+    @discardableResult
     func generateLabyrinth() -> TimeLog {
-        timeLog = TimeLog()
+        let timeLog = TimeLog()
 
-        timeLog("Collapse field") {
-            timeLog("Setup superpositions") { setupSuperpositions() }
-            timeLog("Apply borders") { applyBorderConstraints() }
-            timeLog("Collapse") { collapse() }
-        }
-
-        timeLog("Calculate paths graph") { calculatePathsGraph() }
-        timeLog("Handle isolated areas") { handleIsolatedAreas() }
-
-//        saveState()
-
-        timeLog("Handle cycles areas") { handleCyclesAreas() }
+        executeStep(.collapse, log: timeLog)
+        executeStep(.paths, log: timeLog)
+        executeStep(.isolated, log: timeLog)
+        executeStep(.cycles, log: timeLog)
 
         return timeLog
     }
 
-    func saveState() {
-        savedField = field.copy()
-        savedSuperpositions = superpositions
-            .map { ($0, Superposition(superposition: $1)) }
-            .toDictionary()
+    func executeStep(_ step: GenerationStep, log: TimeLog = TimeLog()) {
+        switch step {
+        case .collapse: log("Collapse field") { collapseField(log: $0) }
+        case .paths: log("Calculate paths graph") { calculatePathsGraph(log: $0) }
+        case .isolated: log("Handle isolated areas") { handleIsolatedAreas(log: $0) }
+        case .cycles: log("Handle cycles areas") { handleCyclesAreas(log: $0) }
+        }
     }
 
-    func restoreSavedState() {
-        guard let savedField = savedField else { return }
-        field = savedField.copy()
-        superpositions = savedSuperpositions
-            .map { ($0, Superposition(superposition: $1)) }
-            .toDictionary()
+    private func saveState(step: GenerationStep) {
+        let sups = superpositions.mapValues { $0.copy() }
 
-        calculatePathsGraph()
-        filteredGraph = pathsGraph.noDeadendsGraph()
-        filteredGraph.compactizePaths()
+        let affectedArea = self.affectedArea.mapValues { pointSups in
+            pointSups.compactMap { sups[$0.point] }
+        }
+
+        savedStates[step] = GeneratorState(
+            field: field.copy(),
+            superpositions: sups,
+            affectedArea: affectedArea,
+            pathsGraph: pathsGraph.copy(),
+            filteredGraph: filteredGraph.copy(),
+            cyclesAreas: cyclesAreas.map { $0.copy() },
+            isolatedAreas: isolatedAreas.copy()
+        )
+    }
+
+    func restoreSavedState(step: GenerationStep) {
+        guard let state = savedStates[step] else { return }
+
+        field = state.field.copy()
+        superpositions = state.superpositions.mapValues { $0.copy() }
+        affectedArea = self.affectedArea.mapValues { pointSups in
+            pointSups.compactMap { superpositions[$0.point] }
+        }
+        pathsGraph = state.pathsGraph.copy()
+        filteredGraph = state.filteredGraph.copy()
+        cyclesAreas = state.cyclesAreas.map { $0.copy() }
+        isolatedAreas = state.isolatedAreas.copy()
+    }
+
+    func updatePathsGraph() {
+        pathsGraph = FieldAnalyzer.pathsGraph(field)
+        pathsGraph.compactizePaths()
     }
 
     private func setupSuperpositions() {
@@ -84,9 +116,33 @@ public final class LabyrinthGenerator<T: Topology> {
         }
     }
 
-    func calculatePathsGraph() {
-        pathsGraph = FieldAnalyzer.pathsGraph(field)
-        pathsGraph.compactizePaths()
+    private func collapseField(log timeLog: TimeLog) {
+        timeLog("Setup superpositions") { setupSuperpositions() }
+        timeLog("Apply borders") { applyBorderConstraints() }
+        timeLog("Collapse") { collapse() }
+        timeLog("Save state") { saveState(step: .collapse) }
+    }
+
+    private func calculatePathsGraph(log timeLog: TimeLog) {
+        timeLog("Calculate") { pathsGraph = FieldAnalyzer.pathsGraph(field) }
+        timeLog("Compactize") { pathsGraph.compactizePaths() }
+        timeLog("Save state") { saveState(step: .paths) }
+    }
+
+    private func handleCyclesAreas(log timeLog: TimeLog) {
+        guard configuration.cycledAreasStrategy != nil else { return }
+
+        timeLog("Calculate cycles areas") { calculateCyclesAreas() }
+        timeLog("Resolve cycles areas") { resolveCyclesAreas() }
+        timeLog("Save state") { saveState(step: .cycles) }
+    }
+
+    private func handleIsolatedAreas(log timeLog: TimeLog) {
+        guard configuration.isolatedAreasStrategy != nil else { return }
+
+        timeLog("Calculate isolated areas") { isolatedAreas = pathsGraph.isolatedAreas() }
+        timeLog("Resolve isolated areas") { resolveIsolatedAreas() }
+        timeLog("Save state") { saveState(step: .isolated) }
     }
 
     private func applyEmptyFieldConstraints() {
@@ -219,16 +275,6 @@ public final class LabyrinthGenerator<T: Topology> {
         return success
     }
 
-    func handleCyclesAreas() {
-        guard configuration.cycledAreasStrategy != nil else { return }
-
-        timeLog("Calculate cycles areas") { calculateCyclesAreas() }
-        timeLog("Resolve cycles areas") { resolveCyclesAreas() }
-
-        filteredGraph = pathsGraph.noDeadendsGraph()
-        filteredGraph.compactizePaths()
-    }
-
     private func calculateCyclesAreas() {
         filteredGraph = pathsGraph.noDeadendsGraph()
         filteredGraph.compactizePaths()
@@ -245,15 +291,6 @@ public final class LabyrinthGenerator<T: Topology> {
             strategy.handle(area: $0, generator: self)
         }
         type(of: strategy).postprocessing(generator: self)
-    }
-
-    private func handleIsolatedAreas() {
-        guard configuration.isolatedAreasStrategy != nil else { return }
-
-        timeLog("Calculate isolated areas") {
-            isolatedAreas = pathsGraph.isolatedAreas()
-        }
-        timeLog("Resolve isolated areas") { resolveIsolatedAreas() }
     }
 
     private func resolveIsolatedAreas() {

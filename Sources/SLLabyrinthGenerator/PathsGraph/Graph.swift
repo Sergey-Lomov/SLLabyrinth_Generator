@@ -27,13 +27,15 @@ class Graph<Edge: GraphEdge> {
     private(set) var fromMap: Dictionary<Vertex, Set<Edge>> = [:]
     private(set) var toMap: Dictionary<Vertex, Set<Edge>> = [:]
 
-    convenience init(graph: Graph<Edge>) {
+    required convenience init(graph: Graph<Edge>) {
         self.init()
 
         self.vertices = graph.vertices
         self.edges = graph.edges
         self.fromMap = graph.fromMap
         self.toMap = graph.toMap
+
+        invalidateCache()
     }
 
     required convenience init(edges: [Edge]) {
@@ -42,6 +44,10 @@ class Graph<Edge: GraphEdge> {
     }
 
     internal func invalidateCache() {}
+
+    func copy() -> Self {
+        Self(graph: self)
+    }
 
     func contains(_ vertex: Vertex) -> Bool {
         vertices.contains(vertex)

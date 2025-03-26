@@ -18,6 +18,8 @@ public protocol NodeSuperposition: IdHashable {
     init(point: Point, elementsSuperpositions: [Nested])
     init(superposition: Self)
 
+    func copy() -> Self
+
     func applyRestriction(_ restriction: AppliedRestriction)
     func applyRestriction(_ restriction: any SuperpositionRestriction, provider: String, onetime: Bool)
     func applyRestrictions(_ restrictions: [any SuperpositionRestriction], provider: String, onetime: Bool)
@@ -30,6 +32,10 @@ public protocol NodeSuperposition: IdHashable {
 }
 
 extension NodeSuperposition {
+    func copy() -> Self {
+        Self(superposition: self)
+    }
+
     func applyRestriction(_ applied: AppliedRestriction) {
         applyRestriction(applied.restriction, provider: applied.provider, onetime: applied.isOnetime)
     }
@@ -64,7 +70,7 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
     init(superposition: TopologyBasedNodeSuperposition<T>) {
         self.point = superposition.point
         self.elementsSuperpositions = superposition.elementsSuperpositions.map { $0.copy() }
-        self.availableElements = elementsSuperpositions.toSet()
+        self.availableElements = superposition.availableElements
         self.restrictions = superposition.restrictions
     }
 
