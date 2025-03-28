@@ -19,11 +19,13 @@ final class JunctionSuperposition<T: Topology>: TopologyBasedElementSuperpositio
 
     static var category: String { "junction" }
 
-    private var passagesVariations: [[T.Edge]] = initialState()
-
-    static func initialState() -> [[T.Edge]] {
-        T.Edge.allCases.combinations().filter { $0.count > 2 }
+    static var initialVariations: [[T.Edge]] {
+        GlobalCache.getValue(id: "junction_init") {
+            T.Edge.allCases.combinations().filter { $0.count > 2 }
+        }
     }
+
+    private var passagesVariations = initialVariations
 
     required init() {
         super.init()
@@ -56,7 +58,7 @@ final class JunctionSuperposition<T: Topology>: TopologyBasedElementSuperpositio
     }
 
     override func resetRestrictions() {
-        passagesVariations = Self.initialState()
+        passagesVariations = Self.initialVariations
     }
 
     override func waveFunctionCollapse() -> T.Field.Element? {

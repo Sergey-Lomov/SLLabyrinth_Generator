@@ -24,10 +24,8 @@ final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
 
     override func handle(area: PathsGraphArea<T>, generator: Generator) -> Bool {
         var failed: Set<PathsGraphPath<T>> = []
-        var unfinishedPoints = area.graph.vertices
-
         while let cycle: PathsGraphPath<T> = area.graph.firstPath(
-            from: unfinishedPoints,
+            from: area.graph.vertices,
             successValidator: { $0.from == $0.to },
             earlyStopValidator: { $0.lenght >= minLength || failed.contains($0) }
         ) {

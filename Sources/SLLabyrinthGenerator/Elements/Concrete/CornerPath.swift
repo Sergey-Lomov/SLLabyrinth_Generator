@@ -19,7 +19,13 @@ final class CornerPathSuperposition<T: Topology>: TopologyBasedElementSuperposit
 
     static var category: String { "corner_path" }
 
-    var paths = T.Edge.allCases.pairs().removeOppositePairs()
+    static var initialPaths: [(T.Edge, T.Edge)] {
+        GlobalCache.getValue(id: "corner_path_init") {
+            T.Edge.allCases.pairs().removeOppositePairs()
+        }
+    }
+
+    var paths = initialPaths
 
     override var entropy: Int {
         paths.count
@@ -52,7 +58,7 @@ final class CornerPathSuperposition<T: Topology>: TopologyBasedElementSuperposit
     }
 
     override func resetRestrictions() {
-        paths = T.Edge.allCases.pairs().removeOppositePairs()
+        paths = Self.initialPaths
     }
 
     override func waveFunctionCollapse() -> T.Field.Element? {

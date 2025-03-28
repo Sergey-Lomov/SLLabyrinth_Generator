@@ -147,7 +147,7 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
     }
 
     func resetRestrictions(by providers: [String]) {
-        let contains = restrictions.contains(where: { providers.contains($0.provider) })
+        let contains = restrictions.contains { providers.contains($0.provider) }
         guard contains else { return }
         resetRestrictions()
             .filter { !providers.contains($0.provider) }

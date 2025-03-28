@@ -17,7 +17,13 @@ class Deadend<T: Topology>: EdgeBasedElement<T> {
 final class DeadendSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, CategorizedSuperposition {
     static var category: String { "deadend" }
 
-    var entrances = Set(T.Edge.allCases)
+    static var initialEntrances: Set<T.Edge> {
+        GlobalCache.getValue(id: "deadend_init") {
+            T.Edge.allCases.toSet()
+        }
+    }
+
+    var entrances = initialEntrances
 
     override var entropy: Int {
         entrances.count
@@ -50,7 +56,7 @@ final class DeadendSuperposition<T: Topology>: TopologyBasedElementSuperposition
     }
 
     override func resetRestrictions() {
-        entrances = Set(T.Edge.allCases)
+        entrances = Self.initialEntrances
     }
 
     override func waveFunctionCollapse() -> T.Field.Element? {

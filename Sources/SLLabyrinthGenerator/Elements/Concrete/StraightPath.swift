@@ -19,7 +19,13 @@ final class StraightPathSuperposition<T: Topology>: TopologyBasedElementSuperpos
 
     static var category: String { "straight_path" }
 
-    var paths = Array(T.Edge.allCases).oppositePairs()
+    static var initialPaths: [(T.Edge, T.Edge)] {
+        GlobalCache.getValue(id: "straight_path_init") {
+            T.Edge.allCases.toArray().oppositePairs()
+        }
+    }
+
+    var paths = initialPaths
 
     override var entropy: Int {
         paths.count
@@ -52,7 +58,7 @@ final class StraightPathSuperposition<T: Topology>: TopologyBasedElementSuperpos
     }
 
     override func resetRestrictions() {
-        paths = Array(T.Edge.allCases).oppositePairs()
+        paths = Self.initialPaths
     }
 
     override func waveFunctionCollapse() -> T.Field.Element? {
