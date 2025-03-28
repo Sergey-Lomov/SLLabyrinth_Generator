@@ -16,7 +16,7 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
 
     override init() {
         super.init()
-        _points.compute = calculatePoints
+        _points.compute = { [unowned self] in self.calculatePoints() }
     }
 
     override func invalidateCache() {

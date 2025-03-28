@@ -15,14 +15,14 @@ final class PathsGraphPath<T: Topology>: GraphPath<PathsGraphEdge<T>> {
     override init() {
         super.init()
 
-        _lenght.compute =  {
+        _lenght.compute =  { [unowned self] in
             let edgesLengths = self.edges
                 .map { $0.points.count - 1 }
                 .reduce(0, +)
             return edgesLengths + 1
         }
 
-        _points.compute =  {
+        _points.compute =  { [unowned self] in
             self.edges
                 .flatMap { $0.points }
                 .reduce(into: [T.Point]()) { acc, point in

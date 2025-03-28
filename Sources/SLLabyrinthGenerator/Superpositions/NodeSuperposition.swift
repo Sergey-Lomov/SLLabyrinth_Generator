@@ -64,7 +64,7 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
         self.point = point
         self.elementsSuperpositions = elementsSuperpositions
         self.availableElements = elementsSuperpositions.toSet()
-        _entropy.compute = caclulateEntropy
+        _entropy.compute = { [unowned self] in self.caclulateEntropy() }
     }
 
     init(superposition: TopologyBasedNodeSuperposition<T>) {
