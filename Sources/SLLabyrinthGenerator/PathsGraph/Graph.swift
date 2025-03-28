@@ -144,7 +144,7 @@ class Graph<Edge: GraphEdge> {
                 let path = P(edge: edge)
                 return earlyStopValidator(path) ? nil : path
             }
-        }
+        }.toSet()
 
         while !paths.isEmpty {
             // TODO: Remove test code
@@ -153,36 +153,42 @@ class Graph<Edge: GraphEdge> {
                 return nil
             }
 
-            let success = paths.first { successValidator($0) }
-            if let success = success {
-                if let handler = unfailedVerticesHandler {
-                    let unfailed = paths.compactMap { $0.from }.toSet()
-                    handler(unfailed)
-                }
-                return success
-            }
+            var newPaths: Set<P> = []
+            for path in paths {
+                guard let to = path.to else { continue }
+                guard let lastEdge = path.edges.last else { continue }
 
-            paths = paths.flatMap { path in
-                guard let to = path.to else { return [P]() }
-                return edges(from: to).compactMap { edge in
-                    guard let lastEdge = path.edges.last else { return nil }
+                for edge in edges(from: to) {
 
-                    if forbidReversed && lastEdge.isReversed(edge) { return nil }
+                    guard forbidReversed && lastEdge.isReversed(edge) else { continue }
 
-                    if forbidSelfIntersections && path.contains(edge.to) && edge.to != path.from { return nil }
+                    guard forbidSelfIntersections && path.contains(edge.to) && edge.to != path.from else { continue }
 
                     if forbidGlobalIntersections {
                         if visited.contains(edge.to) {
-                            return nil
+                            continue
                         } else {
                             visited.insert(edge.to)
                         }
                     }
 
                     let newPath = path.copy(append: edge)
-                    return earlyStopValidator(newPath) ? nil : newPath
+
+                    guard !earlyStopValidator(newPath) else { continue }
+
+                    if successValidator(newPath) {
+                        if let handler = unfailedVerticesHandler {
+                            let unfailed = paths.compactMap { $0.from }.toSet()
+                            handler(unfailed)
+                        }
+                        return newPath
+                    }
+
+                    newPaths.insert(newPath)
                 }
             }
+
+            paths = newPaths
         }
 
         return nil
