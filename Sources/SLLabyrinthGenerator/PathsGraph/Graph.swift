@@ -132,7 +132,6 @@ class Graph<Edge: GraphEdge> {
         from vertices: C,
         successValidator: (P) -> Bool,
         earlyStopValidator: (P) -> Bool = { _ in false },
-        unfailedVerticesHandler: ((Set<Vertex>) -> Void)? = nil,
         forbidReversed: Bool = true,
         forbidSelfIntersections: Bool = true,
         forbidGlobalIntersections: Bool = false
@@ -176,13 +175,7 @@ class Graph<Edge: GraphEdge> {
 
                     guard !earlyStopValidator(newPath) else { continue }
 
-                    if successValidator(newPath) {
-                        if let handler = unfailedVerticesHandler {
-                            let unfailed = paths.compactMap { $0.from }.toSet()
-                            handler(unfailed)
-                        }
-                        return newPath
-                    }
+                    if successValidator(newPath) { return newPath }
 
                     newPaths.insert(newPath)
                 }
