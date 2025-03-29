@@ -8,61 +8,16 @@
 import Foundation
 
 /// A labyrinth element with two entrances on non-opposite sides.
-class CornerPath<T: Topology>: EdgeBasedElement<T> {
-    init(path: (T.Edge, T.Edge)) {
-        super.init(passages: [path.0, path.1])
-    }
-}
+final class CornerPath<T: Topology>: PassagesBasedElement<T> {}
 
-final class CornerPathSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, CategorizedSuperposition {
+final class CornerPathSuperposition<T: Topology>: PassagesBasedSuperposition<T, CornerPath<T>>, CategorizedSuperposition {
+    // TODO: Investigate possbility to remove this and similar typealiases. Looks like Element typealias inside superpositions is unused.
     typealias Element = CornerPath
 
     static var category: String { "corner_path" }
 
-    static var initialPaths: [(T.Edge, T.Edge)] {
-        GlobalCache.getValue(id: "corner_path_init") {
-            T.Edge.allCases.pairs().removeOppositePairs()
-        }
-    }
-
-    var paths = initialPaths
-
-    override var entropy: Int {
-        paths.count
-    }
-
-    required init() {
-        super.init()
-    }
-
-    init(paths: [(T.Edge, T.Edge)]) {
-        super.init()
-        self.paths = paths
-    }
-
-    override func copy() -> Self {
-        Self.init(paths: paths)
-    }
-
-    override func applyCommonRestriction(_ restriction: TopologyBasedElementRestriction<T>) -> Bool {
-        switch restriction {
-        case .wall(let edge), .fieldEdge(let edge):
-            paths = paths.filter { $0 != edge && $1 != edge }
-        case .passage(let edge):
-            paths = paths.filter { $0 == edge || $1 == edge }
-        @unknown default:
-            return false
-        }
-
-        return true
-    }
-
-    override func resetRestrictions() {
-        paths = Self.initialPaths
-    }
-
-    override func waveFunctionCollapse() -> T.Field.Element? {
-        guard let path = paths.randomElement() else { return nil }
-        return CornerPath<T>(path: path) as? T.Field.Element
+    override func filterInitial(_ variant: [T.Edge]) -> Bool {
+        guard variant.count == 2 else { return false }
+        return variant[0].opposite() != variant[1]
     }
 }

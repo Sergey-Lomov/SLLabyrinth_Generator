@@ -1,15 +1,15 @@
 //
-//  EdgeBasedElement.swift
+//  PassagesBasedElement.swift
 //  SLLabyrinthGenerator
 //
 //  Created by serhii.lomov on 08.03.2025.
 //
 
-/// Abstract base class for all labyrinth elements based on their edges—walls or passages.
-class EdgeBasedElement<T: Topology>: TopologyBasedLabyrinthElement<T> {
+/// Abstract base class for all labyrinth elements based on their passages
+class PassagesBasedElement<T: Topology>: TopologyBasedLabyrinthElement<T> {
     var passages: [T.Edge]
 
-    init(passages: [T.Edge]) {
+    required init(passages: [T.Edge]) {
         self.passages = passages
     }
 

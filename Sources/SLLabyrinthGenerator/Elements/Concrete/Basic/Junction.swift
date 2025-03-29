@@ -8,62 +8,15 @@
 import Foundation
 
 /// A labyrinth element with more than two entrances.
-class Junction<T: Topology>: EdgeBasedElement<T> {
-    init(entrances: [T.Edge]) {
-        super.init(passages: entrances)
-    }
-}
+final class Junction<T: Topology>: PassagesBasedElement<T> {}
 
-final class JunctionSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, CategorizedSuperposition {
+final class JunctionSuperposition<T: Topology>: PassagesBasedSuperposition<T, Junction<T>>, CategorizedSuperposition {
     typealias Element = Junction
 
     static var category: String { "junction" }
 
-    static var initialVariations: [[T.Edge]] {
-        GlobalCache.getValue(id: "junction_init") {
-            T.Edge.allCases.combinations().filter { $0.count > 2 }
-        }
-    }
-
-    private var passagesVariations = initialVariations
-
-    required init() {
-        super.init()
-    }
-
-    init(variations: [[T.Edge]]) {
-        self.passagesVariations = variations
-        super.init()
-    }
-
-    override func copy() -> Self {
-        Self.init(variations: passagesVariations)
-    }
-
-    override var entropy: Int {
-        passagesVariations.count
-    }
-
-    override func applyCommonRestriction(_ restriction: TopologyBasedElementRestriction<T>) -> Bool {
-        switch restriction {
-        case .wall(let edge), .fieldEdge(let edge):
-            passagesVariations = passagesVariations.filter { !$0.contains(edge) }
-        case .passage(let edge):
-            passagesVariations = passagesVariations.filter { $0.contains(edge) }
-        @unknown default:
-            return false
-        }
-
-        return true
-    }
-
-    override func resetRestrictions() {
-        passagesVariations = Self.initialVariations
-    }
-
-    override func waveFunctionCollapse() -> T.Field.Element? {
-        guard let variation = passagesVariations.randomElement() else { return nil }
-        return Junction<T>(entrances: variation) as? T.Field.Element
+    override func filterInitial(_ variant: [T.Edge]) -> Bool {
+        variant.count > 2
     }
 }
 

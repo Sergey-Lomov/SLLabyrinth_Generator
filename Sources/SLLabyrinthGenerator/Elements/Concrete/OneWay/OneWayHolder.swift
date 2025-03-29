@@ -8,22 +8,20 @@
 import Foundation
 
 /// A labyrinth element with two entrances on opposite sides, allowing movement in only one direction.
-final class OneWayHolder<T: Topology>: EdgeBasedElement<T> {
+final class OneWayHolder<T: Topology>: TopologyBasedLabyrinthElement<T> {
     typealias Point = T.Point
     typealias Edge = T.Edge
 
+    let passages: [Edge]
     let incomes: [Edge]
     let outgoings: [Edge]
     let walls: [Edge]
 
-    init(passages: [Edge], incomes: [Edge], outgoings: [Edge] ) {
+    init(passages: [Edge], incomes: [Edge], outgoings: [Edge], walls: [Edge]) {
         self.incomes = incomes
         self.outgoings = outgoings
-
-        let notWalls = passages + incomes + outgoings
-        self.walls = Edge.allCases.filter { !notWalls.contains($0) }
-
-        super.init(passages: passages)
+        self.passages = passages
+        self.walls = walls
     }
 
     override func connectedPoints(_ point: T.Point) -> [T.Point] {

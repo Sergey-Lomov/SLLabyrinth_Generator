@@ -124,13 +124,13 @@ final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperpos
     }
 
     override func waveFunctionCollapse() -> T.Field.Element? {
-        var edges = edges
-        let undefined = edges[.undefined, default: []].shuffled().toSet()
+        var collapsedEdges = edges
+        let undefined = collapsedEdges[.undefined, default: []].shuffled().toSet()
 
         undefined.forEach { edge in
             var types: Set<EdgeType> = [.income, .outgoing, .passage, .wall]
-            let haveEntrance = Self.haveEntrance(edges)
-            let haveOneway = Self.haveOneway(edges)
+            let haveEntrance = Self.haveEntrance(collapsedEdges)
+            let haveOneway = Self.haveOneway(collapsedEdges)
 
             if !haveEntrance {
                 types.remove(.outgoing)
@@ -148,13 +148,20 @@ final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperpos
             }
 
             guard let type = types.randomElement() else { return }
-            edges.insert(key: type, setValue: edge)
+            collapsedEdges.insert(key: type, setValue: edge)
         }
 
-        let passages = edges[.passage, default: []].toArray()
-        let incomes = edges[.income, default: []].toArray()
-        let outgoings = edges[.outgoing, default: []].toArray()
-        let holder = OneWayHolder<T>(passages: passages, incomes: incomes, outgoings: outgoings)
+        let passages = collapsedEdges[.passage, default: []].toArray()
+        let incomes = collapsedEdges[.income, default: []].toArray()
+        let outgoings = collapsedEdges[.outgoing, default: []].toArray()
+        let walls = collapsedEdges[.wall, default: []].toArray()
+
+        let holder = OneWayHolder<T>(
+            passages: passages,
+            incomes: incomes,
+            outgoings: outgoings,
+            walls: walls
+        )
 
         return holder as? T.Field.Element
     }

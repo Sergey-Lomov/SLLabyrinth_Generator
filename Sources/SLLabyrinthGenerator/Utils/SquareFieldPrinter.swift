@@ -21,7 +21,7 @@ final class SquareFieldPrinter {
                 }
 
                 switch element {
-                case let element as EdgeBasedElement<SquareTopology>:
+                case let element as PassagesBasedElement<SquareTopology>:
                     printEdgeBased(element, lines: &lines)
                 default: break
                 }
@@ -61,7 +61,7 @@ final class SquareFieldPrinter {
         lines[2] += boolString(arr[6]) + boolString(arr[7]) + boolString(arr[8])
     }
 
-    private func printEdgeBased(_ element: EdgeBasedElement<SquareTopology>, lines: inout Array<String>) {
+    private func printEdgeBased(_ element: PassagesBasedElement<SquareTopology>, lines: inout Array<String>) {
         printEntrances(element.passages, lines: &lines)
     }
 }
