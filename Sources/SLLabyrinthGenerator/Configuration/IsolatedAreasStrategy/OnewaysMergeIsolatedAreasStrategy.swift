@@ -8,24 +8,20 @@
 import Foundation
 
 final class OnewaysMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy<T> {
+    typealias Direction = IsolatedAreaIssue<T>.Direction
+
     private let restrictionsProvider = "oneway_merge"
     private var affectedPoints: Set<Point> = []
 
-    override func handle(area: Area, graph: Graph, generator: Generator) -> Bool {
-        let incomeRequired = graph.edges(to: area).count == 0
-        let outcomeRequired = graph.edges(from: area).count == 0
-
-        if incomeRequired {
-            let success = tryToAdd(.income, area: area, graph: graph, generator: generator)
-            if !success { return false }
+    override func handle(issue: IsolatedAreaIssue<T>, generator: Generator) -> Bool {
+        tryOnEachMerge(area: issue.area, field: generator.field) {
+            tryToRegenerate(
+                merge: $0,
+                direction: issue.direction,
+                area: issue.area,
+                graph: issue.graph,
+                generator: generator)
         }
-
-        if outcomeRequired {
-            let success = tryToAdd(.outgoing, area: area, graph: graph, generator: generator)
-            if !success { return false }
-        }
-
-        return true
     }
 
     override func postprocessing(generator: Generator) {
@@ -35,26 +31,15 @@ final class OnewaysMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrateg
         }
     }
 
-    private func tryToAdd(_ direction: OnewayDirection, area: Area, graph: Graph, generator: Generator) -> Bool {
-        tryOnEachMerge(area: area, field: generator.field) {
-            tryToRegenerate(
-                merge: $0,
-                direction: direction,
-                area: area,
-                graph: graph,
-                generator: generator)
-        }
-    }
-
     private func tryToRegenerate(
         merge: Merge,
-        direction: OnewayDirection,
+        direction: Direction,
         area: Area,
         graph: Graph,
         generator: Generator
     ) -> Bool {
-        let innerDirection: OnewayDirection = direction == .income ? .income : .outgoing
-        let outerDirection: OnewayDirection = direction == .income ? .outgoing : .income
+        let innerDirection: Direction = direction == .income ? .income : .outgoing
+        let outerDirection: Direction = direction == .income ? .outgoing : .income
 
         let restrictions = [
             merge.innerPoint:
@@ -81,10 +66,12 @@ final class OnewaysMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrateg
         }
     }
 
-    private func mergeRestrictions(edge: Edge, direction: OnewayDirection) -> [any SuperpositionRestriction] {
-        [
+    private func mergeRestrictions(edge: Edge, direction: Direction) -> [any SuperpositionRestriction] {
+        let onewayDirection: OnewayDirection = direction == .income ? .income : .outgoing
+
+        return [
             OnlyRequiredOnewaysRestriction(),
-            OneWayRestriction<T>(edge: edge, direction: direction)
+            OneWayRestriction<T>(edge: edge, direction: onewayDirection)
         ]
     }
 
@@ -92,7 +79,7 @@ final class OnewaysMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrateg
         merge: Merge,
         innerArea: Area,
         graph: Graph,
-        direction: OnewayDirection,
+        direction: Direction,
         generator: Generator
     ) -> Bool {
         affectedPoints.insert(merge.innerPoint)

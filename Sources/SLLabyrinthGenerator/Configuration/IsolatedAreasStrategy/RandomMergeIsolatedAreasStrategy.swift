@@ -10,8 +10,8 @@ import Foundation
 final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy<T> {
     typealias Element = T.Field.Element
 
-    override func handle(area: Area, graph: Graph, generator: Generator) -> Bool {
-        tryOnEachMerge(area: area, field: generator.field) {
+    override func handle(issue: IsolatedAreaIssue<T>, generator: Generator) -> Bool {
+        tryOnEachMerge(area: issue.area, field: generator.field) {
             tryToMerge($0, generator: generator)
         }
     }

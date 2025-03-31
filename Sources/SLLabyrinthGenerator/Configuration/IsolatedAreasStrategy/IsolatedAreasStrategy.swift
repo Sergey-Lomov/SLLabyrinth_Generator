@@ -7,6 +7,16 @@
 
 import Foundation
 
+struct IsolatedAreaIssue<T: Topology> {
+    enum Direction {
+        case income, outgoing
+    }
+
+    let area: PathsGraphArea<T>
+    let direction: Direction
+    let graph: AreasGraph<T>
+}
+
 public class IsolatedAreasStrategy<T: Topology> {
     typealias Area = PathsGraphArea<T>
     typealias Graph = AreasGraph<T>
@@ -24,7 +34,7 @@ public class IsolatedAreasStrategy<T: Topology> {
         let outerEdge: Edge
     }
 
-    func handle(area: Area, graph: Graph, generator: Generator) -> Bool {
+    func handle(issue: IsolatedAreaIssue<T>, generator: Generator) -> Bool {
         return false
     }
 

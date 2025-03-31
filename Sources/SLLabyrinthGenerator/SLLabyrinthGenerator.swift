@@ -264,6 +264,7 @@ public final class LabyrinthGenerator<T: Topology> {
         onetime: Bool = true,
         restrictionsProvider: String = UUID().uuidString
     ) -> Bool {
+        // TODO: Need refactoring, method is too large
         let originalElements: Dictionary<Point, Element> = points
             .compactMap {
                 guard let element = field.element(at: $0) else { return nil }
@@ -376,35 +377,40 @@ public final class LabyrinthGenerator<T: Topology> {
     private func resolveIsolatedAreas() {
         guard let strategy = configuration.isolatedAreasStrategy else { return }
 
-        var nextArea = isolatedAreas.vertices
-            .sorted { $0.size < $1.size }
-            .first
-
-        while let area = nextArea, isolatedAreas.vertices.count > 1 {
-            let success = strategy.handle(area: area, graph: isolatedAreas, generator: self )
+        var nextIssue = nextIsolatedAreaIssue()
+        while let issue = nextIssue, isolatedAreas.vertices.count > 1 {
+            let success = strategy.handle(issue: issue, generator: self)
             if !success {
-                isolatedAreas.removeVertex(area)
+                isolatedAreas.removeVertex(issue.area)
             }
 
-            nextArea = nextIsolatedArea()
-            if nextArea == nil {
+            nextIssue = nextIsolatedAreaIssue()
+            if nextIssue == nil {
                 isolatedAreas.groupCycled()
-                nextArea = nextIsolatedArea()
+                nextIssue = nextIsolatedAreaIssue()
             }
         }
 
         strategy.postprocessing(generator: self)
     }
 
-    private func nextIsolatedArea() -> PathsGraphArea<T>? {
-        isolatedAreas.vertices
-            .filter {
-                let noIncome = isolatedAreas.edges(to: $0).isEmpty
-                let noOutgoing = isolatedAreas.edges(from: $0).isEmpty
-                return noIncome || noOutgoing
-            }
+    private func nextIsolatedAreaIssue() -> IsolatedAreaIssue<T>? {
+        let area = isolatedAreas.vertices
+            .filter { issueDirection($0) != nil }
             .sorted { $0.size < $1.size }
             .first
+
+        guard let area = area, let direction = issueDirection(area) else { return nil }
+        return IsolatedAreaIssue(area: area, direction: direction, graph: isolatedAreas)
+    }
+
+    private func issueDirection(_ area: PathsGraphArea<T>) -> IsolatedAreaIssue<T>.Direction? {
+        let incomes = !isolatedAreas.edges(to: area).isEmpty
+        let outgoings = !isolatedAreas.edges(from: area).isEmpty
+
+        if !incomes { return .income }
+        if !outgoings { return .outgoing }
+        return nil
     }
 
     private func setupSuperProvider() -> SuperpositionsProvider<T> {
