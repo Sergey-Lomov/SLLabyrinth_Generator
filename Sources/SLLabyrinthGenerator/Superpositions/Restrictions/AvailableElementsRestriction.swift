@@ -11,12 +11,20 @@ final class AvailableElementsRestriction: NodeRestriction {
     var categories: [String] = []
     var allowUncategorized: Bool = true
 
+    init(category: String) {
+        self.categories = [category]
+    }
+
     init(categories: [String]) {
         self.categories = categories
     }
 
     init(type: any CategorizedSuperposition.Type) {
         self.categories = [type.category]
+    }
+
+    init(types: [any CategorizedSuperposition.Type]) {
+        self.categories = types.map { $0.category}
     }
 
     func validateElement<T>(_ element: T) -> Bool where T : ElementSuperposition {

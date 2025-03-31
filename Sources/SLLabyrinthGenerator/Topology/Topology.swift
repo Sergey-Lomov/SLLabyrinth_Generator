@@ -11,6 +11,7 @@ import Foundation
 public protocol Topology: UnconstrainedTopology
 where Field.Point == Point,
       Superposition.Point == Point,
+      Superposition.Field == Field,
       Superposition.Nested.Element == Field.Element {
 }
 
@@ -22,6 +23,9 @@ public protocol UnconstrainedTopology {
 
     /// This method returns a list of edges that are sufficient to connect all topology points together. For example, in a square topology, it may be a 'right'-'down' pair or any other pair consisting of one vertical and one horizontal edge.
     static func coverageFlowEdges() -> [Edge]
+
+    /// This method returns distance bewteen two points
+    static func distance(point1: Point, point2: Point) -> Float
 
     /// Returns a point connected to the specified point through the specified edge.
     static func nextPoint(point: Point, edge: Edge) -> Point

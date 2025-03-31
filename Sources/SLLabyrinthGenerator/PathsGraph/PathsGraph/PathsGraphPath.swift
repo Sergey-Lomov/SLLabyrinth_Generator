@@ -10,16 +10,15 @@ import Foundation
 final class PathsGraphPath<T: Topology>: GraphPath<PathsGraphEdge<T>> {
 
     @Cached var points: [T.Point]
-    @Cached var lenght: Int
+    @Cached var lenght: Float
 
     override init() {
         super.init()
 
         _lenght.compute =  { [unowned self] in
-            let edgesLengths = self.edges
-                .map { $0.points.count - 1 }
+            return self.edges
+                .map { $0.length }
                 .reduce(0, +)
-            return edgesLengths + 1
         }
 
         _points.compute =  { [unowned self] in

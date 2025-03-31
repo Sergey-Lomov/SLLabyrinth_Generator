@@ -13,7 +13,13 @@ protocol DictionaryBasedField: TopologyField {
 
 extension DictionaryBasedField {
 
-    func allPoints() -> [Point] { Array(nodes.keys) }
+    func allPoints() -> Set<Point> { nodes.keys.toSet() }
+
+    func undefinedPoints() -> Set<Point> {
+        nodes
+            .compactMap { Element.isUndefined($1) ? $0 : nil }
+            .toSet()
+    }
 
     func element(at point: Point) -> Element? { nodes[point] }
 
@@ -23,7 +29,7 @@ extension DictionaryBasedField {
 
     func copy() -> Self {
         var copy = Self(size: size)
-        copy.nodes = self.nodes
+        copy.nodes = self.nodes.map { ($0, $1) }.toDictionary()
         return copy
     }
 

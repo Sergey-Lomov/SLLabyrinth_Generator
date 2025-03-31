@@ -103,25 +103,21 @@ final class OnewaysMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrateg
             return false
         }
 
-        let innerPatch = generator.pathsGraph.embedVertex(atPoint: merge.innerPoint)
-        let outerPatch = generator.pathsGraph.embedVertex(atPoint: merge.outerPoint)
-        innerPatch.apply(on: innerArea.graph)
-        outerPatch.apply(on: outerArea.graph)
-
+        let innerPatch = innerArea.graph.embedVertex(atPoint: merge.innerPoint)
+        let outerPatch = outerArea.graph.embedVertex(atPoint: merge.outerPoint)
         guard let innerVertex = innerPatch.addedVertices.first,
               let outerVertex = outerPatch.addedVertices.first else {
             return false
         }
 
         let points = [merge.innerPoint, merge.outerPoint]
-        var pathsEdge = PathsGraphEdge<T>(points: points, from: innerVertex, to: outerVertex)
+        var pathsEdge = PathsGraphEdge<T>(type: .common, points: points, from: innerVertex, to: outerVertex)
         var areasEdge = AreasGraphEdge(pathsEdge: pathsEdge, from: innerArea, to: outerArea)
         if direction == .income {
             pathsEdge = pathsEdge.reversed()
             areasEdge = areasEdge.reversed()
         }
 
-        generator.pathsGraph.appendEdge(pathsEdge)
         graph.appendEdge(areasEdge)
         graph.groupFirstMuttuallyReachable(from: areasEdge)
 

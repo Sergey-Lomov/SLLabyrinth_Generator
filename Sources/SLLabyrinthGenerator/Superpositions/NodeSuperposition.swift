@@ -9,7 +9,8 @@ import Foundation
 
 public protocol NodeSuperposition: IdHashable {
     associatedtype Point: TopologyPoint
-    associatedtype Nested: ElementSuperposition
+    associatedtype Field: TopologyField
+    associatedtype Nested: ElementSuperposition where Nested.Field == Field, Nested.Point == Point
 
     var point: Point { get }
     var elementsSuperpositions: [Nested] { get }
@@ -20,10 +21,15 @@ public protocol NodeSuperposition: IdHashable {
 
     func copy() -> Self
 
+    func waveFunctionCollapse(
+        weights: ElementsWeightsContainer,
+        point: Point,
+        field: Field
+    ) -> Nested.Element?
+
     func applyRestriction(_ restriction: AppliedRestriction)
     func applyRestriction(_ restriction: any SuperpositionRestriction, provider: String, onetime: Bool)
     func applyRestrictions(_ restrictions: [any SuperpositionRestriction], provider: String, onetime: Bool)
-    func waveFunctionCollapse(weights: ElementsWeightsContainer) -> Nested.Element?
 
     @discardableResult
     func resetRestrictions() -> [AppliedRestriction]
@@ -50,6 +56,7 @@ extension NodeSuperposition {
 /// Node superposition
 final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
     typealias Point = T.Point
+    typealias Field = T.Field
     typealias Nested = TopologyBasedElementSuperposition<T>
 
     var id = UUID().uuidString
@@ -58,13 +65,16 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
     var availableElements: Set<Nested> = []
     private var restrictions: [AppliedRestriction] = []
 
-    @Cached var entropy: Int
+    var entropy: Int {
+        availableElements
+            .map { $0.entropy }
+            .reduce(0, +)
+    }
 
     init(point: Point, elementsSuperpositions: [Nested]) {
         self.point = point
         self.elementsSuperpositions = elementsSuperpositions
         self.availableElements = elementsSuperpositions.toSet()
-        _entropy.compute = { [unowned self] in self.caclulateEntropy() }
     }
 
     init(superposition: TopologyBasedNodeSuperposition<T>) {
@@ -89,14 +99,13 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
         default:
             break
         }
-
-        _entropy.invaliade()
     }
 
     // TODO: Remove teseting code or refatoring
     private func validateRestrictions() {
-        let rests = restrictions.compactMap {
-            $0.restriction as? TopologyBasedElementRestriction<T>
+        let rests: [TopologyBasedElementRestriction<T>] = restrictions.compactMap {
+            guard !$0.isOnetime else { return nil }
+            return $0.restriction as? TopologyBasedElementRestriction<T>
         }
         
         for restriction in rests {
@@ -122,19 +131,30 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
         }
     }
 
-    func waveFunctionCollapse(weights: ElementsWeightsContainer) -> T.Field.Element? {
-        let filtered = availableElements.filter { $0.entropy > 0 }
+    func waveFunctionCollapse(
+        weights: ElementsWeightsContainer,
+        point: Point,
+        field: Field
+    ) -> Field.Element? {
+        let available = availableElements.filter { $0.entropy > 0 }
         restrictions = restrictions.filter { !$0.isOnetime }
-        let weighted = filtered.map { ($0, weights.weight($0)) }
-        let elementSuperposition = RandomPicker.weigthed(weighted)
-        return elementSuperposition?.waveFunctionCollapse()
+
+        while available.count > 0 {
+            let weighted = available.map { ($0, weights.weight($0)) }
+            let elementSuperposition = RandomPicker.weigthed(weighted)
+            if let element = elementSuperposition?.waveFunctionCollapse(point: point, field: field) {
+                return element
+            }
+
+        }
+
+        return nil
     }
 
     @discardableResult
     func resetRestrictions() -> [AppliedRestriction] {
         defer {
             restrictions = []
-            _entropy.invaliade()
         }
 
         availableElements = elementsSuperpositions.toSet()

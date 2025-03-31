@@ -5,6 +5,8 @@
 //  Created by serhii.lomov on 05.03.2025.
 //
 
+import math_h
+
 final class SquareTopology: Topology {
     typealias Point = SquarePoint
     typealias Edge = SquareEdge
@@ -18,6 +20,12 @@ final class SquareTopology: Topology {
         case .top: return SquarePoint(x: point.x, y: point.y + 1)
         case .bottom: return SquarePoint(x: point.x, y: point.y - 1)
         }
+    }
+
+    static func distance(point1: SquarePoint, point2: SquarePoint) -> Float {
+        let dx = Float(point1.x - point2.x)
+        let dy = Float(point1.y - point2.y)
+        return sqrt(dx*dx + dy*dy)
     }
 
     static func oppositeEdge(_ edge: Edge) -> Edge? {

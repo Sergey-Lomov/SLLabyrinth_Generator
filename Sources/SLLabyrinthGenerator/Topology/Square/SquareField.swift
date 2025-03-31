@@ -24,8 +24,11 @@ final class SquareField: DictionaryBasedField {
     }
 
     func connectedPoints(_ point: SquarePoint) -> [SquarePoint] {
-        let connected = element(at: point)?.connectedPoints(point)
-        let nearest = SquareEdge.allCases.map { SquareTopology.nextPoint(point: point, edge: $0) }
-        return (connected ?? nearest).filter { contains($0) }
+        guard let element = element(at: point) else { return [] }
+        guard !Element.isUndefined(element) else { return [] }
+
+        return element.connected(point)
+            .filter { contains($0.point) }
+            .map { $0.point }
     }
 }

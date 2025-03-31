@@ -14,10 +14,6 @@ final class Solid<T: Topology>: PassagesBasedElement<T> {
     init() {
         super.init(passages: [])
     }
-    
-    required init(passages: [T.Edge]) {
-        super.init(passages: [])
-    }
 }
 
 final class SolidSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, CategorizedSuperposition {
@@ -60,8 +56,8 @@ final class SolidSuperposition<T: Topology>: TopologyBasedElementSuperposition<T
         available = true
     }
 
-    override func waveFunctionCollapse() -> T.Field.Element? {
-        let solid = Solid<T>() as? T.Field.Element
+    override func waveFunctionCollapse(point: Point, field: Field) -> Field.Element? {
+        let solid = Solid<T>() as? Field.Element
         return available ? solid : nil
     }
 }

@@ -45,29 +45,21 @@ final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy
             return false
         }
 
-        let patch1 = generator.pathsGraph.embedVertex(atPoint: point1)
-        let patch2 = generator.pathsGraph.embedVertex(atPoint: point2)
-        patch1.apply(on: area1.graph)
-        patch2.apply(on: area2.graph)
-
+        let patch1 = area1.graph.embedVertex(atPoint: point1)
+        let patch2 = area2.graph.embedVertex(atPoint: point2)
         guard let vertex1 = patch1.addedVertices.first,
               let vertex2 = patch2.addedVertices.first else {
             return false
         }
 
-        let edge1_2 = PathsGraphEdge<T>(points: [point1, point2], from: vertex1, to: vertex2)
+        let edge1_2 = PathsGraphEdge<T>(type: .common, points: [point1, point2], from: vertex1, to: vertex2)
         let edge2_1 = edge1_2.reversed()
-        generator.pathsGraph.appendEdge(edge1_2)
-        generator.pathsGraph.appendEdge(edge2_1)
-
         let areasEdge1_2 = AreasGraphEdge(pathsEdge: edge1_2, from: area1, to: area2)
         let areasEdge2_1 = AreasGraphEdge(pathsEdge: edge2_1, from: area2, to: area1)
+
         generator.isolatedAreas.appendEdge(areasEdge1_2)
         generator.isolatedAreas.appendEdge(areasEdge2_1)
         generator.isolatedAreas.groupFirstMuttuallyReachable(from: areasEdge1_2)
-
-        generator.pathsGraph.compactize(vertex: vertex1)
-        generator.pathsGraph.compactize(vertex: vertex2)
 
         return true
     }

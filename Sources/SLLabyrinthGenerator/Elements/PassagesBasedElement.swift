@@ -9,7 +9,7 @@
 class PassagesBasedElement<T: Topology>: TopologyBasedLabyrinthElement<T> {
     var passages: [T.Edge]
 
-    required init(passages: [T.Edge]) {
+    init(passages: [T.Edge]) {
         self.passages = passages
     }
 
@@ -26,9 +26,10 @@ class PassagesBasedElement<T: Topology>: TopologyBasedLabyrinthElement<T> {
         }
     }
 
-    override func connectedPoints(_ point: T.Point) -> [T.Point] {
+    override func connected(_ point: Point) -> [ElementsConnection<Point>] {
         passages.map {
-            T.nextPoint(point: point, edge: $0)
+            let point = T.nextPoint(point: point, edge: $0)
+            return ElementsConnection(point: point, edgeType: .common)
         }
     }
 }

@@ -9,7 +9,9 @@ import Foundation
 
 /// This protocol describes the element superposition. This means an element with partially undetermined property values. For example, "deadend with an entrance from the north or from the west".
 public protocol ElementSuperposition: IdHashable {
+    associatedtype Point: TopologyPoint
     associatedtype Edge: TopologyEdge
+    associatedtype Field: TopologyField
     associatedtype Element: LabyrinthElement
 
     init()
@@ -30,13 +32,15 @@ public protocol ElementSuperposition: IdHashable {
     /// Collapse means superposition resolution. Thus, the superposition becomes a fully determined element.
     /// For example, the superposition "deadend with entrance from south or west" may collapse to the element "deadend with entrance from south."
     /// - Returns: A new element, or nil if element creation fails (due to applied restrictions)
-    func waveFunctionCollapse() -> Element?
+    func waveFunctionCollapse(point: Point, field: Field) -> Element?
 
     func copy() -> Self
 }
 
 class TopologyBasedElementSuperposition<T: Topology>: ElementSuperposition {    
+    typealias Point = T.Point
     typealias Edge = T.Edge
+    typealias Field = T.Field
     typealias Element = T.Field.Element
 
     var id = UUID().uuidString
@@ -56,6 +60,6 @@ class TopologyBasedElementSuperposition<T: Topology>: ElementSuperposition {
     func applySpecificRestriction(_ restriction: any ElementRestriction) -> Bool { false }
 
     func resetRestrictions() {}
-    func waveFunctionCollapse() -> T.Field.Element? { return nil }
+    func waveFunctionCollapse(point: Point, field: Field) -> T.Field.Element? { return nil }
     func copy() -> Self { fatalError("Should be overrided in derived class") }
 }

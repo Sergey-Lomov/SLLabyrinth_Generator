@@ -123,7 +123,7 @@ final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperpos
         inconsistentRestrinctions = false
     }
 
-    override func waveFunctionCollapse() -> T.Field.Element? {
+    override func waveFunctionCollapse(point: Point, field: Field) -> Field.Element? {
         var collapsedEdges = edges
         let undefined = collapsedEdges[.undefined, default: []].shuffled().toSet()
 
@@ -163,7 +163,7 @@ final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperpos
             walls: walls
         )
 
-        return holder as? T.Field.Element
+        return holder as? Field.Element
     }
 
     private func checkConsistency() {

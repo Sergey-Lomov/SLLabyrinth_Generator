@@ -8,13 +8,13 @@
 import Foundation
 
 /// A labyrinth element with only one entrance.
-final class Deadend<T: Topology>: PassagesBasedElement<T> { }
+final class Deadend<T: Topology>: PassagesInstantiableElement<T> { }
 
-final class DeadendSuperposition<T: Topology>: PassagesBasedSuperposition<T, Deadend<T>>, CategorizedSuperposition {
+final class DeadendSuperposition<T: Topology>: PassagesInstantiableSuperposition<T, Deadend<T>>, CategorizedSuperposition {
 
     static var category: String { "deadend" }
 
-    override func filterInitial(_ variant: [T.Edge]) -> Bool {
+    override func filterInitialPassages(_ variant: [T.Edge]) -> Bool {
         variant.count == 1
     }
 }

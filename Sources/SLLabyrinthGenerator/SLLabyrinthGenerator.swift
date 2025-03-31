@@ -54,6 +54,7 @@ public final class LabyrinthGenerator<T: Topology> {
     func generateLabyrinth(saveStates: Bool = true) -> TimeLog {
         let timeLog = TimeLog()
 
+        field = Field(size: configuration.size)
         executeStep(.collapse, log: timeLog, save: saveStates)
         executeStep(.paths, log: timeLog, save: saveStates)
         executeStep(.isolated, log: timeLog, save: saveStates)
@@ -102,7 +103,7 @@ public final class LabyrinthGenerator<T: Topology> {
 
         field = state.field.copy()
         superpositions = state.superpositions.mapValues { $0.copy() }
-        affectedArea = self.affectedArea.mapValues { pointSups in
+        affectedArea = state.affectedArea.mapValues { pointSups in
             pointSups.compactMap { superpositions[$0.point] }
         }
         pathsGraph = state.pathsGraph.copy()
@@ -147,7 +148,7 @@ public final class LabyrinthGenerator<T: Topology> {
         guard configuration.cycledAreasStrategy != nil else { return }
 
         timeLog("Calculate cycles areas") { calculateCyclesAreas() }
-        timeLog("Resolve cycles areas") { resolveCyclesAreas() }
+//        timeLog("Resolve cycles areas") { resolveCyclesAreas() }
 
         if save {
             timeLog("Save state") { saveState(step: .cycles) }
@@ -212,7 +213,11 @@ public final class LabyrinthGenerator<T: Topology> {
         uncollapsed.remove(superposition)
         let point = superposition.point
         let solid = Solid<T>() as? Element
-        let generated = superposition.waveFunctionCollapse(weights: configuration.elementsWeights)
+        let generated = superposition.waveFunctionCollapse(
+            weights: configuration.elementsWeights,
+            point: point,
+            field: field
+        )
         let element = generated ?? solid
         guard let element = element else { return }
         setFieldElement(at: point, element: element, entropyContainer: uncollapsed)
@@ -257,7 +262,7 @@ public final class LabyrinthGenerator<T: Topology> {
         points: [Point],
         restrictions: Dictionary<Point, [any SuperpositionRestriction]> = [:],
         onetime: Bool = true,
-        restrictionsProvider: String = ""
+        restrictionsProvider: String = UUID().uuidString
     ) -> Bool {
         let originalElements: Dictionary<Point, Element> = points
             .compactMap {
@@ -273,22 +278,77 @@ public final class LabyrinthGenerator<T: Topology> {
             sup.applyRestrictions(restrictions, provider: restrictionsProvider, onetime: onetime)
         }
 
-        let newElements: [(Point, Element)] = points.compactMap { point in
-            guard let sup = superpositions[point] else { return nil }
-            let element = sup.waveFunctionCollapse(weights: configuration.elementsWeights)
-            guard let element = element else { return nil }
-            return (point, element)
+        let weights = configuration.elementsWeights
+        var success: Bool = true
+        for point in points {
+            guard let sup = superpositions[point] else {
+                success = false
+                break
+            }
+
+            let element = sup.waveFunctionCollapse(weights: weights, point: point, field: field)
+            guard let element = element else {
+                success = false
+                break
+            }
+            setFieldElement(at: point, element: element)
         }
 
-        let success = newElements.count == points.count
         if success {
-            newElements.forEach { setFieldElement(at: $0, element: $1) }
+            var connectedVertices: Set<PathsGraphVertex<T>> = []
+
+            for point in points {
+                let edges = pathsGraph.edges.filter { $0.points.contains(point) }
+                let nearest = edges.flatMap { edge in
+                    edge.points.enumerated().compactMap { index, edge_point in
+                        let next = edge.points[safe: index + 1]
+                        let previous = edge.points[safe: index - 1]
+                        return next == point || previous == point ? edge_point : nil
+                    }
+                }.toSet()
+
+                nearest.forEach {
+                    let patch = pathsGraph.embedVertex(atPoint: $0)
+                    connectedVertices.formUnion(patch.addedVertices)
+                }
+
+                let oldVertices = pathsGraph.vertices.filter { $0.point == point }
+                oldVertices.forEach { pathsGraph.removeVertex($0) }
+                let oldEdges = pathsGraph.edges.filter { $0.points.contains(point) }
+                oldEdges.forEach { pathsGraph.removeEdge($0) }
+            }
+
+            for point in points {
+                guard let new = field.element(at: point) else { continue }
+                new.connected(point).forEach {
+                    guard field.contains($0.point) else { return }
+                    let points = [point, $0.point]
+                    pathsGraph.appendEdge(type: $0.edgeType, points: points)
+                }
+            }
+
+            connectedVertices.forEach { vertex in
+                guard let element = field.element(at: vertex.point) else { return }
+                let connected = element.connected(vertex.point)
+                let filtered = connected.filter { points.contains($0.point) }
+                filtered.forEach { connection in
+                    let points = [vertex.point, connection.point]
+                    pathsGraph.appendEdge(type: connection.edgeType, points: points)
+                }
+            }
+
+            connectedVertices.forEach { pathsGraph.compactize(vertex: $0) }
+            pathsGraph.vertices
+                .filter { points.contains($0.point) }
+                .forEach { pathsGraph.compactize(vertex: $0) }
+
         } else {
-            originalElements.forEach {
-                if let sup = superpositions[$0] {
+            originalElements.forEach { point, element in
+                eraseFieldElement(at: point)
+                if let sup = superpositions[point] {
                     sup.resetRestrictions(by: restrictionsProvider)
                 }
-                setFieldElement(at: $0, element: $1)
+                setFieldElement(at: point, element: element)
             }
         }
 
@@ -355,6 +415,7 @@ public final class LabyrinthGenerator<T: Topology> {
         superProvider.reqisterSuperposition(CornerPathSuperposition<T>.self)
         superProvider.reqisterSuperposition(JunctionSuperposition<T>.self)
         superProvider.reqisterSuperposition(OneWayHolderSuperposition<T>.self)
+        superProvider.reqisterSuperposition(TeleporterSuperposition<T>.self)
 
         return superProvider
     }

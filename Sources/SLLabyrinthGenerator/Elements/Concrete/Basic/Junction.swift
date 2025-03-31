@@ -8,14 +8,14 @@
 import Foundation
 
 /// A labyrinth element with more than two entrances.
-final class Junction<T: Topology>: PassagesBasedElement<T> {}
+final class Junction<T: Topology>: PassagesInstantiableElement<T> {}
 
-final class JunctionSuperposition<T: Topology>: PassagesBasedSuperposition<T, Junction<T>>, CategorizedSuperposition {
+final class JunctionSuperposition<T: Topology>: PassagesInstantiableSuperposition<T, Junction<T>>, CategorizedSuperposition {
     typealias Element = Junction
 
     static var category: String { "junction" }
 
-    override func filterInitial(_ variant: [T.Edge]) -> Bool {
+    override func filterInitialPassages(_ variant: [T.Edge]) -> Bool {
         variant.count > 2
     }
 }

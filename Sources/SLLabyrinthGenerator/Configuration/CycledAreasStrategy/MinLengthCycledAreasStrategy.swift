@@ -12,9 +12,9 @@ final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
 
     private let providerPrefix = "cycles_resolving_"
 
-    let minLength: Int
+    let minLength: Float
 
-    init(minLength: Int) {
+    init(minLength: Float) {
         self.minLength = minLength
     }
 

@@ -14,6 +14,7 @@ protocol EdgeBasedElementRestriction: ElementRestriction {
     associatedtype Edge: TopologyEdge
 }
 
+// TODO: Should be renamed to passages based element restriction. Also should be removed fieldEdge case. Related method in superposition also should be renamed.
 enum TopologyBasedElementRestriction<T: Topology>: EdgeBasedElementRestriction, Equatable {
     typealias Edge = T.Edge
 

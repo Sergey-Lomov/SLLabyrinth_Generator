@@ -24,9 +24,10 @@ final class OneWayHolder<T: Topology>: TopologyBasedLabyrinthElement<T> {
         self.walls = walls
     }
 
-    override func connectedPoints(_ point: T.Point) -> [T.Point] {
+    override func connected(_ point: Point) -> [ElementsConnection<Point>] {
         (passages + outgoings).map {
-            T.nextPoint(point: point, edge: $0)
+            let point = T.nextPoint(point: point, edge: $0)
+            return ElementsConnection(point: point, edgeType: .common)
         }
     }
 

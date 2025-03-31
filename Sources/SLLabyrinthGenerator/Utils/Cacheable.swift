@@ -25,4 +25,9 @@ final class Cached<T: ZeroRepresentable> {
     func invaliade() {
         cached = nil
     }
+
+    func copyFrom(_ obj: Cached<T>) {
+        compute = obj.compute
+        cached = obj.cached
+    }
 }

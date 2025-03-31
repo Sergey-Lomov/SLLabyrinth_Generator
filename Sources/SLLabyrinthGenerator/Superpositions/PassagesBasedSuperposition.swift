@@ -5,30 +5,37 @@
 //  Created by serhii.lomov on 28.03.2025.
 //
 
-class PassagesBasedSuperposition<T, E>: TopologyBasedElementSuperposition<T> where T: Topology, E: PassagesBasedElement<T> {
-    func filterInitial(_ variant: [T.Edge]) -> Bool { return true }
+class PassagesBasedSuperposition<T: Topology>: TopologyBasedElementSuperposition<T> {
 
-    func initialVariations() -> [[T.Edge]] {
-        let id = String(reflecting: Self.self) + "_initVariations"
+    func filterInitialPassages(_ variant: [T.Edge]) -> Bool {
+        fatalError("Should be overrided in derived classes")
+    }
+
+    private func initialPassages() -> [[T.Edge]] {
+        let id = String(reflecting: Self.self) + "_initPassages"
         return GlobalCache.getValue(id: id) {
-            T.Edge.allCases.combinations().filter { filterInitial($0) }
+            T.Edge.allCases.combinations().filter {
+                filterInitialPassages($0)
+            }
         }
     }
 
-    private var passagesVariations: [[T.Edge]] = []
+    internal var passagesVariations: [[T.Edge]] = []
 
     required init() {
         super.init()
-        passagesVariations = initialVariations()
+        passagesVariations = initialPassages()
     }
 
-    required init(variations: [[T.Edge]]) {
+    init(variations: [[T.Edge]]) {
         super.init()
         self.passagesVariations = variations
     }
 
     override func copy() -> Self {
-        Self.init(variations: passagesVariations)
+        let copy = Self.init()
+        copy.passagesVariations = passagesVariations
+        return copy
     }
 
     override var entropy: Int {
@@ -49,12 +56,7 @@ class PassagesBasedSuperposition<T, E>: TopologyBasedElementSuperposition<T> whe
     }
 
     override func resetRestrictions() {
-        passagesVariations = initialVariations()
-    }
-
-    override func waveFunctionCollapse() -> T.Field.Element? {
-        guard let variation = passagesVariations.randomElement() else { return nil }
-        return E.init(passages: variation) as? T.Field.Element
+        passagesVariations = initialPassages()
     }
 }
 

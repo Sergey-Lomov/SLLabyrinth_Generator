@@ -145,6 +145,10 @@ class Graph<Edge: GraphEdge> {
             }
         }.toSet()
 
+        for path in paths {
+            if successValidator(path) { return path }
+        }
+
         while !paths.isEmpty {
             // TODO: Remove test code
             if paths.count > 2000 {
@@ -159,9 +163,13 @@ class Graph<Edge: GraphEdge> {
 
                 for edge in edges(from: to) {
 
-                    guard forbidReversed && lastEdge.isReversed(edge) else { continue }
+                    if forbidReversed && lastEdge.isReversed(edge) { continue }
 
-                    guard forbidSelfIntersections && path.contains(edge.to) && edge.to != path.from else { continue }
+                    if forbidSelfIntersections {
+                        if path.contains(edge.to) && edge.to != path.from {
+                            continue
+                        }
+                    }
 
                     if forbidGlobalIntersections {
                         if visited.contains(edge.to) {

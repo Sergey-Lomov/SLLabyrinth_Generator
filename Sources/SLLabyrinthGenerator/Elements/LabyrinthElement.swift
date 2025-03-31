@@ -7,6 +7,11 @@
 
 import Foundation
 
+public struct ElementsConnection<P: TopologyPoint> {
+    let point: P
+    let edgeType: PathsGraphEdgeType
+}
+
 public protocol LabyrinthElement: AnyObject, Hashable {
     associatedtype Point: TopologyPoint
 
@@ -14,10 +19,12 @@ public protocol LabyrinthElement: AnyObject, Hashable {
 
     var id: String { get }
     var isVisitable: Bool { get }
-    func connectedPoints(_ point: Point) -> [Point]
+
+    func connected(_ point: Point) -> [ElementsConnection<Point>]
     func outcomeRestrictions<F: TopologyField>(point: Point, field: F) -> OutcomeRestrictions
 
     static func undefined<U: LabyrinthElement>() -> U?
+    static func isUndefined(_ element: any LabyrinthElement) -> Bool
 }
 
 class TopologyBasedLabyrinthElement<T: Topology>: LabyrinthElement, IdHashable {
@@ -28,9 +35,13 @@ class TopologyBasedLabyrinthElement<T: Topology>: LabyrinthElement, IdHashable {
     var isVisitable: Bool { true }
     var id: String = "element_" + UUID().uuidString
 
-    func connectedPoints(_ point: Point) -> [Point] { [] }
+    func connected(_ point: Point) -> [ElementsConnection<Point>] { [] }
 
     func outcomeRestrictions<F: TopologyField>(point: Point, field: F) -> OutcomeRestrictions { [:] }
 
     static func undefined<U: LabyrinthElement>() -> U? { UndefinedElement<T>.init() as? U }
+
+    static func isUndefined(_ element: any LabyrinthElement) -> Bool {
+        element is UndefinedElement<T>
+    }
 }
