@@ -47,23 +47,20 @@ final class OnewaysMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrateg
             merge.outerPoint:
                 mergeRestrictions(edge: merge.outerEdge, direction: outerDirection)
         ]
-        let success = generator.regenerate(
+        let result = generator.regenerate(
             points: [merge.innerPoint, merge.outerPoint],
             restrictions: restrictions,
             onetime: false,
             restrictionsProvider: restrictionsProvider
         )
 
-        if success {
-            return handleSuccessRegeneration(
-                merge: merge,
-                innerArea: area,
-                graph: graph,
-                direction: direction,
-                generator: generator)
-        } else {
-            return false
-        }
+        guard result.isSuccess else { return false }
+        return handleSuccessRegeneration(
+            merge: merge,
+            innerArea: area,
+            graph: graph,
+            direction: direction,
+            generator: generator)
     }
 
     private func mergeRestrictions(edge: Edge, direction: Direction) -> [any SuperpositionRestriction] {

@@ -258,12 +258,23 @@ public final class LabyrinthGenerator<T: Topology> {
         }
     }
 
+    enum FieldRegenerationResult {
+        case success
+        case fail(point: Point)
+
+        var isSuccess: Bool {
+            switch self {
+            case .success: return true
+            default: return false
+            }
+        }
+    }
     func regenerate(
         points: [Point],
         restrictions: Dictionary<Point, [any SuperpositionRestriction]> = [:],
         onetime: Bool = true,
         restrictionsProvider: String = UUID().uuidString
-    ) -> Bool {
+    ) -> FieldRegenerationResult {
         // TODO: Need refactoring, method is too large
         let originalElements: Dictionary<Point, Element> = points
             .compactMap {
@@ -280,24 +291,24 @@ public final class LabyrinthGenerator<T: Topology> {
         }
 
         let weights = configuration.elementsWeights
-        var success: Bool = true
+        var result: FieldRegenerationResult = .success
         for point in points {
             guard let sup = superpositions[point] else {
-                success = false
+                result = .fail(point: point)
                 break
             }
 
             let element = sup.waveFunctionCollapse(weights: weights, point: point, field: field)
             guard let element = element else {
-                success = false
+                result = .fail(point: point)
                 break
             }
             setFieldElement(at: point, element: element)
         }
 
-        if success {
+        if result.isSuccess {
             var connectedVertices: Set<PathsGraphVertex<T>> = []
-
+            
             for point in points {
                 let edges = pathsGraph.edges.filter { $0.points.contains(point) }
                 let nearest = edges.flatMap { edge in
@@ -307,18 +318,18 @@ public final class LabyrinthGenerator<T: Topology> {
                         return next == point || previous == point ? edge_point : nil
                     }
                 }.toSet()
-
+                
                 nearest.forEach {
                     let patch = pathsGraph.embedVertex(atPoint: $0)
                     connectedVertices.formUnion(patch.addedVertices)
                 }
-
+                
                 let oldVertices = pathsGraph.vertices.filter { $0.point == point }
                 oldVertices.forEach { pathsGraph.removeVertex($0) }
                 let oldEdges = pathsGraph.edges.filter { $0.points.contains(point) }
                 oldEdges.forEach { pathsGraph.removeEdge($0) }
             }
-
+            
             for point in points {
                 guard let new = field.element(at: point) else { continue }
                 new.connected(point).forEach {
@@ -327,7 +338,7 @@ public final class LabyrinthGenerator<T: Topology> {
                     pathsGraph.appendEdge(type: $0.edgeType, points: points)
                 }
             }
-
+            
             connectedVertices.forEach { vertex in
                 guard let element = field.element(at: vertex.point) else { return }
                 let connected = element.connected(vertex.point)
@@ -337,12 +348,11 @@ public final class LabyrinthGenerator<T: Topology> {
                     pathsGraph.appendEdge(type: connection.edgeType, points: points)
                 }
             }
-
+            
             connectedVertices.forEach { pathsGraph.compactize(vertex: $0) }
             pathsGraph.vertices
                 .filter { points.contains($0.point) }
                 .forEach { pathsGraph.compactize(vertex: $0) }
-
         } else {
             originalElements.forEach { point, element in
                 eraseFieldElement(at: point)
@@ -353,7 +363,7 @@ public final class LabyrinthGenerator<T: Topology> {
             }
         }
 
-        return success
+        return result
     }
 
     private func calculateCyclesAreas() {

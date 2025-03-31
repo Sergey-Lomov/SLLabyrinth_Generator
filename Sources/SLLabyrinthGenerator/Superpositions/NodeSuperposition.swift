@@ -79,9 +79,17 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
 
     init(superposition: TopologyBasedNodeSuperposition<T>) {
         self.point = superposition.point
-        self.elementsSuperpositions = superposition.elementsSuperpositions.map { $0.copy() }
-        self.availableElements = superposition.availableElements
         self.restrictions = superposition.restrictions
+        self.elementsSuperpositions = []
+        self.availableElements = []
+
+        superposition.elementsSuperpositions.forEach {
+            let copy = $0.copy()
+            elementsSuperpositions.append(copy)
+            if superposition.availableElements.contains($0) {
+                availableElements.insert(copy)
+            }
+        }
     }
 
     func applyRestriction(_ restriction: any SuperpositionRestriction, provider: String, onetime: Bool = false) {
@@ -136,16 +144,16 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
         point: Point,
         field: Field
     ) -> Field.Element? {
-        let available = availableElements.filter { $0.entropy > 0 }
+        var available = availableElements.filter { $0.entropy > 0 }
         restrictions = restrictions.filter { !$0.isOnetime }
 
         while available.count > 0 {
             let weighted = available.map { ($0, weights.weight($0)) }
-            let elementSuperposition = RandomPicker.weigthed(weighted)
-            if let element = elementSuperposition?.waveFunctionCollapse(point: point, field: field) {
+            guard let superposition = RandomPicker.weigthed(weighted) else { continue }
+            if let element = superposition.waveFunctionCollapse(point: point, field: field) {
                 return element
             }
-
+            available.remove(superposition)
         }
 
         return nil

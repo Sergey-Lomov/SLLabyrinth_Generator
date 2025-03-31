@@ -87,12 +87,12 @@ final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
         ]
         let provider = providerPrefix + areaId
 
-        let success = generator.regenerate(
+        let result = generator.regenerate(
             points: [point1, point2],
             restrictions: restrictions,
             restrictionsProvider: provider
         )
 
-        return success
+        return result.isSuccess
     }
 }

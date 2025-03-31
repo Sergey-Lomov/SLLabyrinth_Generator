@@ -14,9 +14,11 @@ final class TeleporterSuperposition<T: Topology>: PassagesBasedSuperposition<T>,
     private var entropyCoefficient: Int = 1
     private var types = TeleporterType.allCases.toSet()
     private var prefeinedTarget: T.Point?
+    private var targetingConflict = false
 
     override var entropy: Int {
-        super.entropy * entropyCoefficient
+        guard !targetingConflict else { return 0 }
+        return super.entropy * entropyCoefficient
     }
 
     override func filterInitialPassages(_ variant: [T.Edge]) -> Bool {
@@ -29,6 +31,9 @@ final class TeleporterSuperposition<T: Topology>: PassagesBasedSuperposition<T>,
             entropyCoefficient = restriction.coefficient
             return true
         case let restriction as TeleporterRestriction<T>:
+            if prefeinedTarget != nil && restriction.target != nil {
+                targetingConflict = prefeinedTarget != restriction.target
+            }
             prefeinedTarget = restriction.target ?? prefeinedTarget
             types.formIntersection(restriction.types)
             return true
@@ -40,6 +45,8 @@ final class TeleporterSuperposition<T: Topology>: PassagesBasedSuperposition<T>,
     override func resetRestrictions() {
         super.resetRestrictions()
         types = TeleporterType.allCases.toSet()
+        targetingConflict = false
+        prefeinedTarget = nil
     }
 
     override func waveFunctionCollapse(point: Point, field: Field) -> Field.Element? {
