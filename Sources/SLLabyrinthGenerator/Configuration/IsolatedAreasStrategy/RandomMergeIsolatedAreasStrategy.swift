@@ -49,7 +49,7 @@ final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy
             return false
         }
 
-        let edge1_2 = PathsGraphEdge<T>(type: .common, points: [point1, point2], from: vertex1, to: vertex2)
+        let edge1_2 = PathsGraphEdge<T>(points: [point1, point2], from: vertex1, to: vertex2)
         let edge2_1 = edge1_2.reversed()
         let areasEdge1_2 = AreasGraphEdge(pathsEdge: edge1_2, from: area1, to: area2)
         let areasEdge2_1 = AreasGraphEdge(pathsEdge: edge2_1, from: area2, to: area1)

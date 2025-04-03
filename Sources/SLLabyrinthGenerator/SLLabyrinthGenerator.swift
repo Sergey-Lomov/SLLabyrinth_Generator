@@ -335,7 +335,7 @@ public final class LabyrinthGenerator<T: Topology> {
                 new.connected(point).forEach {
                     guard field.contains($0.point) else { return }
                     let points = [point, $0.point]
-                    pathsGraph.appendEdge(type: $0.edgeType, points: points)
+                    pathsGraph.appendEdge(points: points, category: $0.category)
                 }
             }
             
@@ -345,7 +345,7 @@ public final class LabyrinthGenerator<T: Topology> {
                 let filtered = connected.filter { points.contains($0.point) }
                 filtered.forEach { connection in
                     let points = [vertex.point, connection.point]
-                    pathsGraph.appendEdge(type: connection.edgeType, points: points)
+                    pathsGraph.appendEdge(points: points, category: connection.category)
                 }
             }
             

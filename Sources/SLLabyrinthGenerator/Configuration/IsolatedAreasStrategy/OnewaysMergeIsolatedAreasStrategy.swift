@@ -95,7 +95,12 @@ final class OnewaysMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrateg
         }
 
         let points = [merge.innerPoint, merge.outerPoint]
-        var pathsEdge = PathsGraphEdge<T>(type: .common, points: points, from: innerVertex, to: outerVertex)
+        var pathsEdge = PathsGraphEdge<T>(
+            points: points,
+            from: innerVertex,
+            to: outerVertex,
+            category: PathsEdgeCategory.onewayPasssage
+        )
         var areasEdge = AreasGraphEdge(pathsEdge: pathsEdge, from: innerArea, to: outerArea)
         if direction == .income {
             pathsEdge = pathsEdge.reversed()

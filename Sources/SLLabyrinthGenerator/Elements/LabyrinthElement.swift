@@ -9,7 +9,12 @@ import Foundation
 
 public struct ElementsConnection<P: TopologyPoint> {
     let point: P
-    let edgeType: PathsGraphEdgeType
+    let category: String
+
+    init(point: P, category: String = PathsEdgeCategory.passage) {
+        self.point = point
+        self.category = category
+    }
 }
 
 public protocol LabyrinthElement: AnyObject, Hashable {

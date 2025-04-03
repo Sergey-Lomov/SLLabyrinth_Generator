@@ -29,7 +29,7 @@ class PassagesBasedElement<T: Topology>: TopologyBasedLabyrinthElement<T> {
     override func connected(_ point: Point) -> [ElementsConnection<Point>] {
         passages.map {
             let point = T.nextPoint(point: point, edge: $0)
-            return ElementsConnection(point: point, edgeType: .common)
+            return ElementsConnection(point: point)
         }
     }
 }

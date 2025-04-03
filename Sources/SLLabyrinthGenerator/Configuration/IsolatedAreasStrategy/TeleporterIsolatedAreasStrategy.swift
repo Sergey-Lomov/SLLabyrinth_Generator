@@ -95,7 +95,12 @@ final class TeleporterIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy<
         }
 
         let points = [from, to]
-        let pathsEdge = PathsGraphEdge<T>(type: .common, points: points, from: fromVertex, to: toVertex)
+        let pathsEdge = PathsGraphEdge<T>(
+            points: points,
+            from: fromVertex,
+            to: toVertex,
+            category: PathsEdgeCategory.teleporter
+        )
         let areasEdge = AreasGraphEdge(pathsEdge: pathsEdge, from: fromArea, to: toArea)
         areas.appendEdge(areasEdge)
 
