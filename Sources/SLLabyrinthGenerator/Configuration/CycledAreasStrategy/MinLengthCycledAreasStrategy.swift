@@ -16,10 +16,6 @@ final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
         self.minLength = minLength
     }
 
-    override class func postprocessing(generator: Generator) {
-        generator.updatePathsGraph()
-    }
-
     override func handle(area: PathsGraphArea<T>, generator: Generator) -> Bool {
         var failed: Set<PathsGraphPath<T>> = []
         while let cycle: PathsGraphPath<T> = area.graph.firstPath(
