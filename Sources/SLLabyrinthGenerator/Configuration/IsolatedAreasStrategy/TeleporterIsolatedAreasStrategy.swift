@@ -95,11 +95,12 @@ final class TeleporterIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy<
         }
 
         let points = [from, to]
+        let edgeType: PathsEdgeType = oneway ? .onewayTeleporter : .bidirectionalTeleporter
         let pathsEdge = PathsGraphEdge<T>(
             points: points,
             from: fromVertex,
             to: toVertex,
-            type: PathsEdgeType.teleporter
+            type: edgeType
         )
         let areasEdge = AreasGraphEdge(pathsEdge: pathsEdge, from: fromArea, to: toArea)
         areas.appendEdge(areasEdge)

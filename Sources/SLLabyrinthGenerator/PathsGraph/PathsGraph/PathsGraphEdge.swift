@@ -8,8 +8,12 @@
 import Foundation
 
 // Extensionable enum of edge types
-final class PathsEdgeType {
-    static var passage: String { "passage_edge" }
+struct PathsEdgeType: Hashable {
+    static let passage: PathsEdgeType =
+        PathsEdgeType(title: "passage", bidirectional: true)
+
+    var title: String
+    var bidirectional: Bool
 }
 
 struct PathsGraphEdge<T: Topology>: GraphEdge {
@@ -17,7 +21,7 @@ struct PathsGraphEdge<T: Topology>: GraphEdge {
 
     var id = UUID().uuidString
 
-    let type: String
+    let type: PathsEdgeType
     private(set) var points: [T.Point]
     private(set) var from: Vertex
     private(set) var to: Vertex
@@ -27,7 +31,7 @@ struct PathsGraphEdge<T: Topology>: GraphEdge {
 
     var isPassage: Bool { type == PathsEdgeType.passage }
 
-    init(points: [T.Point], from: Vertex, to: Vertex, type: String = PathsEdgeType.passage) {
+    init(points: [T.Point], from: Vertex, to: Vertex, type: PathsEdgeType = .passage) {
         self.points = points
         self.from = from
         self.to = to

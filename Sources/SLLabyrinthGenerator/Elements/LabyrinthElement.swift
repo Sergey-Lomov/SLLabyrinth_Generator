@@ -9,9 +9,9 @@ import Foundation
 
 public struct ElementsConnection<P: TopologyPoint> {
     let point: P
-    let type: String
+    let type: PathsEdgeType
 
-    init(point: P, type: String = PathsEdgeType.passage) {
+    init(point: P, type: PathsEdgeType = .passage) {
         self.point = point
         self.type = type
     }

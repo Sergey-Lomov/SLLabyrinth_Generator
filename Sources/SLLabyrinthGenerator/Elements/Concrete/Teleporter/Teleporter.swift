@@ -28,10 +28,8 @@ final class Teleporter<T: Topology>: PassagesBasedElement<T> {
         var connections = super.connected(point)
 
         if type != .receiver {
-            let connection = ElementsConnection<Point>(
-                point: target,
-                type: PathsEdgeType.teleporter
-            )
+            let edgeType: PathsEdgeType = type == .bidirectional ? .bidirectionalTeleporter : .onewayTeleporter
+            let connection = ElementsConnection(point: target, type: edgeType)
             connections.append(connection)
         }
 
@@ -63,5 +61,9 @@ final class Teleporter<T: Topology>: PassagesBasedElement<T> {
 }
 
 extension PathsEdgeType {
-    static var teleporter: String { "teleporter_edge" }
+    static let onewayTeleporter: PathsEdgeType =
+        PathsEdgeType(title: "oneway_teleporter", bidirectional: false)
+
+    static let bidirectionalTeleporter: PathsEdgeType =
+        PathsEdgeType(title: "bidirectional_teleporter", bidirectional: true)
 }

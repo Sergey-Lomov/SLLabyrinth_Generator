@@ -27,10 +27,7 @@ final class OneWayHolder<T: Topology>: TopologyBasedLabyrinthElement<T> {
     override func connected(_ point: Point) -> [ElementsConnection<Point>] {
         (passages + outgoings).map {
             let point = T.nextPoint(point: point, edge: $0)
-            return ElementsConnection(
-                point: point,
-                type: PathsEdgeType.onewayPasssage
-            )
+            return ElementsConnection(point: point, type: .onewayPasssage)
         }
     }
 
@@ -64,5 +61,6 @@ final class OneWayHolder<T: Topology>: TopologyBasedLabyrinthElement<T> {
 }
 
 extension PathsEdgeType {
-    static var onewayPasssage: String { "oneway_passage_edge" }
+    static let onewayPasssage =
+        PathsEdgeType(title: "oneway_passage", bidirectional: false)
 }

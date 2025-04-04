@@ -266,7 +266,7 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
     }
 
     @discardableResult
-    func appendEdge(points: [T.Point], type: String = PathsEdgeType.passage) -> Edge? {
+    func appendEdge(points: [T.Point], type: PathsEdgeType = .passage) -> Edge? {
         guard let from = points.first, let to = points.last, from != to else { return nil }
         let fromVertex = vertices.first { $0.point == from } ?? Vertex(point: from)
         let toVertex = vertices.first { $0.point == to } ?? Vertex(point: to)
@@ -323,7 +323,8 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
     }
 
     func isBidirectional(_ edge: Edge) -> Bool {
-        existedReverse(edge) != nil
+        //existedReverse(edge) != nil
+        edge.type.bidirectional
     }
 
     func existedReverse(_ edge: Edge) -> Edge? {
