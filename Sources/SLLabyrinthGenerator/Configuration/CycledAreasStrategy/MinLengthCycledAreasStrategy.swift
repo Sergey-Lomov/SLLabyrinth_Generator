@@ -8,8 +8,6 @@
 import Foundation
 
 final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
-    typealias Restriction = TopologyBasedElementRestriction<T>
-
     private let providerPrefix = "cycles_resolving_"
 
     let minLength: Float
@@ -44,6 +42,7 @@ final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
         generator: LabyrinthGenerator<T>
     ) -> Bool {
         let bidirectional = area.graph.isBidirectional(path)
+        let provider = providerPrefix + area.id
 
         for edge in path.edges {
             guard edge.points.count >= 2 else { continue }
@@ -56,43 +55,19 @@ final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
                 }
             }
 
-            for i in (1..<edge.points.count).reversed() {
-                let point1 = edge.points[i]
-                let point2 = edge.points[i-1]
-                let success = tryCut(point1: point1, point2: point2, areaId: area.id, generator: generator)
-
-                if success {
-                    area.graph.removeAndCompactize(edge)
-                    if let reversed = area.graph.existedReverse(edge) {
-                        area.graph.removeAndCompactize(reversed)
-                    }
-                    return true
+            let strategy = generator.configuration.edgeCuttingStrategies[edge.type]
+            guard let strategy = strategy else { continue }
+            let success = strategy.tryToCut(edge, generator: generator, provider: provider)
+            
+            if success {
+                area.graph.removeAndCompactize(edge)
+                if let reversed = area.graph.existedReverse(edge) {
+                    area.graph.removeAndCompactize(reversed)
                 }
+                return true
             }
         }
 
         return false
-    }
-
-    private func tryCut(point1: T.Point, point2: T.Point, areaId: String, generator: LabyrinthGenerator<T>) -> Bool {
-        guard let edge1 = T.edge(from: point1, to: point2) else { return false }
-        let edge2 = T.adaptToNextPoint(edge1)
-
-        let restriction1 = Restriction.wall(edge: edge1)
-        let restriction2 = Restriction.wall(edge: edge2)
-
-        let restrictions = [
-            point1 : [restriction1],
-            point2 : [restriction2]
-        ]
-        let provider = providerPrefix + areaId
-
-        let result = generator.regenerate(
-            points: [point1, point2],
-            restrictions: restrictions,
-            restrictionsProvider: provider
-        )
-
-        return result.isSuccess
     }
 }

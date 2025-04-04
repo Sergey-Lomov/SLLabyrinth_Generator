@@ -8,7 +8,7 @@
 import Foundation
 
 // Extensionable enum of edge types
-final class PathsEdgeCategory {
+final class PathsEdgeType {
     static var passage: String { "passage_edge" }
 }
 
@@ -17,7 +17,7 @@ struct PathsGraphEdge<T: Topology>: GraphEdge {
 
     var id = UUID().uuidString
 
-    let category: String
+    let type: String
     private(set) var points: [T.Point]
     private(set) var from: Vertex
     private(set) var to: Vertex
@@ -25,13 +25,13 @@ struct PathsGraphEdge<T: Topology>: GraphEdge {
     @Cached var intermediatePoints: [T.Point]
     @Cached var length: Float
 
-    var isPassage: Bool { category == PathsEdgeCategory.passage }
+    var isPassage: Bool { type == PathsEdgeType.passage }
 
-    init(points: [T.Point], from: Vertex, to: Vertex, category: String = PathsEdgeCategory.passage) {
+    init(points: [T.Point], from: Vertex, to: Vertex, type: String = PathsEdgeType.passage) {
         self.points = points
         self.from = from
         self.to = to
-        self.category = category
+        self.type = type
 
         _intermediatePoints.compute = {
             points.filter { $0 != points.first && $0 != points.last }
@@ -47,21 +47,21 @@ struct PathsGraphEdge<T: Topology>: GraphEdge {
     }
 
     func isReversed(_ edge: PathsGraphEdge<T>) -> Bool {
-        points == edge.points.reversed() && category == edge.category
+        points == edge.points.reversed() && type == edge.type
     }
 
     func reversed() -> Self {
-        let reversed = Self(points: points.reversed(), from: to, to: from, category: category)
+        let reversed = Self(points: points.reversed(), from: to, to: from, type: type)
         reversed._length.copyFrom(_length)
         return reversed
     }
 
     static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.points == rhs.points && lhs.category == rhs.category
+        lhs.points == rhs.points && lhs.type == rhs.type
     }
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(points)
-        hasher.combine(category)
+        hasher.combine(type)
     }
 }

@@ -148,7 +148,7 @@ public final class LabyrinthGenerator<T: Topology> {
         guard configuration.cycledAreasStrategy != nil else { return }
 
         timeLog("Calculate cycles areas") { calculateCyclesAreas() }
-//        timeLog("Resolve cycles areas") { resolveCyclesAreas() }
+        timeLog("Resolve cycles areas") { resolveCyclesAreas() }
 
         if save {
             timeLog("Save state") { saveState(step: .cycles) }
@@ -335,7 +335,7 @@ public final class LabyrinthGenerator<T: Topology> {
                 new.connected(point).forEach {
                     guard field.contains($0.point) else { return }
                     let points = [point, $0.point]
-                    pathsGraph.appendEdge(points: points, category: $0.category)
+                    pathsGraph.appendEdge(points: points, type: $0.type)
                 }
             }
             
@@ -345,7 +345,7 @@ public final class LabyrinthGenerator<T: Topology> {
                 let filtered = connected.filter { points.contains($0.point) }
                 filtered.forEach { connection in
                     let points = [vertex.point, connection.point]
-                    pathsGraph.appendEdge(points: points, category: connection.category)
+                    pathsGraph.appendEdge(points: points, type: connection.type)
                 }
             }
             
@@ -431,7 +431,7 @@ public final class LabyrinthGenerator<T: Topology> {
         superProvider.reqisterSuperposition(CornerPathSuperposition<T>.self)
         superProvider.reqisterSuperposition(JunctionSuperposition<T>.self)
         superProvider.reqisterSuperposition(OneWayHolderSuperposition<T>.self)
-        superProvider.reqisterSuperposition(TeleporterSuperposition<T>.self)
+//        superProvider.reqisterSuperposition(TeleporterSuperposition<T>.self)
 
         return superProvider
     }

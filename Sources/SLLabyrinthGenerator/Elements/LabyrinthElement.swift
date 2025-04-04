@@ -9,11 +9,11 @@ import Foundation
 
 public struct ElementsConnection<P: TopologyPoint> {
     let point: P
-    let category: String
+    let type: String
 
-    init(point: P, category: String = PathsEdgeCategory.passage) {
+    init(point: P, type: String = PathsEdgeType.passage) {
         self.point = point
-        self.category = category
+        self.type = type
     }
 }
 

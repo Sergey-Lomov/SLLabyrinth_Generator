@@ -30,7 +30,7 @@ final class Teleporter<T: Topology>: PassagesBasedElement<T> {
         if type != .receiver {
             let connection = ElementsConnection<Point>(
                 point: target,
-                category: PathsEdgeCategory.teleporter
+                type: PathsEdgeType.teleporter
             )
             connections.append(connection)
         }
@@ -62,6 +62,6 @@ final class Teleporter<T: Topology>: PassagesBasedElement<T> {
     }
 }
 
-extension PathsEdgeCategory {
+extension PathsEdgeType {
     static var teleporter: String { "teleporter_edge" }
 }

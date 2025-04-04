@@ -11,6 +11,11 @@ public struct GeneratorConfiguration<T: Topology> {
     var isolatedAreasStrategy: IsolatedAreasStrategy<T>? = nil
     var cycledAreasStrategy: CycledAreasStrategy<T>? = nil
 
+    var edgeCuttingStrategies: Dictionary<String, EdgeCuttingStrategy<T>> = [
+        PathsEdgeType.passage : PassageEdgeCuttingStrategy(),
+        PathsEdgeType.onewayPasssage : PassageEdgeCuttingStrategy()
+    ]
+
     func setWeigth(_ superposition: any CategorizedSuperposition.Type, weight: Float) {
         elementsWeights.setWeigth(superposition, weight: weight)
     }

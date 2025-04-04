@@ -29,7 +29,7 @@ final class OneWayHolder<T: Topology>: TopologyBasedLabyrinthElement<T> {
             let point = T.nextPoint(point: point, edge: $0)
             return ElementsConnection(
                 point: point,
-                category: PathsEdgeCategory.onewayPasssage
+                type: PathsEdgeType.onewayPasssage
             )
         }
     }
@@ -63,6 +63,6 @@ final class OneWayHolder<T: Topology>: TopologyBasedLabyrinthElement<T> {
     }
 }
 
-extension PathsEdgeCategory {
+extension PathsEdgeType {
     static var onewayPasssage: String { "oneway_passage_edge" }
 }

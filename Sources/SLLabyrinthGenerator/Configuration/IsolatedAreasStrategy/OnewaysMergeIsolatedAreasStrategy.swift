@@ -99,7 +99,7 @@ final class OnewaysMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrateg
             points: points,
             from: innerVertex,
             to: outerVertex,
-            category: PathsEdgeCategory.onewayPasssage
+            type: PathsEdgeType.onewayPasssage
         )
         var areasEdge = AreasGraphEdge(pathsEdge: pathsEdge, from: innerArea, to: outerArea)
         if direction == .income {

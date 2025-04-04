@@ -198,12 +198,12 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
     }
 
     @discardableResult
-    func appendEdge(points: [T.Point], category: String = PathsEdgeCategory.passage) -> Edge? {
+    func appendEdge(points: [T.Point], type: String = PathsEdgeType.passage) -> Edge? {
         guard let from = points.first, let to = points.last, from != to else { return nil }
         let fromVertex = vertices.first { $0.point == from } ?? Vertex(point: from)
         let toVertex = vertices.first { $0.point == to } ?? Vertex(point: to)
 
-        let edge = Edge(points: points, from: fromVertex, to: toVertex, category: category)
+        let edge = Edge(points: points, from: fromVertex, to: toVertex, type: type)
         appendEdge(edge)
         return edge
     }
@@ -230,8 +230,8 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
                 let subPoints = $0.points.split(separator: point)
                 let leftPoints = Array(subPoints[0]) + point
                 let rightPoints = point + Array(subPoints[1])
-                let left = Edge(points: leftPoints, from: $0.from, to: newVertex, category: $0.category)
-                let right = Edge(points: rightPoints, from: newVertex, to: $0.to, category: $0.category)
+                let left = Edge(points: leftPoints, from: $0.from, to: newVertex, type: $0.type)
+                let right = Edge(points: rightPoints, from: newVertex, to: $0.to, type: $0.type)
 
                 appendEdge(left)
                 appendEdge(right)
