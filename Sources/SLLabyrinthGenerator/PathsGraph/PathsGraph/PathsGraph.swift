@@ -7,12 +7,26 @@
 //
 
 final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
+    typealias Point = T.Point
     typealias Edge = PathsGraphEdge<T>
     typealias Vertex = PathsGraphVertex<T>
     typealias Area = PathsGraphArea<T>
     typealias Path = PathsGraphPath<T>
 
-    @Cached var points: Set<T.Point>
+    @Cached var points: Set<Point>
+    private var pointEdges: Dictionary<Point, Set<Edge>> = [:]
+    private var pointVertices: Dictionary<Point, Set<Vertex>> = [:]
+
+    var usePointsIndexing: Bool = false {
+        didSet {
+            if usePointsIndexing && !oldValue {
+                edges.forEach { edge in
+                    edge.points.forEach { pointEdges.insert(key: $0, setValue: edge) }
+                }
+                vertices.forEach { pointVertices.insert(key: $0.point, setValue: $0) }
+            }
+        }
+    }
 
     override init() {
         super.init()
@@ -25,6 +39,60 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
 
     func contains(_ point: T.Point) -> Bool {
         points.contains(point)
+    }
+
+    func edges(of point: Point) -> Set<Edge> {
+        if usePointsIndexing {
+            return pointEdges[point, default: []]
+        } else {
+            return edges.filter { $0.points.contains(point) }
+        }
+    }
+
+    func vertices(of point: Point) -> Set<Vertex> {
+        if usePointsIndexing {
+            return pointVertices[point, default: []]
+        } else {
+            return vertices.filter { $0.point == point }
+        }
+    }
+
+    override func appendEdge(_ edge: Edge) {
+        super.appendEdge(edge)
+        if usePointsIndexing {
+            edge.points.forEach {
+                pointEdges.insert(key: $0, setValue: edge)
+            }
+        }
+    }
+
+    override func appendVertex(_ vertex: Vertex) {
+        super.appendVertex(vertex)
+        if usePointsIndexing {
+            pointVertices.insert(key: vertex.point, setValue: vertex)
+        }
+    }
+
+    override func removeEdge(_ edge: Edge, removeUnused: Bool = true) {
+        super.removeEdge(edge, removeUnused: removeUnused)
+        if usePointsIndexing {
+            edge.points.forEach { pointEdges.remove(key: $0, setValue: edge) }
+        }
+    }
+
+    override func removeVertex(_ vertex: Vertex, removeUnused: Bool = true) {
+        super.removeVertex(vertex)
+        if usePointsIndexing {
+            pointVertices.remove(key: vertex.point, setValue: vertex)
+        }
+    }
+
+    private func firstVertex(of point: Point) -> Vertex? {
+        if usePointsIndexing {
+            return pointVertices[point, default: []].first
+        } else {
+            return vertices.first { $0.point == point }
+        }
     }
 
     func removeAndCompactize(_ edge: Edge) {
@@ -221,8 +289,8 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
         appendVertex(newVertex)
         patch.addedVertices.append(newVertex)
 
-        edges
-            .filter { $0.intermediatePoints.contains(point) }
+        edges(of: point)
+            .filter { $0.from.point != point && $0.to.point != point }
             .forEach {
                 removeEdge($0)
                 patch.removedEdges.append($0)

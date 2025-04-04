@@ -114,6 +114,7 @@ public final class LabyrinthGenerator<T: Topology> {
 
     func updatePathsGraph() {
         pathsGraph = FieldAnalyzer.pathsGraph(field)
+        pathsGraph.usePointsIndexing = true
         pathsGraph.compactizePaths()
     }
 
@@ -136,8 +137,14 @@ public final class LabyrinthGenerator<T: Topology> {
     }
 
     private func calculatePathsGraph(log timeLog: TimeLog, save: Bool = false) {
-        timeLog("Calculate") { pathsGraph = FieldAnalyzer.pathsGraph(field) }
-        timeLog("Compactize") { pathsGraph.compactizePaths() }
+        timeLog("Calculate") {
+            pathsGraph = FieldAnalyzer.pathsGraph(field)
+            pathsGraph.usePointsIndexing = true
+        }
+
+        timeLog("Compactize") {
+            pathsGraph.compactizePaths()
+        }
 
         if save {
             timeLog("Save state") { saveState(step: .paths) }
@@ -310,7 +317,7 @@ public final class LabyrinthGenerator<T: Topology> {
             var connectedVertices: Set<PathsGraphVertex<T>> = []
             
             for point in points {
-                let edges = pathsGraph.edges.filter { $0.points.contains(point) }
+                let edges = pathsGraph.edges(of: point)
                 let nearest = edges.flatMap { edge in
                     edge.points.enumerated().compactMap { index, edge_point in
                         let next = edge.points[safe: index + 1]
@@ -324,9 +331,9 @@ public final class LabyrinthGenerator<T: Topology> {
                     connectedVertices.formUnion(patch.addedVertices)
                 }
                 
-                let oldVertices = pathsGraph.vertices.filter { $0.point == point }
+                let oldVertices = pathsGraph.vertices(of: point)
                 oldVertices.forEach { pathsGraph.removeVertex($0) }
-                let oldEdges = pathsGraph.edges.filter { $0.points.contains(point) }
+                let oldEdges = pathsGraph.edges(of: point)
                 oldEdges.forEach { pathsGraph.removeEdge($0) }
             }
             
