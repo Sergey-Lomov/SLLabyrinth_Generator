@@ -103,7 +103,7 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
 
     /// Embeds vertices that have only two edges into a merged edge. For example, the graph V1--E1-->V2--E2-->V3 will be compacted to V1--E3-->V3, where E3 consists of E1's points plus V2's point plus E2's points.
     func compactizePaths() {
-        for vertex in Array(vertices) {
+        for vertex in vertices {
             compactize(vertex: vertex)
         }
     }
