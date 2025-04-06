@@ -11,7 +11,6 @@ import Foundation
 final class StraightPath<T: Topology>: PassagesInstantiableElement<T> { }
 
 final class StraightPathSuperposition<T: Topology>: PassagesInstantiableSuperposition<T, StraightPath<T>>, CategorizedSuperposition {
-    typealias Element = StraightPath
 
     static var category: String { "straight_path" }
 

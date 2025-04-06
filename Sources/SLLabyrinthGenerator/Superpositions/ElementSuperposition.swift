@@ -41,7 +41,6 @@ class TopologyBasedElementSuperposition<T: Topology>: ElementSuperposition {
     typealias Point = T.Point
     typealias Edge = T.Edge
     typealias Field = T.Field
-    typealias Element = T.Field.Element
 
     var id = UUID().uuidString
     var entropy: Int { 0 }

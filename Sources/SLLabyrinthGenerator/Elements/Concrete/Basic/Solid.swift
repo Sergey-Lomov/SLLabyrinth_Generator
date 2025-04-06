@@ -17,7 +17,6 @@ final class Solid<T: Topology>: PassagesBasedElement<T> {
 }
 
 final class SolidSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, CategorizedSuperposition {
-    typealias Element = Solid
 
     static var category: String { "solid" }
 

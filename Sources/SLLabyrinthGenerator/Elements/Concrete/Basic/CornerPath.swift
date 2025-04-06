@@ -11,9 +11,6 @@ import Foundation
 final class CornerPath<T: Topology>: PassagesInstantiableElement<T> {}
 
 final class CornerPathSuperposition<T: Topology>: PassagesInstantiableSuperposition<T, CornerPath<T>>, CategorizedSuperposition {
-    // TODO: Investigate possbility to remove this and similar typealiases. Looks like Element typealias inside superpositions is unused.
-    typealias Element = CornerPath
-
     static var category: String { "corner_path" }
 
     override func filterInitialPassages(_ variant: [T.Edge]) -> Bool {

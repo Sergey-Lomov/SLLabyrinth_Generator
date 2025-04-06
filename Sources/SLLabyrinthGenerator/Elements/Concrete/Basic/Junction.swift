@@ -11,7 +11,6 @@ import Foundation
 final class Junction<T: Topology>: PassagesInstantiableElement<T> {}
 
 final class JunctionSuperposition<T: Topology>: PassagesInstantiableSuperposition<T, Junction<T>>, CategorizedSuperposition {
-    typealias Element = Junction
 
     static var category: String { "junction" }
 

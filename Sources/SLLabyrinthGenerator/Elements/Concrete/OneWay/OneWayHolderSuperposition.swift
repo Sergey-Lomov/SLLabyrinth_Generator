@@ -6,7 +6,6 @@
 //
 
 final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, CategorizedSuperposition {
-    typealias Element = StraightPath
     typealias EdgesDictionany = Dictionary<EdgeType, Set<Edge>>
 
     enum EdgeType {
