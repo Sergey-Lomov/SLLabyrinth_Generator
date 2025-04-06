@@ -18,9 +18,6 @@ final class IterativeEdgeCuttingStrategy<T: Topology>: EdgeCuttingStrategy<T> {
     }
 
     private func tryCut(point1: T.Point, point2: T.Point, provider: String, generator: Generator) -> Bool {
-        guard let edge1 = T.edge(from: point1, to: point2) else { return false }
-        let edge2 = T.adaptToNextPoint(edge1)
-
         let restriction1 = ConnectionRestriction(target: point2)
         let restriction2 = ConnectionRestriction(target: point1)
 
