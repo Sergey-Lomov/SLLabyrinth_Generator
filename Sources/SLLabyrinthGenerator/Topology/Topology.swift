@@ -21,9 +21,6 @@ public protocol UnconstrainedTopology {
     associatedtype Field: TopologyField
     associatedtype Superposition: NodeSuperposition
 
-    /// This method returns a list of edges that are sufficient to connect all topology points together. For example, in a square topology, it may be a 'right'-'down' pair or any other pair consisting of one vertical and one horizontal edge.
-    static func coverageFlowEdges() -> [Edge]
-
     /// This method returns distance bewteen two points
     static func distance(point1: Point, point2: Point) -> Float
 
@@ -70,20 +67,5 @@ extension Topology {
 
     static func visualScale(field: Field, width: Float, height: Float) -> Float {
         visualScale(size: field.size, width: width, height: height)
-    }
-
-    // TODO: Remove if still be unused
-    static func coverageFlowEdges() -> [Edge] {
-        var edges: [Edge] = []
-        Edge.allCases.forEach {
-            if let opposite = $0.opposite() {
-                if !edges.contains(opposite) {
-                    edges.append($0)
-                }
-            } else {
-                edges.append($0)
-            }
-        }
-        return edges
     }
 }

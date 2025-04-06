@@ -150,12 +150,6 @@ class Graph<Edge: GraphEdge> {
         }
 
         while !paths.isEmpty {
-            // TODO: Remove test code
-            if paths.count > 2000 {
-                print("Overfloat by paths")
-                return nil
-            }
-
             var newPaths: Set<P> = []
             for path in paths {
                 guard let to = path.to else { continue }
