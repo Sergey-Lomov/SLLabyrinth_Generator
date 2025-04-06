@@ -14,6 +14,15 @@ public struct GeneratorConfiguration<T: Topology> {
     var edgeCuttingStrategies: Dictionary<PathsEdgeType, EdgeCuttingStrategy<T>> = [:]
     var defaultEdgeCuttingStrategy = IterativeEdgeCuttingStrategy<T>()
 
+    let superpositionsProvider = {
+        let provider = SuperpositionsProvider<T>()
+        provider.reqisterSuperposition(DeadendSuperposition<T>.self)
+        provider.reqisterSuperposition(StraightPathSuperposition<T>.self)
+        provider.reqisterSuperposition(CornerPathSuperposition<T>.self)
+        provider.reqisterSuperposition(JunctionSuperposition<T>.self)
+        return provider
+    }()
+
     func edgeCuttingStrategy(type: PathsEdgeType) -> EdgeCuttingStrategy<T> {
         return edgeCuttingStrategies[type] ?? defaultEdgeCuttingStrategy
     }

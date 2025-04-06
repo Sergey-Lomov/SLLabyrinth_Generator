@@ -21,15 +21,14 @@ final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
         var unhandled = area.graph.vertices
 
         while !unhandled.isEmpty {
-            var vertex = unhandled.first
-            unhandled.removeFirst()
-
-            while let cycle = cycle(area: area, vertex: vertex, failed: failed) {
+            while let cycle = cycle(area: area, vertex: unhandled.first, failed: failed) {
                 let success = handleUnapprovedCycle(cycle, area: area, generator: generator)
                 if !success {
                     failed.insert(cycle)
                 }
             }
+
+            unhandled.removeFirst()
         }
 
         return true

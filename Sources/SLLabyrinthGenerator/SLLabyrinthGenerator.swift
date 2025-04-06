@@ -118,7 +118,7 @@ public final class LabyrinthGenerator<T: Topology> {
     }
 
     private func setupSuperpositions() {
-        let superProvider = setupSuperProvider()
+        let superProvider = configuration.superpositionsProvider
         field.allPoints().forEach {
             let nestsed = superProvider.instantiate()
             superpositions[$0] = Superposition(point: $0, elementsSuperpositions: nestsed)
@@ -299,7 +299,7 @@ public final class LabyrinthGenerator<T: Topology> {
             sup.applyRestrictions(restrictions, provider: restrictionsProvider, onetime: onetime)
         }
 
-        var result = regenerate(at: points)
+        let result = regenerate(at: points)
 
         if result.isSuccess {
             updatePaths(at: points)
@@ -433,18 +433,5 @@ public final class LabyrinthGenerator<T: Topology> {
         if !incomes { return .income }
         if !outgoings { return .outgoing }
         return nil
-    }
-
-    private func setupSuperProvider() -> SuperpositionsProvider<T> {
-        let superProvider = SuperpositionsProvider<T>()
-
-        superProvider.reqisterSuperposition(DeadendSuperposition<T>.self)
-        superProvider.reqisterSuperposition(StraightPathSuperposition<T>.self)
-        superProvider.reqisterSuperposition(CornerPathSuperposition<T>.self)
-        superProvider.reqisterSuperposition(JunctionSuperposition<T>.self)
-        superProvider.reqisterSuperposition(OneWayHolderSuperposition<T>.self)
-        superProvider.reqisterSuperposition(TeleporterSuperposition<T>.self)
-
-        return superProvider
     }
 }
