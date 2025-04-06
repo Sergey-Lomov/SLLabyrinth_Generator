@@ -42,7 +42,6 @@ public final class LabyrinthGenerator<T: Topology> {
     var cyclesAreas: [PathsGraphArea<T>] = []
     var isolatedAreas = AreasGraph<T>()
 
-    // TODO: Remove testing code
     private var savedStates: Dictionary<GenerationStep, GeneratorState<T>> = [:]
 
     init(configuration: GeneratorConfiguration<T>) {
@@ -180,10 +179,10 @@ public final class LabyrinthGenerator<T: Topology> {
     private func applyEmptyFieldConstraints() {
         eachPointEdgeConstraint { point, edge, hasNext in
             if hasNext {
-                let element = TopologyBasedElementRestriction<T>.passage(edge: edge)
+                let element = PassagesElementRestriction<T>.passage(edge: edge)
                 return (element, Self.emptyFieldRestrictionId)
             } else {
-                let element = TopologyBasedElementRestriction<T>.passage(edge: edge)
+                let element = PassagesElementRestriction<T>.passage(edge: edge)
                 return (element, Self.borderRestrictionId)
             }
         }
@@ -192,7 +191,7 @@ public final class LabyrinthGenerator<T: Topology> {
     private func applyBorderConstraints() {
         eachPointEdgeConstraint { point, edge, hasNext in
             guard !hasNext else { return nil }
-            let restriction = TopologyBasedElementRestriction<T>.fieldEdge(edge: edge)
+            let restriction = PassagesElementRestriction<T>.wall(edge: edge)
             return (restriction, Self.borderRestrictionId)
         }
     }

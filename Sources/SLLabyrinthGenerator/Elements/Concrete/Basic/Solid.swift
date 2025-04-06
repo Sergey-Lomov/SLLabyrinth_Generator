@@ -39,9 +39,9 @@ final class SolidSuperposition<T: Topology>: TopologyBasedElementSuperposition<T
         Self.init(available: available)
     }
 
-    override func applyEdgesRestriction(_ restriction: TopologyBasedElementRestriction<T>, at point: Point) -> Bool {
+    override func applyPassagesRestriction(_ restriction: PassagesElementRestriction<T>, at point: Point) -> Bool {
         switch restriction {
-        case .fieldEdge(_), .wall(_):
+        case .wall(_):
             return true
         case .passage(_):
             available = false

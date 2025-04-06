@@ -35,7 +35,7 @@ public protocol LabyrinthElement: AnyObject, Hashable {
 class TopologyBasedLabyrinthElement<T: Topology>: LabyrinthElement, IdHashable {
 
     typealias Point = T.Point
-    typealias Restriction = TopologyBasedElementRestriction<T>
+    typealias Restriction = PassagesElementRestriction<T>
 
     var isVisitable: Bool { true }
     var id: String = "element_" + UUID().uuidString

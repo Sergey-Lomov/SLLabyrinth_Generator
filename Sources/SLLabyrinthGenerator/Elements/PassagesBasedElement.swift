@@ -18,7 +18,7 @@ class PassagesBasedElement<T: Topology>: TopologyBasedLabyrinthElement<T> {
             let target = T.nextPoint(point: point, edge: edge)
             let adaptedEdge = T.adaptToNextPoint(edge)
 
-            let restriction: TopologyBasedElementRestriction<T> = passages.contains(edge) ?
+            let restriction: PassagesElementRestriction<T> = passages.contains(edge) ?
                 .passage(edge: adaptedEdge) :
                 .wall(edge: adaptedEdge)
 

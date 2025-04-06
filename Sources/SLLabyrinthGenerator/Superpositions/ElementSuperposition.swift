@@ -49,8 +49,8 @@ class TopologyBasedElementSuperposition<T: Topology>: ElementSuperposition {
 
     func applyRestriction(_ restriction: any ElementRestriction, at point: Point) -> Bool {
         switch restriction {
-        case let restriction as TopologyBasedElementRestriction<T>:
-            return applyEdgesRestriction(restriction, at: point)
+        case let restriction as PassagesElementRestriction<T>:
+            return applyPassagesRestriction(restriction, at: point)
         case let restriction as ConnectionPreventRestriction<T>:
             return applyConnectionRestriction(restriction, at: point)
         default:
@@ -58,7 +58,7 @@ class TopologyBasedElementSuperposition<T: Topology>: ElementSuperposition {
         }
     }
 
-    func applyEdgesRestriction(_ restriction: TopologyBasedElementRestriction<T>, at point: Point) -> Bool { false }
+    func applyPassagesRestriction(_ restriction: PassagesElementRestriction<T>, at point: Point) -> Bool { false }
     func applyConnectionRestriction(_ restriction: ConnectionPreventRestriction<T>, at point: Point) -> Bool { false }
     func applySpecificRestriction(_ restriction: any ElementRestriction, at point: Point) -> Bool { false }
 

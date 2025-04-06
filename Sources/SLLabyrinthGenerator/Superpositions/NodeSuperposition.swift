@@ -111,13 +111,13 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
 
     // TODO: Remove teseting code or refatoring
     private func validateRestrictions() {
-        let rests: [TopologyBasedElementRestriction<T>] = restrictions.compactMap {
+        let rests: [PassagesElementRestriction<T>] = restrictions.compactMap {
             guard !$0.isOnetime else { return nil }
-            return $0.restriction as? TopologyBasedElementRestriction<T>
+            return $0.restriction as? PassagesElementRestriction<T>
         }
         
         for restriction in rests {
-            var opposite: TopologyBasedElementRestriction<T>?
+            var opposite: PassagesElementRestriction<T>?
             switch restriction {
             case .passage(let edge):
                 opposite = .wall(edge: edge)

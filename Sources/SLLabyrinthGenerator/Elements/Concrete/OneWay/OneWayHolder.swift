@@ -54,9 +54,9 @@ final class OneWayHolder<T: Topology>: TopologyBasedLabyrinthElement<T> {
         } else if outgoings.contains(edge) {
             restriction = OneWayRestriction<T>(edge: adapted, direction: .income)
         } else if passages.contains(edge) {
-            restriction = TopologyBasedElementRestriction<T>.passage(edge: adapted)
+            restriction = PassagesElementRestriction<T>.passage(edge: adapted)
         } else {
-            restriction = TopologyBasedElementRestriction<T>.wall(edge: adapted)
+            restriction = PassagesElementRestriction<T>.wall(edge: adapted)
         }
 
         guard let restriction = restriction else {
