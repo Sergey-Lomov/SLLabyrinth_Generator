@@ -196,7 +196,7 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
 
     private func applyElementRestriction(_ restriction: any ElementRestriction) {
         elementsSuperpositions.forEach {
-            let handled = $0.applyRestriction(restriction)
+            let handled = $0.applyRestriction(restriction, at: point)
             if !restriction.allowUnhandled && !handled {
                 availableElements.remove($0)
             }

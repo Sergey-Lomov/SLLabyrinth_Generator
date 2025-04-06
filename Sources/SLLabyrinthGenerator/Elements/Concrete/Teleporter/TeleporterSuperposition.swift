@@ -13,11 +13,11 @@ final class TeleporterSuperposition<T: Topology>: PassagesBasedSuperposition<T>,
 
     private var entropyCoefficient: Int = 1
     private var types = TeleporterType.allCases.toSet()
-    private var prefeinedTarget: T.Point?
-    private var targetingConflict = false
+    private var requiredTargets: Set<T.Point> = []
+    private var preventedTargets: Set<T.Point> = []
 
     override var entropy: Int {
-        guard !targetingConflict else { return 0 }
+        guard !checkConflicts() else { return 0 }
         return super.entropy * entropyCoefficient
     }
 
@@ -25,16 +25,15 @@ final class TeleporterSuperposition<T: Topology>: PassagesBasedSuperposition<T>,
         !variant.isEmpty
     }
 
-    override func applySpecificRestriction(_ restriction: any ElementRestriction) -> Bool {
+    override func applySpecificRestriction(_ restriction: any ElementRestriction, at point: Point) -> Bool {
         switch restriction {
         case let restriction as TeleporterCoefficientRestriction:
             entropyCoefficient = restriction.coefficient
             return true
         case let restriction as TeleporterRestriction<T>:
-            if prefeinedTarget != nil && restriction.target != nil {
-                targetingConflict = prefeinedTarget != restriction.target
+            if let required = restriction.target {
+                requiredTargets.insert(required)
             }
-            prefeinedTarget = restriction.target ?? prefeinedTarget
             types.formIntersection(restriction.types)
             return true
         default:
@@ -42,11 +41,16 @@ final class TeleporterSuperposition<T: Topology>: PassagesBasedSuperposition<T>,
         }
     }
 
+    override func applyConnectionRestriction(_ restriction: ConnectionPreventRestriction<T>, at point: Point) -> Bool {
+        preventedTargets.insert(restriction.target)
+        return true
+    }
+
     override func resetRestrictions() {
         super.resetRestrictions()
         types = TeleporterType.allCases.toSet()
-        targetingConflict = false
-        prefeinedTarget = nil
+        requiredTargets.removeAll()
+        preventedTargets.removeAll()
     }
 
     override func waveFunctionCollapse(point: Point, field: Field) -> Field.Element? {
@@ -61,10 +65,17 @@ final class TeleporterSuperposition<T: Topology>: PassagesBasedSuperposition<T>,
     }
 
     private func target(point: Point, field: Field) -> Point? {
-        if prefeinedTarget != nil { return prefeinedTarget }
+        guard !checkConflicts() else { return nil }
+        if let requiredTarget = requiredTargets.first { return requiredTarget }
 
         var available = field.undefinedPoints()
         available.remove(point)
         return available.randomElement()
+    }
+
+    private func checkConflicts() -> Bool {
+        if requiredTargets.count > 1 { return true }
+        if !requiredTargets.intersection(preventedTargets).isEmpty { return true }
+        return false
     }
 }

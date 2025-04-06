@@ -33,6 +33,12 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
         _points.compute = { [unowned self] in self.calculatePoints() }
     }
 
+    override func copy() -> Self {
+        let copy = super.copy()
+        copy.usePointsIndexing = usePointsIndexing
+        return copy
+    }
+
     override func invalidateCache() {
         _points.invaliade()
     }
@@ -323,7 +329,6 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
     }
 
     func isBidirectional(_ edge: Edge) -> Bool {
-        //existedReverse(edge) != nil
         edge.type.bidirectional
     }
 

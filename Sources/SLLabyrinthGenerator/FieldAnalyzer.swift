@@ -24,7 +24,7 @@ final class FieldAnalyzer {
                 .filter { field.contains($0.point) }
                 .forEach {
                     let points = [point, $0.point]
-                    graph.appendEdge(points: points)
+                    graph.appendEdge(points: points, type: $0.type)
                 }
         }
 

@@ -23,12 +23,12 @@ final class SquareField: DictionaryBasedField {
         }
     }
 
-    func connectedPoints(_ point: SquarePoint) -> [SquarePoint] {
-        guard let element = element(at: point) else { return [] }
-        guard !Element.isUndefined(element) else { return [] }
-
-        return element.connected(point)
-            .filter { contains($0.point) }
-            .map { $0.point }
-    }
+//    func connectedPoints(_ point: SquarePoint) -> [SquarePoint] {
+//        guard let element = element(at: point) else { return [] }
+//        guard !Element.isUndefined(element) else { return [] }
+//
+//        return element.connected()
+//            .filter { contains($0.point) }
+//            .map { $0.point }
+//    }
 }

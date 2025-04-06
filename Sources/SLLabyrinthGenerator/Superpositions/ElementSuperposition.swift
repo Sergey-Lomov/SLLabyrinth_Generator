@@ -24,7 +24,7 @@ public protocol ElementSuperposition: IdHashable {
     /// This method applies restrictions to the superposition. This may decrease the possible values for superposition properties and, if so, decrease the superposition entropy.
     /// For example, we have a square topology, and the superposition is "deadend with entrance from any edge" (entropy 4). The nearest south node superposition collapses and produces the restriction "wall at north."
     /// For this node, it means a wall at the south, so now we have the superposition "deadend with entrance from any edge except south" (entropy 3).
-    func applyRestriction(_ restriction: any ElementRestriction) -> Bool
+    func applyRestriction(_ restriction: any ElementRestriction, at point: Point) -> Bool
 
     /// This method reverses all applied restrictions and restores the superposition's initial state.
     func resetRestrictions()
@@ -48,16 +48,20 @@ class TopologyBasedElementSuperposition<T: Topology>: ElementSuperposition {
 
     required init() {}
 
-    func applyRestriction(_ restriction: any ElementRestriction) -> Bool {
-        if let restriction = restriction as? TopologyBasedElementRestriction<T> {
-            return applyCommonRestriction(restriction)
-        } else {
-            return applySpecificRestriction(restriction)
+    func applyRestriction(_ restriction: any ElementRestriction, at point: Point) -> Bool {
+        switch restriction {
+        case let restriction as TopologyBasedElementRestriction<T>:
+            return applyEdgesRestriction(restriction, at: point)
+        case let restriction as ConnectionPreventRestriction<T>:
+            return applyConnectionRestriction(restriction, at: point)
+        default:
+            return applySpecificRestriction(restriction, at: point)
         }
     }
 
-    func applyCommonRestriction(_ restriction: TopologyBasedElementRestriction<T>) -> Bool { false }
-    func applySpecificRestriction(_ restriction: any ElementRestriction) -> Bool { false }
+    func applyEdgesRestriction(_ restriction: TopologyBasedElementRestriction<T>, at point: Point) -> Bool { false }
+    func applyConnectionRestriction(_ restriction: ConnectionPreventRestriction<T>, at point: Point) -> Bool { false }
+    func applySpecificRestriction(_ restriction: any ElementRestriction, at point: Point) -> Bool { false }
 
     func resetRestrictions() {}
     func waveFunctionCollapse(point: Point, field: Field) -> T.Field.Element? { return nil }

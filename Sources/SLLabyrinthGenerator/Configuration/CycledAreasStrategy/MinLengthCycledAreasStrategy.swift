@@ -57,8 +57,10 @@ final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
             
             if success {
                 area.graph.removeAndCompactize(edge)
-                if let reversed = area.graph.existedReverse(edge) {
-                    area.graph.removeAndCompactize(reversed)
+                if edge.type.bidirectional {
+                    if let reversed = area.graph.existedReverse(edge) {
+                        area.graph.removeAndCompactize(reversed)
+                    }
                 }
                 return true
             }

@@ -78,7 +78,7 @@ final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperpos
         return copy
     }
 
-    override func applyCommonRestriction(_ restriction: TopologyBasedElementRestriction<T>) -> Bool {
+    override func applyEdgesRestriction(_ restriction: TopologyBasedElementRestriction<T>, at point: Point) -> Bool {
         switch restriction {
         case .wall(let edge), .fieldEdge(let edge):
             edges.remove(key: .undefined, setValue: edge)
@@ -94,7 +94,7 @@ final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperpos
         return true
     }
 
-    override func applySpecificRestriction(_ restriction: any ElementRestriction) -> Bool {
+    override func applySpecificRestriction(_ restriction: any ElementRestriction, at point: Point) -> Bool {
         switch restriction {
         case let oneway as OneWayRestriction<T>:
             applyOnewayRestriction(oneway)

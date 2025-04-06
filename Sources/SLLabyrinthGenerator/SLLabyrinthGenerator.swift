@@ -166,6 +166,10 @@ public final class LabyrinthGenerator<T: Topology> {
         guard configuration.isolatedAreasStrategy != nil else { return }
 
         timeLog("Calculate isolated areas") { isolatedAreas = pathsGraph.isolatedAreas() }
+        if save {
+            timeLog("Save state") { saveState(step: .isolated) }
+        }
+
         timeLog("Resolve isolated areas") { resolveIsolatedAreas() }
 
         if save {
@@ -438,7 +442,7 @@ public final class LabyrinthGenerator<T: Topology> {
         superProvider.reqisterSuperposition(CornerPathSuperposition<T>.self)
         superProvider.reqisterSuperposition(JunctionSuperposition<T>.self)
         superProvider.reqisterSuperposition(OneWayHolderSuperposition<T>.self)
-//        superProvider.reqisterSuperposition(TeleporterSuperposition<T>.self)
+        superProvider.reqisterSuperposition(TeleporterSuperposition<T>.self)
 
         return superProvider
     }

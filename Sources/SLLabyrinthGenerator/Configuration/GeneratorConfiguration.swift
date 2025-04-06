@@ -13,7 +13,9 @@ public struct GeneratorConfiguration<T: Topology> {
 
     var edgeCuttingStrategies: Dictionary<PathsEdgeType, EdgeCuttingStrategy<T>> = [
         .passage : PassageEdgeCuttingStrategy(),
-        .onewayPasssage : PassageEdgeCuttingStrategy()
+        .onewayPasssage : PassageEdgeCuttingStrategy(),
+        .onewayTeleporter : TeleportEdgeCuttingStrategy(),
+        .bidirectionalTeleporter : TeleportEdgeCuttingStrategy(),
     ]
 
     func setWeigth(_ superposition: any CategorizedSuperposition.Type, weight: Float) {

@@ -42,7 +42,7 @@ class PassagesBasedSuperposition<T: Topology>: TopologyBasedElementSuperposition
         passagesVariations.count
     }
 
-    override func applyCommonRestriction(_ restriction: TopologyBasedElementRestriction<T>) -> Bool {
+    override func applyEdgesRestriction(_ restriction: TopologyBasedElementRestriction<T>, at point: Point) -> Bool {
         switch restriction {
         case .wall(let edge), .fieldEdge(let edge):
             passagesVariations = passagesVariations.filter { !$0.contains(edge) }
@@ -50,6 +50,14 @@ class PassagesBasedSuperposition<T: Topology>: TopologyBasedElementSuperposition
             passagesVariations = passagesVariations.filter { $0.contains(edge) }
         @unknown default:
             return false
+        }
+
+        return true
+    }
+
+    override func applyConnectionRestriction(_ restriction: ConnectionPreventRestriction<T>, at point: Point) -> Bool {
+        if let edge = T.edge(from: point, to: restriction.target) {
+            passagesVariations = passagesVariations.filter { !$0.contains(edge) }
         }
 
         return true

@@ -25,10 +25,17 @@ final class OneWayHolder<T: Topology>: TopologyBasedLabyrinthElement<T> {
     }
 
     override func connected(_ point: Point) -> [ElementsConnection<Point>] {
-        (passages + outgoings).map {
+        let onewayConnections = outgoings.map {
             let point = T.nextPoint(point: point, edge: $0)
             return ElementsConnection(point: point, type: .onewayPasssage)
         }
+
+        let passagesConnections = passages.map {
+            let point = T.nextPoint(point: point, edge: $0)
+            return ElementsConnection(point: point, type: .passage)
+        }
+
+        return onewayConnections + passagesConnections
     }
 
     override func outcomeRestrictions<F>(point: Point, field: F) -> OutcomeRestrictions where F : TopologyField {

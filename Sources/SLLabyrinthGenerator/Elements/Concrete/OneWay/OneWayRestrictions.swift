@@ -11,7 +11,7 @@ enum OnewayDirection {
     case income, outgoing
 }
 
-final class OneWayRestriction<T: Topology>: EdgeBasedElementRestriction, IdHashable {
+final class OneWayRestriction<T: Topology>: ElementRestriction, IdHashable {
     typealias Edge = T.Edge
 
     var allowUnhandled: Bool { false }
