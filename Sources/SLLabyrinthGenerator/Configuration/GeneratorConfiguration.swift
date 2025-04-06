@@ -11,12 +11,12 @@ public struct GeneratorConfiguration<T: Topology> {
     var isolatedAreasStrategy: IsolatedAreasStrategy<T>? = nil
     var cycledAreasStrategy: CycledAreasStrategy<T>? = nil
 
-    var edgeCuttingStrategies: Dictionary<PathsEdgeType, EdgeCuttingStrategy<T>> = [
-        .passage : PassageEdgeCuttingStrategy(),
-        .onewayPasssage : PassageEdgeCuttingStrategy(),
-        .onewayTeleporter : TeleportEdgeCuttingStrategy(),
-        .bidirectionalTeleporter : TeleportEdgeCuttingStrategy(),
-    ]
+    var edgeCuttingStrategies: Dictionary<PathsEdgeType, EdgeCuttingStrategy<T>> = [:]
+    var defaultEdgeCuttingStrategy = IterativeEdgeCuttingStrategy<T>()
+
+    func edgeCuttingStrategy(type: PathsEdgeType) -> EdgeCuttingStrategy<T> {
+        return edgeCuttingStrategies[type] ?? defaultEdgeCuttingStrategy
+    }
 
     func setWeigth(_ superposition: any CategorizedSuperposition.Type, weight: Float) {
         elementsWeights.setWeigth(superposition, weight: weight)

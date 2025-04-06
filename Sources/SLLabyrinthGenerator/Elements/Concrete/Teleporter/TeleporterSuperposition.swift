@@ -43,7 +43,7 @@ final class TeleporterSuperposition<T: Topology>: PassagesBasedSuperposition<T>,
 
     override func applyConnectionRestriction(_ restriction: ConnectionPreventRestriction<T>, at point: Point) -> Bool {
         preventedTargets.insert(restriction.target)
-        return true
+        return super.applyConnectionRestriction(restriction, at: point)
     }
 
     override func resetRestrictions() {

@@ -1,13 +1,11 @@
 //
-//  PassageEdgeCuttingStrategy.swift
+//  IterativeEdgeCuttingStrategy.swift
 //  SLLabyrinthIOS
 //
 //  Created by serhii.lomov on 03.04.2025.
 //
 
-final class PassageEdgeCuttingStrategy<T: Topology>: EdgeCuttingStrategy<T> {
-    typealias Restriction = TopologyBasedElementRestriction<T>
-
+final class IterativeEdgeCuttingStrategy<T: Topology>: EdgeCuttingStrategy<T> {
     override func tryToCut(_ edge: Edge, generator: Generator, provider: String) -> Bool {
         for i in (1..<edge.points.count).reversed() {
             let point1 = edge.points[i]
@@ -23,8 +21,8 @@ final class PassageEdgeCuttingStrategy<T: Topology>: EdgeCuttingStrategy<T> {
         guard let edge1 = T.edge(from: point1, to: point2) else { return false }
         let edge2 = T.adaptToNextPoint(edge1)
 
-        let restriction1 = Restriction.wall(edge: edge1)
-        let restriction2 = Restriction.wall(edge: edge2)
+        let restriction1 = ConnectionRestriction(target: point2)
+        let restriction2 = ConnectionRestriction(target: point1)
 
         let restrictions = [
             point1 : [restriction1],

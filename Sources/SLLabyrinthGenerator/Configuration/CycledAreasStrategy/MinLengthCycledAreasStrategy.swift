@@ -51,8 +51,7 @@ final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
                 }
             }
 
-            let strategy = generator.configuration.edgeCuttingStrategies[edge.type]
-            guard let strategy = strategy else { continue }
+            let strategy = generator.configuration.edgeCuttingStrategy(type: edge.type)
             let success = strategy.tryToCut(edge, generator: generator, provider: provider)
             
             if success {

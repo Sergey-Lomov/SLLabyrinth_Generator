@@ -94,6 +94,14 @@ final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperpos
         return true
     }
 
+    override func applyConnectionRestriction(_ restriction: ConnectionPreventRestriction<T>, at point: Point) -> Bool {
+        if let edge = T.edge(from: point, to: restriction.target) {
+            edges.remove(key: .undefined, setValue: edge)
+            edges.insert(key: .wall, setValue: edge)
+        }
+        return true
+    }
+
     override func applySpecificRestriction(_ restriction: any ElementRestriction, at point: Point) -> Bool {
         switch restriction {
         case let oneway as OneWayRestriction<T>:
