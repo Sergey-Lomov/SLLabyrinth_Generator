@@ -15,6 +15,7 @@ final class FieldAnalyzer<T: Topology> {
     static func pathsGraph(_ field: Field) -> Graph {
         var unhandled = field.allPoints()
         let graph = Graph()
+        graph.usePointsIndexing = true
 
         while !unhandled.isEmpty {
             // TODO: Try to use first instead random to optmize speed

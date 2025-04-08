@@ -113,7 +113,6 @@ public final class LabyrinthGenerator<T: Topology> {
 
     func updatePathsGraph() {
         pathsGraph = FieldAnalyzer.pathsGraph(field)
-        pathsGraph.usePointsIndexing = true
         pathsGraph.compactizePaths()
     }
 
@@ -138,7 +137,6 @@ public final class LabyrinthGenerator<T: Topology> {
     private func calculatePathsGraph(log timeLog: TimeLog, save: Bool = false) {
         timeLog("Calculate") {
             pathsGraph = FieldAnalyzer.pathsGraph(field)
-            pathsGraph.usePointsIndexing = true
         }
 
         timeLog("Compactize") {
