@@ -117,6 +117,7 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
     @discardableResult
     func compactize(vertex: Vertex) -> PathsGraphPatch<T> {
         var patch = PathsGraphPatch<T>()
+        guard vertex.type.compactizable else { return patch }
 
         guard let outEdges = fromMap[vertex]?.toArray(), outEdges.count == 2,
               let inEdges = toMap[vertex]?.toArray(), inEdges.count == 2 else {
@@ -131,7 +132,7 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
         // If both the right and left edges are self-cycled on the current vertex, the vertex should not be optimized.
         guard left != right || left != vertex else { return patch }
 
-        // Only common edges can be merged
+        // Only passage edges can be merged
         guard sourceToLeft.isPassage && sourceToRight.isPassage else { return patch }
 
         let leftToSource = inEdges.first { $0.isReversed(sourceToLeft) }
@@ -274,8 +275,8 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
     @discardableResult
     func appendEdge(points: [T.Point], type: PathsEdgeType = .passage) -> Edge? {
         guard let from = points.first, let to = points.last, from != to else { return nil }
-        let fromVertex = vertices.first { $0.point == from } ?? Vertex(point: from)
-        let toVertex = vertices.first { $0.point == to } ?? Vertex(point: to)
+        let fromVertex = vertexForEdgePoints(points, point: from)
+        let toVertex = vertexForEdgePoints(points, point: to)
 
         let edge = Edge(points: points, from: fromVertex, to: toVertex, type: type)
         appendEdge(edge)
@@ -283,11 +284,19 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
     }
 
     @discardableResult
-    func embedVertex(atPoint point: T.Point) -> PathsGraphPatch<T> {
+    func embedVertex(
+        at point: T.Point,
+        edgePoints: [T.Point]? = nil
+    ) -> PathsGraphPatch<T> {
         var patch = PathsGraphPatch<T>()
 
-        if let exist = vertices.first(where: { $0.point == point }) {
-            patch.addedVertices.append(exist)
+        var exist = vertices(of: point)
+        if let edgePoints = edgePoints {
+            exist = exist.filter { $0.edgePointsValidator?(edgePoints) ?? true }
+        }
+
+        if let first = exist.first {
+            patch.addedVertices.append(first)
             return patch
         }
 
@@ -316,11 +325,23 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
         return patch
     }
 
+    private func vertexForEdgePoints(_ points: [Point], point: Point) -> Vertex {
+        let exist = vertices(of: point)
+        let valid = exist.filter {
+            $0.edgePointsValidator?(points) ?? true
+        }
+        return valid.first ?? Vertex(point: point)
+    }
+
     private func calculatePoints() -> Set<T.Point> {
        if edges.isEmpty {
-           return Set(vertices.map { $0.point })
+           return vertices
+               .map { $0.point }
+               .toSet()
        } else {
-           return Set(edges.flatMap { $0.points })
+           return edges
+               .flatMap { $0.points }
+               .toSet()
        }
     }
 

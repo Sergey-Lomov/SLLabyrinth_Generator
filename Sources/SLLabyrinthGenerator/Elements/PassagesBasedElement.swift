@@ -26,7 +26,7 @@ class PassagesBasedElement<T: Topology>: TopologyBasedLabyrinthElement<T> {
         }
     }
 
-    override func connected(_ point: Point) -> [ElementsConnection<Point>] {
+    override func singleConnected(_ point: Point) -> [ElementsConnection<Point>] {
         passages.map {
             let point = T.nextPoint(point: point, edge: $0)
             return ElementsConnection(point: point, type: .passage)

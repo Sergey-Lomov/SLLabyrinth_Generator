@@ -24,8 +24,8 @@ final class Teleporter<T: Topology>: PassagesBasedElement<T> {
         super.init(passages: passages)
     }
 
-    override func connected(_ point: Point) -> [ElementsConnection<Point>] {
-        var connections = super.connected(point)
+    override func singleConnected(_ point: Point) -> [ElementsConnection<Point>] {
+        var connections = super.singleConnected(point)
 
         if type != .receiver {
             let edgeType: PathsEdgeType = type == .bidirectional ? .bidirectionalTeleporter : .onewayTeleporter

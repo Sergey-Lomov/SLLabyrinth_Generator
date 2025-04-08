@@ -123,8 +123,6 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
                 opposite = .wall(edge: edge)
             case .wall(let edge):
                 opposite = .passage(edge: edge)
-            default:
-                break
             }
 
             let same = rests.filter { $0 == restriction }

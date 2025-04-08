@@ -46,8 +46,6 @@ final class SolidSuperposition<T: Topology>: TopologyBasedElementSuperposition<T
         case .passage(_):
             available = false
             return true
-        @unknown default:
-            return false
         }
     }
 

@@ -302,7 +302,7 @@ public final class LabyrinthGenerator<T: Topology> {
         let result = regenerate(at: points)
 
         if result.isSuccess {
-            updatePaths(at: points)
+            FieldAnalyzer.updatePaths(pathsGraph, at: points, field: field)
         } else {
             originalElements.forEach { point, element in
                 eraseFieldElement(at: point)
@@ -327,55 +327,6 @@ public final class LabyrinthGenerator<T: Topology> {
         }
 
         return .success
-    }
-
-    private func updatePaths(at points: [Point]) {
-        var connectedVertices: Set<PathsGraphVertex<T>> = []
-
-        for point in points {
-            let edges = pathsGraph.edges(of: point)
-            let nearest = edges.flatMap { edge in
-                edge.points.enumerated().compactMap { index, edge_point in
-                    let next = edge.points[safe: index + 1]
-                    let previous = edge.points[safe: index - 1]
-                    return next == point || previous == point ? edge_point : nil
-                }
-            }.toSet()
-
-            nearest.forEach {
-                let patch = pathsGraph.embedVertex(atPoint: $0)
-                connectedVertices.formUnion(patch.addedVertices)
-            }
-
-            let oldVertices = pathsGraph.vertices(of: point)
-            oldVertices.forEach { pathsGraph.removeVertex($0) }
-            let oldEdges = pathsGraph.edges(of: point)
-            oldEdges.forEach { pathsGraph.removeEdge($0) }
-        }
-
-        for point in points {
-            guard let new = field.element(at: point) else { continue }
-            new.connected(point).forEach {
-                guard field.contains($0.point) else { return }
-                let points = [point, $0.point]
-                pathsGraph.appendEdge(points: points, type: $0.type)
-            }
-        }
-
-        connectedVertices.forEach { vertex in
-            guard let element = field.element(at: vertex.point) else { return }
-            let connected = element.connected(vertex.point)
-            let filtered = connected.filter { points.contains($0.point) }
-            filtered.forEach { connection in
-                let points = [vertex.point, connection.point]
-                pathsGraph.appendEdge(points: points, type: connection.type)
-            }
-        }
-
-        connectedVertices.forEach { pathsGraph.compactize(vertex: $0) }
-        pathsGraph.vertices
-            .filter { points.contains($0.point) }
-            .forEach { pathsGraph.compactize(vertex: $0) }
     }
 
     private func calculateCyclesAreas() {

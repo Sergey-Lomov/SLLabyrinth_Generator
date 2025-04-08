@@ -85,8 +85,6 @@ final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperpos
         case .passage(let edge):
             edges.remove(key: .undefined, setValue: edge)
             edges.insert(key: .passage, setValue: edge)
-        @unknown default:
-            return false
         }
 
         checkConsistency()

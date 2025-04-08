@@ -30,6 +30,13 @@ final class TeleporterIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy<
             guard let outer = outerPoints.randomElement() else { continue }
             let from = issue.direction == .income ? outer : inner
             let to = issue.direction == .income ? inner : outer
+
+            guard from != to else {
+                innerPoints.remove(inner)
+                outerPoints.remove(outer)
+                continue
+            }
+
             let result = tryToRegenerate(from: from, to: to, oneway: oneway, generator: generator)
 
             switch result {
@@ -87,14 +94,14 @@ final class TeleporterIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy<
             return false
         }
 
-        let fromPatch = fromArea.graph.embedVertex(atPoint: from)
-        let toPatch = toArea.graph.embedVertex(atPoint: to)
+        let points = [from, to]
+        let fromPatch = fromArea.graph.embedVertex(at: from, edgePoints: points)
+        let toPatch = toArea.graph.embedVertex(at: to, edgePoints: points)
         guard let fromVertex = fromPatch.addedVertices.first,
               let toVertex = toPatch.addedVertices.first else {
             return false
         }
 
-        let points = [from, to]
         let edgeType: PathsEdgeType = oneway ? .onewayTeleporter : .bidirectionalTeleporter
         let pathsEdge = PathsGraphEdge<T>(
             points: points,

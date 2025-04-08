@@ -19,6 +19,7 @@ struct PathsEdgeType: Hashable {
 struct PathsGraphEdge<T: Topology>: GraphEdge {
     typealias Vertex = PathsGraphVertex<T>
 
+    // TODO: Powerful optimization point - change UUID() to another id generation way. Or remove IdEqutable at all and switch ro common Equatable/Hashable. UUID() performance issue should be investigated in other places.
     var id = UUID().uuidString
 
     let type: PathsEdgeType
@@ -29,7 +30,7 @@ struct PathsGraphEdge<T: Topology>: GraphEdge {
     @Cached var intermediatePoints: [T.Point]
     @Cached var length: Float
 
-    var isPassage: Bool { type == PathsEdgeType.passage }
+    var isPassage: Bool { type == .passage }
 
     init(points: [T.Point], from: Vertex, to: Vertex, type: PathsEdgeType = .passage) {
         self.points = points

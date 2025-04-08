@@ -61,6 +61,8 @@ final class TeleporterSuperposition<T: Topology>: PassagesBasedSuperposition<T>,
         guard let target = target else { return nil }
 
         let teleporter = Teleporter<T>(target: target, type: type, passages: passages)
+
+        // TODO: Time to time generation fails and lead to solid element. This issue should be investigated. Comfortable to reproduce it with bi amount of portals.
         return teleporter as? Field.Element
     }
 

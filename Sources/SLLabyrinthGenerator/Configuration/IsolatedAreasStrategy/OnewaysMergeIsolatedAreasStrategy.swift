@@ -87,14 +87,15 @@ final class OnewaysMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrateg
             return false
         }
 
-        let innerPatch = innerArea.graph.embedVertex(atPoint: merge.innerPoint)
-        let outerPatch = outerArea.graph.embedVertex(atPoint: merge.outerPoint)
+        let points = [merge.innerPoint, merge.outerPoint]
+
+        let innerPatch = innerArea.graph.embedVertex(at: merge.innerPoint, edgePoints: points)
+        let outerPatch = outerArea.graph.embedVertex(at: merge.outerPoint, edgePoints: points)
         guard let innerVertex = innerPatch.addedVertices.first,
               let outerVertex = outerPatch.addedVertices.first else {
             return false
         }
 
-        let points = [merge.innerPoint, merge.outerPoint]
         var pathsEdge = PathsGraphEdge<T>(
             points: points,
             from: innerVertex,

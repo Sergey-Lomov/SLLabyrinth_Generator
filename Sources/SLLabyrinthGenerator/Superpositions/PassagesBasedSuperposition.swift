@@ -48,8 +48,6 @@ class PassagesBasedSuperposition<T: Topology>: TopologyBasedElementSuperposition
             passagesVariations = passagesVariations.filter { !$0.contains(edge) }
         case .passage(let edge):
             passagesVariations = passagesVariations.filter { $0.contains(edge) }
-        @unknown default:
-            return false
         }
 
         return true
