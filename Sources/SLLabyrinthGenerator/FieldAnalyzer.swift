@@ -13,21 +13,17 @@ final class FieldAnalyzer<T: Topology> {
     typealias Graph = PathsGraph<T>
 
     static func pathsGraph(_ field: Field) -> Graph {
-        var unhandled = field.allPoints()
         let graph = Graph()
         graph.usePointsIndexing = true
 
-        while !unhandled.isEmpty {
-            // TODO: Try to use first instead random to optmize speed
-            guard let point = unhandled.randomElement() else { continue }
-            unhandled.remove(point)
-            guard let element = field.element(at: point), element.isVisitable else {
-                continue
-            }
-            handleConnectionsVertices(element: element, point: point, graph: graph)
+        let points = field.allPoints()
+
+        points.forEach() {
+            guard let element = field.element(at: $0), element.isVisitable else { return }
+            handleConnectionsVertices(element: element, point: $0, graph: graph)
         }
 
-        field.allPoints().forEach() {
+        points.forEach() {
             guard let element = field.element(at: $0), element.isVisitable else { return }
             handleConnectionsEdges(element: element, point: $0, graph: graph) {
                 field.contains($0.point)
@@ -115,13 +111,6 @@ final class FieldAnalyzer<T: Topology> {
     ) {
         let connnectionGroups = element.connected(point)
         connnectionGroups.forEach { group in
-//            let existVertex = graph.vertices(of: point)
-//                .first { $0.id == group.id }
-//            if existVertex == nil {
-//                let vertex = PathsGraphVertex<T>(id: group.id, point: point, edgePointsValidator: group.validator)
-//                graph.appendVertex(vertex)
-//            }
-
             group.connections
                 .filter { validator($0) }
                 .forEach {
