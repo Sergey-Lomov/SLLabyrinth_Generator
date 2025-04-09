@@ -8,7 +8,7 @@
 import Foundation
 
 public protocol IdEquatable: Equatable {
-    var id: String { get }
+    var id: Int { get }
 }
 
 extension IdEquatable {

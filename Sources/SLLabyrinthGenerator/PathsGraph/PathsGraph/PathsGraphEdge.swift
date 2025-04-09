@@ -20,7 +20,7 @@ struct PathsGraphEdge<T: Topology>: GraphEdge {
     typealias Vertex = PathsGraphVertex<T>
 
     // TODO: Powerful optimization point - change UUID() to another id generation way. Or remove IdEqutable at all and switch ro common Equatable/Hashable. UUID() performance issue should be investigated in other places.
-    var id = UUID().uuidString
+    var id = UIDProvider.next()
 
     let type: PathsEdgeType
     private(set) var points: [T.Point]

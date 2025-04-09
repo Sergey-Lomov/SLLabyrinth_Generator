@@ -234,7 +234,7 @@ public final class LabyrinthGenerator<T: Topology> {
     func eraseFieldElement(at point: Point) {
         guard let element = field.element(at: point) else { return }
         affectedArea[element, default: []]
-            .forEach { $0.resetRestrictions(by: element.id) }
+            .forEach { $0.resetRestrictions(by: element.restrictionId) }
         affectedArea[element] = nil
         field.setElement(at: point, element: nil)
     }
@@ -257,7 +257,7 @@ public final class LabyrinthGenerator<T: Topology> {
 
             affectedArea.append(key: element, arrayValue: superposition)
             pointRestrictions.forEach {
-                superposition.applyRestriction($0, provider: element.id, onetime: false)
+                superposition.applyRestriction($0, provider: element.restrictionId, onetime: false)
             }
 
             if entoryHandled {
@@ -281,7 +281,7 @@ public final class LabyrinthGenerator<T: Topology> {
         points: [Point],
         restrictions: Dictionary<Point, [any SuperpositionRestriction]> = [:],
         onetime: Bool = true,
-        restrictionsProvider: String = UUID().uuidString
+        restrictionsProvider: String = UIDProvider.nextString()
     ) -> FieldRegenerationResult {
         let originalElements: Dictionary<Point, Element> = points
             .compactMap {

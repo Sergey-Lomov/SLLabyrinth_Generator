@@ -10,7 +10,7 @@ import Foundation
 struct AreasGraphEdge<T: Topology>: GraphEdge {
     typealias Vertex = PathsGraphArea<T>
 
-    let id = UUID().uuidString
+    let id = UIDProvider.next()
     let pathsEdge: PathsGraphEdge<T>
     let from: PathsGraphArea<T>
     let to: PathsGraphArea<T>

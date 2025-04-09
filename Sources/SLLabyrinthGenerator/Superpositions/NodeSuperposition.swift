@@ -59,7 +59,7 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
     typealias Field = T.Field
     typealias Nested = TopologyBasedElementSuperposition<T>
 
-    var id = UUID().uuidString
+    var id = UIDProvider.next()
     var point: Point
     var elementsSuperpositions: [Nested] = []
     var availableElements: Set<Nested> = []

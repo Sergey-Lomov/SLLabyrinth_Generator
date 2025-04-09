@@ -16,7 +16,7 @@ final class OneWayRestriction<T: Topology>: ElementRestriction, IdHashable {
 
     var allowUnhandled: Bool { false }
 
-    let id = UUID().uuidString
+    let id = UIDProvider.next()
     let edge: Edge
     let direction: OnewayDirection
 

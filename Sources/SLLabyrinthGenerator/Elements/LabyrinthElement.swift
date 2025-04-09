@@ -12,8 +12,8 @@ public protocol LabyrinthElement: AnyObject, Hashable {
 
     typealias OutcomeRestrictions = Dictionary<Point, [any ElementRestriction]>
 
-    var id: String { get }
     var isVisitable: Bool { get }
+    var restrictionId: String { get }
 
     func connected(_ point: Point) -> [ElementConnectionsGroup<Point>]
     func outcomeRestrictions<F: TopologyField>(point: Point, field: F) -> OutcomeRestrictions
@@ -28,7 +28,8 @@ class TopologyBasedLabyrinthElement<T: Topology>: LabyrinthElement, IdHashable {
     typealias Restriction = PassagesElementRestriction<T>
 
     var isVisitable: Bool { true }
-    var id: String = "element_" + UUID().uuidString
+    var id = UIDProvider.next()
+    var restrictionId: String { "element_\(id)" }
 
     func connected(_ point: Point) -> [ElementConnectionsGroup<Point>] {
         let group = ElementConnectionsGroup(

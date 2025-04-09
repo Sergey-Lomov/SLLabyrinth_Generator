@@ -27,7 +27,7 @@ final class RandomMergeIsolatedAreasStrategy<T: Topology>: IsolatedAreasStrategy
         let result = generator.regenerate(
             points: [merge.innerPoint, merge.outerPoint],
             restrictions: restrictions,
-            restrictionsProvider: merge.id
+            restrictionsProvider: "\(merge.id)"
         )
 
         guard result.isSuccess else { return false }

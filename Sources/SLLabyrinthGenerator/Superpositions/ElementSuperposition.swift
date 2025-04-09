@@ -42,7 +42,7 @@ class TopologyBasedElementSuperposition<T: Topology>: ElementSuperposition {
     typealias Edge = T.Edge
     typealias Field = T.Field
 
-    var id = UUID().uuidString
+    var id = UIDProvider.next()
     var entropy: Int { 0 }
 
     required init() {}

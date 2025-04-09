@@ -9,7 +9,7 @@ import Foundation
 
 final class TeleporterRestriction<T: Topology>: ElementRestriction, IdHashable {
 
-    let id = UUID().uuidString
+    let id = UIDProvider.next()
     let target: T.Point?
     let types: Set<TeleporterType>
 
@@ -22,7 +22,7 @@ final class TeleporterRestriction<T: Topology>: ElementRestriction, IdHashable {
 }
 
 final class TeleporterCoefficientRestriction: ElementRestriction, IdHashable {
-    let id = UUID().uuidString
+    let id = UIDProvider.next()
     let coefficient: Int
 
     var allowUnhandled: Bool { true }

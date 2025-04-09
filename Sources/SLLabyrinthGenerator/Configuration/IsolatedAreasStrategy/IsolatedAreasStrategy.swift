@@ -27,7 +27,7 @@ public class IsolatedAreasStrategy<T: Topology> {
     typealias Restriction = PassagesElementRestriction<T>
 
     internal struct Merge {
-        let id = "merge_" + UUID().uuidString
+        let id = UIDProvider.next()
         let innerPoint: Point
         let innerEdge: Edge
         let outerPoint: Point

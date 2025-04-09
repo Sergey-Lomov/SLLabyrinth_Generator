@@ -8,7 +8,7 @@
 import Foundation
 
 final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
-    private let providerPrefix = "cycles_resolving_"
+    private let providerPrefix = "cycles_resolving"
 
     let minLength: Float
 
@@ -50,7 +50,7 @@ final class MinLengthCycledAreasStrategy<T: Topology>: CycledAreasStrategy<T> {
         generator: LabyrinthGenerator<T>
     ) -> Bool {
         let bidirectional = area.graph.isBidirectional(path)
-        let provider = providerPrefix + area.id
+        let provider = "\(providerPrefix)_\(area.id)"
 
         for edge in path.edges {
             guard edge.points.count >= 2 else { continue }
