@@ -250,19 +250,26 @@ public final class LabyrinthGenerator<T: Topology> {
         restrictions.forEach { point, pointRestrictions in
             guard let superposition = superpositions[point] else { return }
 
-            let entoryHandled = entropyContainer?.contains(superposition) ?? false
-            if entoryHandled {
-                entropyContainer?.remove(superposition)
+            let entropyHandled = entropyContainer?.contains(superposition) ?? false
+            if entropyHandled {
+                // Store old entropy for comparison
+                let oldEntropy = superposition.entropy
+                
+                // Apply restrictions (this changes entropy)
+                pointRestrictions.forEach {
+                    superposition.applyRestriction($0, provider: element.restrictionId, onetime: false)
+                }
+                
+                // Update entropy in container more efficiently
+                entropyContainer?.updateEntropy(for: superposition)
+            } else {
+                // Apply restrictions normally
+                pointRestrictions.forEach {
+                    superposition.applyRestriction($0, provider: element.restrictionId, onetime: false)
+                }
             }
 
             affectedArea.append(key: element, arrayValue: superposition)
-            pointRestrictions.forEach {
-                superposition.applyRestriction($0, provider: element.restrictionId, onetime: false)
-            }
-
-            if entoryHandled {
-                entropyContainer?.append(superposition)
-            }
         }
     }
 
