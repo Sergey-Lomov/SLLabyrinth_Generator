@@ -10,4 +10,8 @@ struct SquarePoint: TopologyPoint, CustomStringConvertible {
     var y: Int
 
     var description: String { "\(x):\(y)" }
+
+    func isEqual(point: SquarePoint) -> Bool {
+        return self.x == point.x && self.y == point.y
+    }
 }

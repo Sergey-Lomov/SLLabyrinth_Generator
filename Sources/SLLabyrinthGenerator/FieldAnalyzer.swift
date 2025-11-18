@@ -33,54 +33,56 @@ final class FieldAnalyzer<T: Topology> {
         return graph
     }
 
-    static func updatePaths(_ graph: Graph, at points: [Point], field: Field) {
-        var connectedVertices: Set<PathsGraphVertex<T>> = []
+    static func updatePaths(_ graph: Graph, at point: Point, field: Field) {
+        var affectedVertices: Set<PathsGraphVertex<T>> = []
 
-        for point in points {
-            let edges = graph.edges(of: point)
-            let nearest = edges.flatMap { edge in
-                edge.points.enumerated().compactMap { index, edge_point in
-                    let next = edge.points[safe: index + 1]
-                    let previous = edge.points[safe: index - 1]
-                    return next == point || previous == point ? edge_point : nil
+        let edges = graph.edges(of: point)
+        for edge in edges {
+            let subedgesPoints = edge
+                .splitPoints(at: point, includeSeparator: false)
+
+            for subedgePoints in subedgesPoints {
+                if subedgePoints.count > 1 {
+                    if let edge = graph.appendEdge(points: subedgePoints, type: edge.type) {
+                        affectedVertices.insert(edge.from)
+                        affectedVertices.insert(edge.to)
+                    }
+                } else {
+                    if let subedgeFirst = subedgePoints.first {
+                        affectedVertices.formUnion(graph.vertices(of: subedgeFirst))
+                    }
                 }
-            }.toSet()
-
-            nearest.forEach {
-                let estimatedEdgePoints = [point, $0]
-                let patch = graph.embedVertex(at: $0, edgePoints: estimatedEdgePoints)
-                connectedVertices.formUnion(patch.addedVertices)
             }
 
-            let oldVertices = graph.vertices(of: point)
-            oldVertices.forEach { graph.removeVertex($0) }
-            let oldEdges = graph.edges(of: point)
-            oldEdges.forEach { graph.removeEdge($0) }
+            graph.removeEdge(edge)
         }
 
-        for point in points {
-            guard let new = field.element(at: point) else { continue }
-            handleConnectionsVertices(element: new, point: point, graph: graph)
+        guard let element = field.element(at: point) else { return }
+        handleConnectionsVertices(element: element, point: point, graph: graph)
+        handleConnectionsEdges(element: element, point: point, graph: graph) {
+            field.contains($0.point)
         }
 
-        for point in points {
-            guard let new = field.element(at: point) else { continue }
-            handleConnectionsEdges(element: new, point: point, graph: graph) {
-                field.contains($0.point)
+        affectedVertices
+            .map { $0.point }
+            .toSet()
+            .forEach { affected in
+                guard let element = field.element(at: affected) else { return }
+                handleConnectionsEdges(element: element, point: affected, graph: graph) {
+                    $0.point == point
+                }
             }
-        }
 
-        connectedVertices.forEach { vertex in
-            guard let element = field.element(at: vertex.point) else { return }
-            handleConnectionsEdges(element: element, point: vertex.point, graph: graph) {
-                points.contains($0.point)
-            }
+        affectedVertices.formUnion(graph.vertices(of: point))
+        affectedVertices.forEach {
+            graph.compactize(vertex: $0)
         }
+    }
 
-        connectedVertices.forEach { graph.compactize(vertex: $0) }
-        graph.vertices
-            .filter { points.contains($0.point) }
-            .forEach { graph.compactize(vertex: $0) }
+    static func updatePaths(_ graph: Graph, at points: [Point], field: Field) {
+        points.forEach {
+            updatePaths(graph, at: $0, field: field)
+        }
     }
 
     private static func handleConnectionsVertices(

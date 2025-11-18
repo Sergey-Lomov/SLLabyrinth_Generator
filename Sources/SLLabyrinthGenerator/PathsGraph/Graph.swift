@@ -73,7 +73,6 @@ class Graph<Edge: GraphEdge> {
             removeIfUnused(edge.to)
         }
 
-        
         invalidateCache()
     }
 

@@ -274,7 +274,7 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
 
     @discardableResult
     func appendEdge(points: [T.Point], type: PathsEdgeType = .passage) -> Edge? {
-        guard let from = points.first, let to = points.last, from != to else { return nil }
+        guard let from = points.first, let to = points.last, points.count > 1 else { return nil }
         let fromVertex = vertexForEdgePoints(points, point: from)
         let toVertex = vertexForEdgePoints(points, point: to)
 
@@ -286,7 +286,8 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
     @discardableResult
     func embedVertex(
         at point: T.Point,
-        edgePoints: [T.Point]? = nil
+        edgePoints: [T.Point]? = nil,
+        affectedEdges: Set<Edge>? = nil
     ) -> PathsGraphPatch<T> {
         var patch = PathsGraphPatch<T>()
 
@@ -304,7 +305,8 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
         appendVertex(newVertex)
         patch.addedVertices.append(newVertex)
 
-        edges(of: point)
+        let affectedEdges = affectedEdges ?? edges(of: point)
+        affectedEdges
             .filter { $0.from.point != point && $0.to.point != point }
             .forEach {
                 removeEdge($0)

@@ -47,7 +47,9 @@ public protocol TopologyEdge: Comparable & Hashable & CaseIterable {
     func opposite() -> Self?
 }
 
-public protocol TopologyPoint: Hashable {}
+public protocol TopologyPoint: Hashable {
+    func isEqual(point: Self) -> Bool
+}
 
 extension Topology {
     public static func edge(from: Point, to: Point) -> Edge? {

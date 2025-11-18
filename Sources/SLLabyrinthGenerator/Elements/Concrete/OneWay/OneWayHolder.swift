@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// A labyrinth element with two entrances on opposite sides, allowing movement in only one direction.
+/// A labyrinth element with passages, which allowing movement in only one direction.
 final class OneWayHolder<T: Topology>: TopologyBasedLabyrinthElement<T> {
     typealias Point = T.Point
     typealias Edge = T.Edge

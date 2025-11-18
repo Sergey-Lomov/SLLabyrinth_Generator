@@ -19,7 +19,7 @@ final class Bridge<T: Topology>: TopologyBasedLabyrinthElement<T> {
     override func connected(_ point: Point) -> [ElementConnectionsGroup<Point>] {
         paths.map { path in
             let typeTitle = "bridge_\(path[0])_\(path[1])"
-            let type = PathsVertexType(title: typeTitle, compactizable: false)
+            let type = PathsVertexType(title: typeTitle, compactizable: true)
 
             let connections = path.map { edge in
                 let next = T.nextPoint(point: point, edge: edge)
