@@ -20,6 +20,7 @@ public struct GeneratorConfiguration<T: Topology> {
         provider.reqisterSuperposition(StraightPathSuperposition<T>.self)
         provider.reqisterSuperposition(CornerPathSuperposition<T>.self)
         provider.reqisterSuperposition(JunctionSuperposition<T>.self)
+        provider.reqisterSuperposition(IsolatedRoomSuperposition<T>.self)
         return provider
     }()
 

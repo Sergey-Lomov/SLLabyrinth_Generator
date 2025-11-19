@@ -16,42 +16,9 @@ final class Solid<T: Topology>: PassagesBasedElement<T> {
     }
 }
 
-final class SolidSuperposition<T: Topology>: TopologyBasedElementSuperposition<T>, CategorizedSuperposition {
+final class SolidSuperposition<T: Topology>: IsolatedElementSuperposition<T>, CategorizedSuperposition {
 
     static var category: String { "solid" }
-
-    var available = true
-
-    override var entropy: Int {
-        available ? 1 : 0
-    }
-
-    required init() {
-        super.init()
-    }
-
-    init(available: Bool) {
-        super.init()
-        self.available = available
-    }
-
-    override func copy() -> Self {
-        Self.init(available: available)
-    }
-
-    override func applyPassagesRestriction(_ restriction: PassagesElementRestriction<T>, at point: Point) -> Bool {
-        switch restriction {
-        case .wall(_):
-            return true
-        case .passage(_):
-            available = false
-            return true
-        }
-    }
-
-    override func resetRestrictions() {
-        available = true
-    }
 
     override func waveFunctionCollapse(point: Point, field: Field) -> Field.Element? {
         let solid = Solid<T>() as? Field.Element

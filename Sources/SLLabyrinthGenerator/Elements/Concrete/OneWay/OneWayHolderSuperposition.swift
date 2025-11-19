@@ -15,7 +15,7 @@ final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperpos
     static var category: String { "one_way_holder" }
 
     private var allowOptionalOneways = true
-    private var inconsistentRestrinctions = false
+    private var inconsistentRestrictions = false
     private var edges = initialEdges()
 
     private var undefined: Set<Edge> { edges[.undefined, default: []] }
@@ -40,10 +40,11 @@ final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperpos
     }
 
     override var entropy: Int {
-        guard !inconsistentRestrinctions else { return 0 }
+        guard !inconsistentRestrictions else { return 0 }
 
         let edgeOptions: Int = allowOptionalOneways ? 4 : 2
-        guard (haveEntrance && haveOneway) || !undefined.isEmpty else { return 0 }
+        guard !undefined.isEmpty else { return 1 }
+        //guard (haveEntrance && haveOneway) || !undefined.isEmpty else { return 0 }
 
         if haveEntrance {
             if haveOneway {
@@ -125,7 +126,7 @@ final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperpos
     override func resetRestrictions() {
         edges = Self.initialEdges()
         allowOptionalOneways = true
-        inconsistentRestrinctions = false
+        inconsistentRestrictions = false
     }
 
     override func waveFunctionCollapse(point: Point, field: Field) -> Field.Element? {
@@ -174,6 +175,6 @@ final class OneWayHolderSuperposition<T: Topology>: TopologyBasedElementSuperpos
     private func checkConsistency() {
         let defined = incomes.union(outgoings).union(passages).union(walls)
         let total = incomes.count + outgoings.count + passages.count + walls.count
-        inconsistentRestrinctions = total != defined.count
+        inconsistentRestrictions = total != defined.count
     }
 }

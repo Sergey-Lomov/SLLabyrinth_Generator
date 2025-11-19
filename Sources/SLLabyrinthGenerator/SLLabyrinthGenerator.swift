@@ -228,6 +228,12 @@ public final class LabyrinthGenerator<T: Topology> {
         )
         let element = generated ?? solid
         guard let element = element else { return }
+
+        // TODO: Remove test code
+        if element is Solid<T> {
+            print("Error: solid element was generated")
+        }
+
         setFieldElement(at: point, element: element, entropyContainer: uncollapsed)
     }
 
