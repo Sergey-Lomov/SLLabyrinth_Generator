@@ -254,6 +254,7 @@ final class PathsGraph<T: Topology>: Graph<PathsGraphEdge<T>> {
             deadends = result.deadends()
         }
 
+        result.compactizePaths()
         return result
     }
 

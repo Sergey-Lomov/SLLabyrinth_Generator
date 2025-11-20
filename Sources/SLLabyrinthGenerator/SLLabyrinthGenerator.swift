@@ -42,6 +42,8 @@ public final class LabyrinthGenerator<T: Topology> {
     var cyclesAreas: [PathsGraphArea<T>] = []
     var isolatedAreas = AreasGraph<T>()
 
+    // Debug mode
+    private var debugMode: Bool = false
     private var savedStates: Dictionary<GenerationStep, GeneratorState<T>> = [:]
 
     init(configuration: GeneratorConfiguration<T>) {
@@ -50,32 +52,29 @@ public final class LabyrinthGenerator<T: Topology> {
     }
 
     @discardableResult
-    func generateLabyrinth(saveStates: Bool = true) -> TimeLog {
+    func generateLabyrinth(debugMode: Bool = false) -> TimeLog {
         let timeLog = TimeLog()
+        self.debugMode = debugMode
 
         field = Field(size: configuration.size)
-        executeStep(.collapse, log: timeLog, save: saveStates)
-        executeStep(.paths, log: timeLog, save: saveStates)
-        executeStep(.isolated, log: timeLog, save: saveStates)
-        executeStep(.cycles, log: timeLog, save: saveStates)
+        executeStep(.collapse, log: timeLog)
+        executeStep(.paths, log: timeLog)
+        executeStep(.isolated, log: timeLog)
+        executeStep(.cycles, log: timeLog)
 
         return timeLog
     }
 
-    func executeStep(_ step: GenerationStep, log: TimeLog = TimeLog(), save: Bool = false) {
+    func executeStep(_ step: GenerationStep, log: TimeLog = TimeLog()) {
         switch step {
-        case .collapse: log("Collapse field") {
-            collapseField(log: $0, save: save)
-        }
-        case .paths: log("Calculate paths graph") {
-            calculatePathsGraph(log: $0, save: save)
-        }
-        case .isolated: log("Handle isolated areas") {
-            handleIsolatedAreas(log: $0, save: save)
-        }
-        case .cycles: log("Handle cycles areas") {
-            handleCyclesAreas(log: $0, save: save)
-        }
+        case .collapse:
+            log("Collapse field") { collapseField(log: $0) }
+        case .paths:
+            log("Calculate paths graph") { calculatePathsGraph(log: $0) }
+        case .isolated:
+            log("Handle isolated areas") { handleIsolatedAreas(log: $0) }
+        case .cycles:
+            log("Handle cycles areas") { handleCyclesAreas(log: $0) }
         }
     }
 
@@ -124,17 +123,17 @@ public final class LabyrinthGenerator<T: Topology> {
         }
     }
 
-    private func collapseField(log timeLog: TimeLog, save: Bool = false) {
+    private func collapseField(log timeLog: TimeLog) {
         timeLog("Setup superpositions") { setupSuperpositions() }
         timeLog("Apply borders") { applyBorderConstraints() }
         timeLog("Collapse") { collapse() }
 
-        if save {
+        if debugMode {
             timeLog("Save state") { saveState(step: .collapse) }
         }
     }
 
-    private func calculatePathsGraph(log timeLog: TimeLog, save: Bool = false) {
+    private func calculatePathsGraph(log timeLog: TimeLog) {
         timeLog("Calculate") {
             pathsGraph = FieldAnalyzer.pathsGraph(field)
         }
@@ -143,33 +142,30 @@ public final class LabyrinthGenerator<T: Topology> {
             pathsGraph.compactizePaths()
         }
 
-        if save {
+        if debugMode {
             timeLog("Save state") { saveState(step: .paths) }
         }
     }
 
-    private func handleCyclesAreas(log timeLog: TimeLog, save: Bool = false) {
+    private func handleCyclesAreas(log timeLog: TimeLog) {
         guard configuration.cycledAreasStrategy != nil else { return }
 
         timeLog("Calculate cycles areas") { calculateCyclesAreas() }
         timeLog("Resolve cycles areas") { resolveCyclesAreas() }
 
-        if save {
+        if debugMode {
+            filteredGraph = pathsGraph.noDeadendsGraph()
             timeLog("Save state") { saveState(step: .cycles) }
         }
     }
 
-    private func handleIsolatedAreas(log timeLog: TimeLog, save: Bool = false) {
+    private func handleIsolatedAreas(log timeLog: TimeLog) {
         guard configuration.isolatedAreasStrategy != nil else { return }
 
         timeLog("Calculate isolated areas") { isolatedAreas = pathsGraph.isolatedAreas() }
-        if save {
-            timeLog("Save state") { saveState(step: .isolated) }
-        }
-
         timeLog("Resolve isolated areas") { resolveIsolatedAreas() }
 
-        if save {
+        if debugMode {
             timeLog("Save state") { saveState(step: .isolated) }
         }
     }
