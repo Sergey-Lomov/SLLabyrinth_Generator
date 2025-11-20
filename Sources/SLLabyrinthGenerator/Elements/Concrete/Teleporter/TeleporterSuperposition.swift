@@ -16,6 +16,10 @@ final class TeleporterSuperposition<T: Topology>: PassagesBasedSuperposition<T>,
     private var requiredTargets: Set<T.Point> = []
     private var preventedTargets: Set<T.Point> = []
 
+    // Additional option: generate an isolated portal with walls on every edge.
+    // This approach should be used only if no valid combination of entrances is available.
+    private var isIsolatedAvailable: Bool = true
+
     override var entropy: Int {
         guard !checkConflicts() else { return 0 }
         return super.entropy * entropyCoefficient
@@ -46,15 +50,28 @@ final class TeleporterSuperposition<T: Topology>: PassagesBasedSuperposition<T>,
         return super.applyConnectionRestriction(restriction, at: point)
     }
 
+    override func applyPassagesRestriction(_ restriction: PassagesElementRestriction<T>, at point: PassagesBasedSuperposition<T>.Point) -> Bool {
+        let success = super.applyPassagesRestriction(restriction, at: point)
+        if case .passage = restriction, success {
+            isIsolatedAvailable = false
+        }
+        return success
+    }
+
     override func resetRestrictions() {
         super.resetRestrictions()
+        isIsolatedAvailable = true
         types = TeleporterType.allCases.toSet()
         requiredTargets.removeAll()
         preventedTargets.removeAll()
     }
 
     override func waveFunctionCollapse(point: Point, field: Field) -> Field.Element? {
-        guard let passages = passagesVariations.randomElement() else { return nil }
+        var passages = passagesVariations.randomElement()
+        if passages == nil && isIsolatedAvailable {
+            passages = []
+        }
+        guard let passages = passages else { return nil }
         guard let type = types.randomElement() else { return nil }
 
         let target = target(point: point, field: field)
