@@ -11,7 +11,7 @@ enum ElementsAvailabilityRestrictionType {
     case allowing, denying
 }
 
-final class ElementsAvailabilityRestriction: NodeRestriction {
+final class ElementsAvailabilityRestriction: NodeRestriction {    
     var type: ElementsAvailabilityRestrictionType
     var categories: [String] = []
     var allowUncategorized: Bool = true

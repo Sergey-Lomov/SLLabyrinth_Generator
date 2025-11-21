@@ -14,7 +14,14 @@ public protocol NodeSuperposition: IdHashable {
 
     var point: Point { get }
     var elementsSuperpositions: [Nested] { get }
+
+    /// Entropy reflects the uncertainty of a superposition.
+    /// This value is not strictly equal with the total number of possible superposition resolutions.
     var entropy: Int { get }
+
+    /// Absolute entropy is the total number of all possible superposition resolutions.
+    /// In most cases, it is equivalent to entropy.
+    func absoluteEntropy(point: Point, field: Field) -> Int
 
     init(point: Point, elementsSuperpositions: [Nested])
     init(superposition: Self)
@@ -30,6 +37,9 @@ public protocol NodeSuperposition: IdHashable {
     func applyRestriction(_ restriction: AppliedRestriction)
     func applyRestriction(_ restriction: any SuperpositionRestriction, provider: String, onetime: Bool)
     func applyRestrictions(_ restrictions: [any SuperpositionRestriction], provider: String, onetime: Bool)
+
+    /// This method should result in a superposition configuration that cannot produce the specified constraint when collapsing.
+    func preventRestriction(_ restriction: SuperpositionRestriction)
 
     @discardableResult
     func resetRestrictions() -> [AppliedRestriction]
@@ -65,6 +75,7 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
     var availableElements: Set<Nested> = []
     private var restrictions: [AppliedRestriction] = []
 
+    // TODO: It seems that entropy used to be cached, but is no longer. We need to identify why the caching mechanism was removed. The calculateEntropy method should be deleted if caching is no longer used. The removal of caching might be related to the introduction of MinEntropyContainer.
     var entropy: Int {
         availableElements
             .map { $0.entropy }
@@ -92,11 +103,17 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
         }
     }
 
+    func absoluteEntropy(point: T.Point, field: T.Field) -> Int {
+        availableElements
+            .map { $0.absoluteEntropy(point: point, field: field) }
+            .reduce(0, +)
+    }
+
     func applyRestriction(_ restriction: any SuperpositionRestriction, provider: String, onetime: Bool = false) {
         let applied = AppliedRestriction(restriction: restriction, provider: provider, isOnetime: onetime)
         restrictions.append(applied)
 
-        // TODO: Remove testing code
+        // TODO: Implement testing build target or remove testing code
         validateRestrictions()
 
         switch restriction {
@@ -109,7 +126,18 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
         }
     }
 
-    // TODO: Remove teseting code or refatoring
+    func preventRestriction(_ restriction: any SuperpositionRestriction) {
+        switch restriction {
+        case let restriction as any ElementRestriction:
+            preventElementRestriction(restriction)
+        case let restriction as NodeRestriction:
+            preventNodeRestriction(restriction)
+        default:
+            break
+        }
+    }
+
+    // TODO: Implement testing build target or remove testing code
     private func validateRestrictions() {
         let rests: [PassagesElementRestriction<T>] = restrictions.compactMap {
             guard !$0.isOnetime else { return nil }
@@ -180,15 +208,27 @@ final class TopologyBasedNodeSuperposition<T: Topology>: NodeSuperposition {
             .forEach { applyRestriction($0) }
     }
 
-    private func caclulateEntropy() -> Int {
+    private func calculateEntropy() -> Int {
         availableElements
             .map { $0.entropy }
             .reduce(0, +)
     }
 
+    private func preventNodeRestriction(_ restriction: NodeRestriction) {
+        availableElements = availableElements.filter {
+            !restriction.validateElement($0)
+        }
+    }
+
     private func applyNodeRestriction(_ restriction: NodeRestriction) {
         availableElements = availableElements.filter {
             restriction.validateElement($0)
+        }
+    }
+
+    private func preventElementRestriction(_ restriction: any ElementRestriction) {
+        elementsSuperpositions.forEach {
+            $0.preventRestriction(restriction)
         }
     }
 

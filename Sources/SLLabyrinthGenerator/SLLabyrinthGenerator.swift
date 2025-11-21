@@ -46,6 +46,18 @@ public final class LabyrinthGenerator<T: Topology> {
     private var debugMode: Bool = false
     private var savedStates: Dictionary<GenerationStep, GeneratorState<T>> = [:]
 
+    enum FieldRegenerationResult {
+        case success
+        case fail(point: Point)
+
+        var isSuccess: Bool {
+            switch self {
+            case .success: return true
+            default: return false
+            }
+        }
+    }
+
     init(configuration: GeneratorConfiguration<T>) {
         self.configuration = configuration
         self.field = Field(size: configuration.size)
@@ -59,8 +71,8 @@ public final class LabyrinthGenerator<T: Topology> {
         field = Field(size: configuration.size)
         executeStep(.collapse, log: timeLog)
         executeStep(.paths, log: timeLog)
-        executeStep(.isolated, log: timeLog)
-        executeStep(.cycles, log: timeLog)
+//        executeStep(.isolated, log: timeLog)
+//        executeStep(.cycles, log: timeLog)
 
         return timeLog
     }
@@ -216,21 +228,43 @@ public final class LabyrinthGenerator<T: Topology> {
         guard let superposition = uncollapsed.getSuperposition() else { return }
         uncollapsed.remove(superposition)
         let point = superposition.point
-        let solid = Solid<T>() as? Element
-        let generated = superposition.waveFunctionCollapse(
-            weights: configuration.elementsWeights,
-            point: point,
-            field: field
-        )
-        let element = generated ?? solid
-        guard let element = element else { return }
 
-        // TODO: Remove test code
-        if element is Solid<T> {
-            print("Error: solid element was generated")
+        var success = false
+
+        // This variable is part of the zero-entropy avoidance approach, which remains unused in the majority of cases.  Therefore, it is optional to skip calculations whose results are almost never used.
+        var absoluteEntropy: Int? = nil
+        while (absoluteEntropy ?? 1) > 0 {
+            let generated = superposition.waveFunctionCollapse(
+                weights: configuration.elementsWeights,
+                point: point,
+                field: field
+            )
+
+            guard let element = generated else {
+                print("Issue")
+                break
+            }
+
+            let zeroEntropyRestriction = setFieldElement(
+                at: point,
+                element: element,
+                entropyContainer: uncollapsed,
+                failOnZeroEntropy: true
+            )
+
+            if let zeroEntropyRestriction = zeroEntropyRestriction {
+                let oldEntropy = absoluteEntropy ?? superposition.absoluteEntropy(point: point, field: field)
+                superposition.preventRestriction(zeroEntropyRestriction)
+                let newEntropy = superposition.absoluteEntropy(point: point, field: field)
+                guard newEntropy < oldEntropy else { break }
+                absoluteEntropy = newEntropy
+            } else {
+                success = true
+                break
+            }
         }
 
-        setFieldElement(at: point, element: element, entropyContainer: uncollapsed)
+        if !success { eraseFieldElement(at: point) }
     }
 
     func eraseFieldElement(at point: Point) {
@@ -241,51 +275,51 @@ public final class LabyrinthGenerator<T: Topology> {
         field.setElement(at: point, element: nil)
     }
 
+    @discardableResult
+    /// Set field element and apply necessary restrictions
+    /// If failOnZeroEntropy is true and some restrictions leads to appearing superposition with zero entropy, this restriction will be returned
     func setFieldElement(
         at point: Point,
         element: Element,
-        entropyContainer: MinEntropyContainer<T>? = nil
-    ) {
+        entropyContainer: MinEntropyContainer<T>? = nil,
+        failOnZeroEntropy: Bool = false
+    ) -> (any ElementRestriction)? {
         field.setElement(at: point, element: element)
 
-        let restrictions = element.outcomeRestrictions(point: point, field: field)
-        restrictions.forEach { point, pointRestrictions in
-            guard let superposition = superpositions[point] else { return }
+        var zeroEntropyRestriction: (any ElementRestriction)?
+        let outcomeRestrictions = element.outcomeRestrictions(point: point, field: field)
+        for (target, restrictions) in outcomeRestrictions {
+            guard let superposition = superpositions[target] else { continue }
+
+            for restriction in restrictions {
+                superposition.applyRestriction(
+                    restriction,
+                    provider: element.restrictionId,
+                    onetime: false
+                )
+
+                if failOnZeroEntropy && superposition.entropy == 0 {
+                    zeroEntropyRestriction = restriction
+                    break
+                }
+            }
 
             let entropyHandled = entropyContainer?.contains(superposition) ?? false
             if entropyHandled {
-                // Store old entropy for comparison
-                let oldEntropy = superposition.entropy
-                
-                // Apply restrictions (this changes entropy)
-                pointRestrictions.forEach {
-                    superposition.applyRestriction($0, provider: element.restrictionId, onetime: false)
-                }
-                
                 // Update entropy in container more efficiently
                 entropyContainer?.updateEntropy(for: superposition)
-            } else {
-                // Apply restrictions normally
-                pointRestrictions.forEach {
-                    superposition.applyRestriction($0, provider: element.restrictionId, onetime: false)
-                }
             }
 
             affectedArea.append(key: element, arrayValue: superposition)
         }
-    }
 
-    enum FieldRegenerationResult {
-        case success
-        case fail(point: Point)
-
-        var isSuccess: Bool {
-            switch self {
-            case .success: return true
-            default: return false
-            }
+        if zeroEntropyRestriction != nil {
+            eraseFieldElement(at: point)
         }
+
+        return zeroEntropyRestriction
     }
+
     func regenerate(
         points: [Point],
         restrictions: Dictionary<Point, [any SuperpositionRestriction]> = [:],

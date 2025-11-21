@@ -61,6 +61,15 @@ class PassagesBasedSuperposition<T: Topology>: TopologyBasedElementSuperposition
         return true
     }
 
+    override func preventPassagesRestriction(_ restriction: PassagesElementRestriction<T>) {
+        switch restriction {
+        case .wall(let edge):
+            passagesVariations = passagesVariations.filter { $0.contains(edge) }
+        case .passage(let edge):
+            passagesVariations = passagesVariations.filter { !$0.contains(edge) }
+        }
+    }
+
     override func resetRestrictions() {
         passagesVariations = initialPassages()
     }

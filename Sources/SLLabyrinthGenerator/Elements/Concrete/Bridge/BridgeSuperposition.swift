@@ -45,16 +45,27 @@ final class BridgeSuperposition<T: Topology>: TopologyBasedElementSuperposition<
     override func applyPassagesRestriction(_ restriction: PassagesElementRestriction<T>, at point: Point) -> Bool {
         switch restriction {
         case .wall(let edge):
-            pathsVariations = pathsVariations.filter { paths in
-                paths.allSatisfy { !$0.contains(edge) }
-            }
+            filterPaths(by: edge, contains: false)
         case .passage(let edge):
-            pathsVariations = pathsVariations.filter { paths in
-                paths.contains { $0.contains(edge) }
-            }
+            filterPaths(by: edge, contains: true)
         }
 
         return true
+    }
+
+    override func preventPassagesRestriction(_ restriction: PassagesElementRestriction<T>) {
+        switch restriction {
+        case .wall(let edge):
+            filterPaths(by: edge, contains: true)
+        case .passage(let edge):
+            filterPaths(by: edge, contains: false)
+        }
+    }
+
+    private func filterPaths(by edge: Edge, contains: Bool) {
+        pathsVariations = pathsVariations.filter { paths in
+            paths.allSatisfy { $0.contains(edge) == contains }
+        }
     }
 
     override func applyConnectionRestriction(_ restriction: ConnectionPreventRestriction<T>, at point: Point) -> Bool {

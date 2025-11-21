@@ -112,10 +112,10 @@ final class MinEntropyContainer<T: Topology> {
     /// This is more efficient than remove + append for entropy changes
     func updateEntropy(for superposition: Superposition) {
         guard let index = pointToIndex[superposition.point] else { return }
-        
+
         let oldEntropy = heap[index].entropy
         let newEntropy = superposition.entropy
-        
+
         // Update the superposition in the heap
         heap[index] = superposition
         

@@ -26,6 +26,7 @@ final class OneWayRestriction<T: Topology>: ElementRestriction, IdHashable {
     }
 }
 
+/// Prevents the use of optional one-way connections
 final class OnlyRequiredOnewaysRestriction: ElementRestriction {
     var allowUnhandled: Bool { true }
 }

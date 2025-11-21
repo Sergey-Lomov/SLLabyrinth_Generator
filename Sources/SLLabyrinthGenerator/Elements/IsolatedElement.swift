@@ -46,6 +46,15 @@ class IsolatedElementSuperposition<T: Topology>: TopologyBasedElementSuperpositi
         }
     }
 
+    override func preventPassagesRestriction(_ restriction: PassagesElementRestriction<T>) {
+        switch restriction {
+        case .wall(_):
+            available = false
+        case .passage(_):
+            break
+        }
+    }
+
     override func resetRestrictions() {
         available = true
     }
